@@ -1,0 +1,747 @@
+@extends('layouts.mobile-app')
+
+@section('content')
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h2>Mark Attendance</h2>
+                <p class="date-info">{{ now()->format('l, d F Y') }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ route('mobile.attendance') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Time Display -->
+    <div class="time-display">
+        <div class="current-time" id="currentTime">
+            <i class="fas fa-clock"></i>
+            <span id="timeText">{{ now()->format('H:i:s') }}</span>
+        </div>
+        <div class="current-date">{{ now()->format('d F Y') }}</div>
+    </div>
+
+    <!-- Form -->
+    <form id="attendanceForm" action="{{ route('attendance.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        
+        <!-- Hidden fields for automatic data -->
+        <input type="hidden" name="tanggal" value="{{ now()->format('Y-m-d') }}">
+        <input type="hidden" name="waktu_masuk" value="{{ now()->format('H:i') }}">
+        <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude') }}">
+        <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude') }}">
+        <input type="hidden" id="lokasi" name="lokasi" value="{{ old('lokasi') }}">
+        <input type="hidden" id="foto" name="foto" value="{{ old('foto') }}">
+        
+        <div class="form-section">
+            <h3>Attendance Information</h3>
+            
+            <div class="info-display">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-calendar"></i>
+                        <span>Tanggal</span>
+                    </div>
+                    <div class="info-value">{{ now()->format('d/m/Y') }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-clock"></i>
+                        <span>Waktu</span>
+                    </div>
+                    <div class="info-value" id="timeDisplay">{{ now()->format('H:i') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Location</h3>
+            <p class="form-hint">Lokasi akan terdeteksi otomatis saat Anda menekan tombol "Get Location"</p>
+            
+            <div class="location-display" id="locationDisplay" style="display: none;">
+                <div class="location-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="location-details">
+                        <div class="location-address" id="locationAddress">Loading location...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn-location" onclick="getLocation()" id="locationBtn">
+                <i class="fas fa-location-arrow"></i>
+                <span>Get Current Location</span>
+            </button>
+            
+            @error('latitude')
+                <span class="error-message">{{ $message }}</span>
+            @enderror
+            @error('longitude')
+                <span class="error-message">{{ $message }}</span>
+            @enderror
+        </div>
+
+        <div class="form-section">
+            <h3>Photo</h3>
+            <p class="form-hint">Ambil foto untuk bukti kehadiran</p>
+            
+            <div class="photo-capture-area" id="photoCaptureArea">
+                <div class="capture-placeholder" id="capturePlaceholder">
+                    <i class="fas fa-camera"></i>
+                    <p>Tap untuk mengambil foto</p>
+                </div>
+                <input type="file" id="photo" name="photo" accept="image/*" capture="environment" style="display: none;" required>
+            </div>
+            
+            <div id="photoPreview" class="photo-preview"></div>
+            
+            @error('foto')
+                <span class="error-message">{{ $message }}</span>
+            @enderror
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit" id="submitBtn" disabled>
+                <i class="fas fa-check"></i>
+                <span id="submitText">Mark Attendance</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+@endsection
+
+@push('styles')
+<style>
+    .time-display {
+        background: linear-gradient(135deg, #0B1F3A 0%, #163057 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(11, 31, 58, 0.3);
+    }
+
+    .current-time {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .current-date {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f3f4;
+    }
+
+    .form-section h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: #ffffff;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #0B1F3A;
+        box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.1);
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .info-display {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .info-label i {
+        color: #0B1F3A;
+        width: 16px;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #1a202c;
+        font-size: 0.875rem;
+    }
+
+    .form-hint {
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .location-display {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 2px solid #e2e8f0;
+    }
+
+    .location-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .location-info i {
+        color: #0B1F3A;
+        font-size: 1.25rem;
+        margin-top: 0.25rem;
+    }
+
+    .location-details {
+        flex: 1;
+    }
+
+    .location-address {
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .location-coords {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .btn-location {
+        width: 100%;
+        background: linear-gradient(135deg, #F2B705 0%, #d9a404 100%);
+        color: #0B1F3A;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-location:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(242, 183, 5, 0.3);
+    }
+
+    .btn-location:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .photo-capture-area {
+        border: 2px dashed #cbd5e0;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f8f9fa;
+    }
+
+    .photo-capture-area:hover {
+        border-color: #0B1F3A;
+        background: #f1f3f4;
+    }
+
+    .capture-placeholder i {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .capture-placeholder p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .photo-preview {
+        margin-top: 1rem;
+    }
+
+    .photo-item {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 1;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+
+    .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-remove {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .form-actions {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1rem;
+        margin: 1rem -1rem -1rem -1rem;
+        border-top: 1px solid #f1f3f4;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #0B1F3A 0%, #163057 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(11, 31, 58, 0.3);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-back {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Toast Styles */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 300px;
+    }
+
+    .toast {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid;
+        animation: slideIn 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .toast.success {
+        border-left-color: #28a745;
+    }
+
+    .toast.error {
+        border-left-color: #dc3545;
+    }
+
+    .toast-icon {
+        font-size: 1.25rem;
+    }
+
+    .toast.success .toast-icon {
+        color: #28a745;
+    }
+
+    .toast.error .toast-icon {
+        color: #dc3545;
+    }
+
+    .toast-message {
+        flex: 1;
+        font-size: 0.875rem;
+        color: #1a202c;
+        font-weight: 500;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+let currentLocation = null;
+let photoTaken = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Update time every second
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Handle photo capture
+    const photoCaptureArea = document.getElementById('photoCaptureArea');
+    const photoInput = document.getElementById('photo');
+    const photoPreview = document.getElementById('photoPreview');
+    const capturePlaceholder = document.getElementById('capturePlaceholder');
+    const form = document.getElementById('attendanceForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+
+    photoCaptureArea.addEventListener('click', function() {
+        photoInput.click();
+    });
+
+    photoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                capturePlaceholder.style.display = 'none';
+                
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Attendance photo">
+                    <button type="button" class="photo-remove" onclick="removePhoto()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                photoPreview.innerHTML = '';
+                photoPreview.appendChild(photoItem);
+                
+                // Convert to base64 and store in hidden input
+                document.getElementById('foto').value = e.target.result;
+                photoTaken = true;
+                checkFormValidity();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation and submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!currentLocation) {
+            alert('Harap dapatkan lokasi terlebih dahulu');
+            return;
+        }
+
+        if (!photoTaken) {
+            alert('Harap ambil foto terlebih dahulu');
+            return;
+        }
+
+        submitText.textContent = 'Menyimpan...';
+        submitBtn.disabled = true;
+
+        // Submit form via AJAX
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Show success message
+                showToast('success', data.message);
+                
+                // Redirect to attendance list after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '{{ route("mobile.attendance") }}';
+                }, 2000);
+            } else {
+                showToast('error', data.message || 'Terjadi kesalahan');
+                submitText.textContent = 'Mark Attendance';
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('error', 'Terjadi kesalahan saat menyimpan absensi');
+            submitText.textContent = 'Mark Attendance';
+            submitBtn.disabled = false;
+        });
+    });
+});
+
+function updateTime() {
+    const now = new Date();
+    const timeText = document.getElementById('timeText');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const currentTime = now.toLocaleTimeString('id-ID');
+    
+    timeText.textContent = currentTime;
+    timeDisplay.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    
+    // Update hidden input
+    document.querySelector('input[name="waktu_masuk"]').value = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getLocation() {
+    const locationBtn = document.getElementById('locationBtn');
+    const locationDisplay = document.getElementById('locationDisplay');
+    const locationAddress = document.getElementById('locationAddress');
+    
+    locationBtn.innerHTML = '<div class="loading"></div><span>Getting location...</span>';
+    locationBtn.disabled = true;
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                
+                currentLocation = { latitude, longitude };
+                
+                // Update hidden inputs
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+                
+                // Get address from coordinates
+                getAddressFromCoords(latitude, longitude, locationAddress);
+                
+                // Show location display
+                locationDisplay.style.display = 'block';
+                
+                // Reset button
+                locationBtn.innerHTML = '<i class="fas fa-check"></i><span>Location Captured</span>';
+                locationBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                locationBtn.style.color = 'white';
+                
+                checkFormValidity();
+            },
+            function(error) {
+                console.error('Error getting location:', error);
+                locationAddress.textContent = 'Gagal mendapatkan lokasi';
+                
+                // Reset button
+                locationBtn.innerHTML = '<i class="fas fa-location-arrow"></i><span>Try Again</span>';
+                locationBtn.disabled = false;
+                
+                alert('Gagal mendapatkan lokasi. Pastikan Anda mengizinkan akses lokasi.');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
+        );
+    } else {
+        alert('Geolocation tidak didukung di browser ini');
+        locationBtn.innerHTML = '<i class="fas fa-location-arrow"></i><span>Get Current Location</span>';
+        locationBtn.disabled = false;
+    }
+}
+
+function getAddressFromCoords(latitude, longitude, element) {
+    // Using OpenStreetMap Nominatim API (free)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.display_name) {
+                element.textContent = data.display_name;
+                document.getElementById('lokasi').value = data.display_name;
+            } else {
+                element.textContent = 'Lokasi tidak dapat diidentifikasi';
+            }
+        })
+        .catch(error => {
+            console.error('Error getting address:', error);
+            element.textContent = 'Lokasi tidak dapat diidentifikasi';
+        });
+}
+
+function removePhoto() {
+    document.getElementById('photo').value = '';
+    document.getElementById('foto').value = '';
+    document.getElementById('photoPreview').innerHTML = '';
+    document.getElementById('capturePlaceholder').style.display = 'block';
+    photoTaken = false;
+    checkFormValidity();
+}
+
+function checkFormValidity() {
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (currentLocation && photoTaken) {
+        submitBtn.disabled = false;
+    } else {
+        submitBtn.disabled = true;
+    }
+}
+
+function showToast(type, message) {
+    const container = document.getElementById('toastContainer');
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    toast.innerHTML = `
+        <i class="${icon} toast-icon"></i>
+        <div class="toast-message">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+            if (container.contains(toast)) {
+                container.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+</script>
+@endpush 

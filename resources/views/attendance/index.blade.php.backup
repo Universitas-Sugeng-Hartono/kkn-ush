@@ -1,0 +1,722 @@
+<x-app-layout>
+    <style>
+        /* Responsive Design untuk Mobile */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .card-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .card-header h5 {
+                font-size: 1rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem 0.25rem;
+                vertical-align: middle;
+            }
+            
+            .btn {
+                font-size: 0.875rem;
+                padding: 0.375rem 0.75rem;
+            }
+            
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .btn-lg {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .badge {
+                font-size: 0.75rem;
+            }
+            
+            .col-md-8,
+            .col-md-4 {
+                margin-bottom: 1rem;
+            }
+            
+            .row.g-3 {
+                margin: 0;
+            }
+            
+            .row.g-3 .col-6 {
+                padding: 0 5px;
+            }
+            
+            .border.rounded.p-3 {
+                padding: 0.75rem !important;
+            }
+            
+            .border.rounded.p-3 h3 {
+                font-size: 1.5rem;
+            }
+            
+            .border.rounded.p-3 small {
+                font-size: 0.75rem;
+            }
+            
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .modal-title {
+                font-size: 1rem;
+            }
+            
+            .form-label {
+                font-size: 0.875rem;
+            }
+            
+            .form-control,
+            .form-select {
+                font-size: 0.875rem;
+                padding: 0.375rem 0.75rem;
+            }
+            
+            .text-center img {
+                width: 120px !important;
+            }
+            
+            .text-center h4 {
+                font-size: 1.25rem;
+            }
+            
+            .text-center p {
+                font-size: 0.875rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 5px;
+            }
+            
+            .card-body {
+                padding: 0.75rem;
+            }
+            
+            .card-header {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.8rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.375rem 0.125rem;
+            }
+            
+            .btn {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .btn-sm {
+                padding: 0.125rem 0.25rem;
+                font-size: 0.7rem;
+            }
+            
+            .btn-lg {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            .modal-dialog {
+                margin: 0.25rem;
+                max-width: calc(100% - 0.5rem);
+            }
+            
+            .modal-body {
+                padding: 0.75rem;
+            }
+            
+            .modal-header {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .form-control,
+            .form-select {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .row.g-3 .col-6 {
+                padding: 0 2px;
+            }
+            
+            .border.rounded.p-3 {
+                padding: 0.5rem !important;
+            }
+            
+            .border.rounded.p-3 h3 {
+                font-size: 1.25rem;
+            }
+            
+            .border.rounded.p-3 small {
+                font-size: 0.7rem;
+            }
+            
+            .text-center img {
+                width: 100px !important;
+            }
+            
+            .text-center h4 {
+                font-size: 1.1rem;
+            }
+            
+            .text-center p {
+                font-size: 0.8rem;
+            }
+            
+            .d-flex.justify-content-between.align-items-center {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .d-flex.justify-content-between.align-items-center > div:first-child {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+    
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold">Absensi Harian</h2>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-clipboard-check me-2"></i>Catat kehadiran dan aktivitas harian Anda
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Kalender -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar me-2"></i>Kalender Aktivitas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+
+                <!-- Riwayat Absensi -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history me-2"></i>Riwayat Absensi
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="attendanceTable">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Waktu</th>
+                                        <th>Status</th>
+                                        <th>Detail</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($attendances as $attendance)
+                                        <tr>
+                                            <td>{{ $attendance->tanggal->isoFormat('dddd, D MMMM Y') }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($attendance->waktu_masuk)->format('H:i') }}</td>
+                                            <td>
+                                                <span class="badge {{ $attendance->status === 'validated' ? 'bg-success' : 
+                                                       ($attendance->status === 'rejected' ? 'bg-danger' : 'bg-warning') }}">
+                                                    {{ ucfirst($attendance->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-info"
+                                                        onclick="showDetail({{ $attendance->id }})"
+                                                        title="Lihat Detail">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Panel Absen Hari Ini -->
+                <div class="card mb-4">
+                    <div class="card-body text-center py-5">
+                        @if(!$todayAttendance)
+                            <img src="{{ asset('images/attendance.svg') }}" alt="Absen" class="mb-4" style="width: 150px;">
+                            <h4 class="fw-bold mb-3">Belum Absen Hari Ini</h4>
+                            <p class="text-muted mb-4">Silakan lakukan absensi untuk hari ini</p>
+                            <button type="button" class="btn btn-primary btn-lg px-5" onclick="takeAttendance()">
+                                <i class="fas fa-camera me-2"></i>Absen Sekarang
+                            </button>
+                        @else
+                            <img src="{{ asset('images/attendance-done.svg') }}" alt="Sudah Absen" class="mb-4" style="width: 150px;">
+                            <h4 class="fw-bold mb-3">Sudah Absen Hari Ini</h4>
+                            <p class="text-muted mb-4">
+                                Terakhir absen: {{ \Carbon\Carbon::parse($todayAttendance->waktu_masuk)->format('H:i') }}
+                            </p>
+                            <button type="button" class="btn btn-success btn-lg px-5" disabled>
+                                <i class="fas fa-check-circle me-2"></i>Absensi Selesai
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Statistik Absensi -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Statistik Absensi
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="fw-bold text-success mb-1">{{ $stats['validated'] }}</h3>
+                                    <small class="text-muted">Divalidasi</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="fw-bold text-warning mb-1">{{ $stats['pending'] }}</h3>
+                                    <small class="text-muted">Pending</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="fw-bold text-danger mb-1">{{ $stats['rejected'] }}</h3>
+                                    <small class="text-muted">Ditolak</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="fw-bold text-primary mb-1">{{ $stats['total'] }}</h3>
+                                    <small class="text-muted">Total</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail Absensi -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Absensi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tanggal</label>
+                                <p id="detail-tanggal"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Waktu</label>
+                                <p id="detail-waktu"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Status</label>
+                                <p id="detail-status"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lokasi</label>
+                                <p id="detail-lokasi"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Foto</label>
+                                <img id="detail-foto" src="" alt="Foto Absensi" class="img-fluid rounded">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Absensi -->
+    <div class="modal fade" id="attendanceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Absensi Hari Ini</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="attendanceForm" action="{{ route('attendance.store') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="text-center mb-4">
+                            <div id="camera-container" class="position-relative mx-auto" style="width: 320px; height: 240px;">
+                                <video id="camera" class="rounded" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                <canvas id="canvas" class="d-none"></canvas>
+                                <div id="camera-overlay" class="position-absolute top-0 start-0 w-100 h-100 rounded"
+                                    style="border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);"></div>
+                            </div>
+                            <input type="hidden" name="foto" id="foto">
+                            <button type="button" class="btn btn-primary mt-3" id="captureBtn">
+                                <i class="fas fa-camera me-2"></i>Ambil Foto
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tanggal</label>
+                            <input type="text" class="form-control" value="{{ now()->format('d/m/Y') }}" disabled>
+                            <input type="hidden" name="tanggal" value="{{ now()->format('Y-m-d') }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Waktu</label>
+                            <input type="text" class="form-control" value="{{ now()->format('H:i') }}" disabled>
+                            <input type="hidden" name="waktu_masuk" value="{{ now()->format('H:i') }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Lokasi</label>
+                            <input type="text" class="form-control" id="lokasi" disabled>
+                            <input type="hidden" name="latitude" id="latitude">
+                            <input type="hidden" name="longitude" id="longitude">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Lokasi akan terdeteksi otomatis
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                <i class="fas fa-check me-2"></i>Kirim Absensi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <style>
+        /* Kalender */
+        .fc {
+            --fc-border-color: #e5e7eb;
+            --fc-button-text-color: #fff;
+            --fc-button-bg-color: #0B1F3A;
+            --fc-button-border-color: #0B1F3A;
+            --fc-button-hover-bg-color: #0a1829;
+            --fc-button-hover-border-color: #0a1829;
+            --fc-button-active-bg-color: #0a1829;
+            --fc-button-active-border-color: #0a1829;
+            --fc-today-bg-color: rgba(11, 31, 58, 0.1);
+            --fc-neutral-bg-color: #fff;
+            --fc-neutral-text-color: #0B1F3A;
+            --fc-event-bg-color: #0B1F3A;
+            --fc-event-border-color: #0B1F3A;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0B1F3A;
+        }
+
+        .fc .fc-button {
+            text-transform: capitalize;
+            font-weight: 500;
+        }
+
+        .fc .fc-col-header-cell {
+            background-color: #f8f9fa;
+            padding: 1rem 0;
+        }
+
+        .fc .fc-col-header-cell-cushion {
+            color: #0B1F3A;
+            font-weight: 600;
+            text-decoration: none;
+            text-transform: capitalize;
+            padding: 8px;
+        }
+
+        .fc .fc-daygrid-day-number {
+            color: #0B1F3A;
+            text-decoration: none;
+            padding: 8px;
+        }
+
+        .fc .fc-daygrid-day.absent {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .fc .fc-daygrid-day.present {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        .fc .fc-event {
+            border: none;
+            padding: 2px 4px;
+            font-size: 0.875rem;
+            border-radius: 4px;
+        }
+
+        .fc .fc-event-title {
+            font-weight: 500;
+        }
+
+        .fc .fc-day:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        /* Camera */
+        #camera-container {
+            background: #000;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        #camera-overlay {
+            border-radius: 0.5rem;
+            pointer-events: none;
+        }
+    </style>
+    @endpush
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Calendar
+            const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                initialView: 'dayGridMonth',
+                locale: 'id',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                buttonText: {
+                    today: 'Hari Ini'
+                },
+                events: @json($events),
+                dayCellDidMount: function(info) {
+                    // Tandai hari yang sudah/belum absen
+                    const event = info.el;
+                    const date = info.date;
+                    const today = new Date();
+                    
+                    // Reset jam agar bisa membandingkan tanggal saja
+                    date.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+
+                    // Jika tanggal sudah lewat dan tidak ada absensi
+                    if (date < today && !hasAttendance(date)) {
+                        event.classList.add('absent');
+                    }
+                }
+            });
+            calendar.render();
+
+            // Initialize DataTable
+            $('#attendanceTable').DataTable({
+                order: [[0, 'desc']],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+                }
+            });
+
+            // Cek apakah ada absensi pada tanggal tertentu
+            function hasAttendance(date) {
+                const events = calendar.getEvents();
+                return events.some(event => {
+                    const eventDate = new Date(event.start);
+                    return eventDate.toDateString() === date.toDateString();
+                });
+            }
+        });
+
+        // Fungsi untuk menampilkan detail absensi
+        function showDetail(id) {
+            fetch(`/attendance/${id}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('detail-tanggal').textContent = data.tanggal;
+                document.getElementById('detail-waktu').textContent = data.waktu_masuk;
+                document.getElementById('detail-status').innerHTML = `
+                    <span class="badge ${data.status === 'validated' ? 'bg-success' : 
+                           (data.status === 'rejected' ? 'bg-danger' : 'bg-warning')}">
+                        ${data.status}
+                    </span>`;
+                document.getElementById('detail-lokasi').textContent = data.lokasi;
+                if (data.foto_url) {
+                    document.getElementById('detail-foto').src = data.foto_url;
+                    document.getElementById('detail-foto').style.display = 'block';
+                } else {
+                    document.getElementById('detail-foto').style.display = 'none';
+                }
+                
+                new bootstrap.Modal(document.getElementById('detailModal')).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Gagal memuat detail absensi. Silakan coba lagi.');
+            });
+        }
+
+        // Fungsi untuk membuka modal absensi
+        function takeAttendance() {
+            const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+            modal.show();
+
+            // Inisialisasi kamera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.getElementById('camera');
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(err => {
+                    alert('Tidak dapat mengakses kamera: ' + err);
+                });
+
+            // Inisialisasi lokasi
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        // Deteksi Mock Location
+                        if (position.coords.accuracy < 10) {
+                            alert('Terdeteksi penggunaan Fake GPS! Mohon gunakan lokasi yang sebenarnya.');
+                            return;
+                        }
+
+                        document.getElementById('latitude').value = position.coords.latitude;
+                        document.getElementById('longitude').value = position.coords.longitude;
+
+                        // Reverse geocoding menggunakan Nominatim
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('lokasi').value = data.display_name;
+                            });
+                    },
+                    function(error) {
+                        alert('Error mendapatkan lokasi: ' + error.message);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            }
+        }
+
+        // Capture foto
+        document.getElementById('captureBtn').addEventListener('click', function() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            // Set ukuran canvas sesuai video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Gambar frame dari video ke canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Konversi ke base64
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            document.getElementById('foto').value = dataUrl;
+
+            // Enable tombol submit
+            document.getElementById('submitBtn').disabled = false;
+
+            // Update preview
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+        });
+
+        // Reset kamera saat modal ditutup
+        document.getElementById('attendanceModal').addEventListener('hidden.bs.modal', function() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('canvas');
+            
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            video.style.display = 'block';
+            canvas.style.display = 'none';
+            document.getElementById('submitBtn').disabled = true;
+        });
+    </script>
+    @endpush
+</x-app-layout> 

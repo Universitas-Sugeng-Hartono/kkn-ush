@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CKEditor 5 Styles */
+.ck-editor__editable {
+    min-height: 500px !important;
+    max-height: 800px;
+}
+
+.ck-editor__editable p {
+    margin: 0.5rem 0;
+}
+
+.ck.ck-editor {
+    width: 100%;
+}
+
+.ck.ck-editor__main > .ck-editor__editable {
+    background-color: #fff;
+}
+
+.ck.ck-editor__main > .ck-editor__editable:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] .ck.ck-editor__main > .ck-editor__editable {
+    background-color: #1a1d20;
+    color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .ck.ck-toolbar {
+    background: #2b3035;
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .ck.ck-button {
+    color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .ck.ck-button:hover {
+    background: #495057;
+}
+
+/* Status Badges */
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.badge i {
+    font-size: 0.875rem;
+}
+
+/* Status Colors */
+.badge.bg-warning {
+    color: #000;
+}
+
+.badge.bg-info {
+    color: #fff;
+}
+
+.badge.bg-primary {
+    color: #fff;
+}
+
+.badge.bg-success {
+    color: #fff;
+}
+
+/* Hover effects */
+.badge {
+    transition: all 0.2s ease-in-out;
+}
+
+.badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Status with datetime */
+.status-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-wrapper small {
+    opacity: 0.7;
+}

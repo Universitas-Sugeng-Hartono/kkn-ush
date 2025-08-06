@@ -1,0 +1,665 @@
+<x-app-layout>
+    <style>
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Form layout - Stack vertically */
+            .row .col-md-6,
+            .row .col-md-8,
+            .row .col-md-4 {
+                margin-bottom: 15px;
+            }
+            
+            /* Text adjustments */
+            h2.fw-bold {
+                font-size: 1.5rem;
+            }
+            
+            h5.card-title {
+                font-size: 1.1rem;
+            }
+            
+            /* Form controls */
+            .form-control, .form-select {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .form-label {
+                font-size: 14px;
+                font-weight: 500;
+            }
+            
+            .form-text {
+                font-size: 12px;
+            }
+            
+            /* Button adjustments */
+            .btn {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* Stack header buttons vertically */
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .d-flex.justify-content-between .btn {
+                width: 100%;
+            }
+            
+            /* Stack form buttons vertically */
+            .d-flex.gap-2 {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .d-flex.gap-2 .btn {
+                width: 100%;
+            }
+            
+            /* Image adjustments */
+            .img-fluid {
+                max-height: 200px;
+                object-fit: cover;
+            }
+            
+            /* Badge adjustments */
+            .badge {
+                font-size: 12px;
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 5px;
+            }
+            
+            .card-body {
+                padding: 10px;
+            }
+            
+            h2.fw-bold {
+                font-size: 1.3rem;
+            }
+            
+            h5.card-title {
+                font-size: 1rem;
+            }
+            
+            .form-control, .form-select {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .form-label {
+                font-size: 13px;
+            }
+            
+            .form-text {
+                font-size: 11px;
+            }
+            
+            .btn {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .img-fluid {
+                max-height: 150px;
+            }
+            
+            .badge {
+                font-size: 11px;
+            }
+        }
+    </style>
+
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold">Edit Logbook</h2>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-calendar me-2"></i>{{ $logbook->tanggal->isoFormat('dddd, D MMMM Y') }} · 
+                            <span class="badge {{ $logbook->status === 'approved' ? 'bg-success' : 
+                                   ($logbook->status === 'rejected' ? 'bg-danger' : 
+                                   ($logbook->status === 'submitted' ? 'bg-info' : 
+                                   'bg-warning')) }}">
+                                {{ ucfirst($logbook->status) }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('logbooks.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Kembali
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Form Edit Logbook -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-edit me-2"></i>Edit Kegiatan
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('logbooks.update', $logbook) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="mb-3">
+                                <label for="tanggal" class="form-label fw-bold">Tanggal</label>
+                                <input type="date" class="form-control" id="tanggal" name="tanggal" 
+                                    value="{{ old('tanggal', $logbook->tanggal->format('Y-m-d')) }}" required>
+                                @error('tanggal')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="waktu_mulai" class="form-label fw-bold">Waktu Mulai</label>
+                                    <input type="time" class="form-control" id="waktu_mulai" name="waktu_mulai"
+                                        value="{{ old('waktu_mulai', \Carbon\Carbon::parse($logbook->waktu_mulai)->format('H:i')) }}" required>
+                                    @error('waktu_mulai')
+                                        <div class="text-danger mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="waktu_selesai" class="form-label fw-bold">Waktu Selesai</label>
+                                    <input type="time" class="form-control" id="waktu_selesai" name="waktu_selesai"
+                                        value="{{ old('waktu_selesai', \Carbon\Carbon::parse($logbook->waktu_selesai)->format('H:i')) }}" required>
+                                    @error('waktu_selesai')
+                                        <div class="text-danger mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="judul" class="form-label fw-bold">Judul Kegiatan</label>
+                                <input type="text" class="form-control" id="judul" name="judul"
+                                    value="{{ old('judul', $logbook->judul) }}" required>
+                                @error('judul')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="jenis" class="form-label fw-bold">Jenis Kegiatan</label>
+                                <select class="form-select" id="jenis" name="jenis" required>
+                                    <option value="individu" {{ old('jenis', $logbook->jenis) === 'individu' ? 'selected' : '' }}>Individu</option>
+                                    <option value="desa" {{ old('jenis', $logbook->jenis) === 'desa' ? 'selected' : '' }}>Desa</option>
+                                    <option value="kecamatan" {{ old('jenis', $logbook->jenis) === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
+                                </select>
+                                @error('jenis')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="lokasi" class="form-label fw-bold">Lokasi Kegiatan</label>
+                                <input type="text" class="form-control" id="lokasi" name="lokasi"
+                                    value="{{ old('lokasi', $logbook->lokasi) }}" required>
+                                @error('lokasi')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="keterangan" class="form-label fw-bold">Keterangan</label>
+                                <textarea class="form-control" id="keterangan" name="keterangan" rows="4" required>{{ old('keterangan', $logbook->keterangan) }}</textarea>
+                                @error('keterangan')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Foto Kegiatan</label>
+                                <input type="file" class="form-control mb-2" id="photos" name="photos[]" multiple accept="image/*">
+                                <div class="form-text mb-2">Upload foto tambahan (format: jpg, jpeg, png, max: 2MB per foto)</div>
+                                @error('photos')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                                @error('photos.*')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                                <div id="preview" class="row g-2 mt-2"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">File Lampiran (Opsional)</label>
+                                <input type="file" class="form-control mb-2" id="attachments" name="attachments[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif">
+                                <div class="form-text mb-2">Upload file pendukung seperti PDF, DOC, DOCX, Excel, PowerPoint, atau gambar (max: 10MB per file)</div>
+                                @error('attachments')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                                @error('attachments.*')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                                <div id="attachmentPreview" class="mt-2"></div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Simpan Perubahan
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo me-2"></i>Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Foto Saat Ini -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-images me-2"></i>Foto Saat Ini
+                        </h5>
+                        <small class="text-muted">Klik tombol trash untuk hapus, atau upload foto baru di form sebelah kiri</small>
+                    </div>
+                    <div class="card-body">
+                        @if($logbook->photos->count() > 0)
+                            <div class="row g-3">
+                                @foreach($logbook->photos as $photo)
+                                    <div class="col-12">
+                                        <div class="position-relative">
+                                            <img src="{{ Storage::url($photo->path) }}" 
+                                                 alt="Foto Kegiatan" 
+                                                 class="img-fluid rounded shadow-sm">
+                                            <div class="position-absolute top-0 end-0 m-2 d-flex gap-1">
+                                                <a href="{{ Storage::url($photo->path) }}" 
+                                                   target="_blank" 
+                                                   class="btn btn-sm btn-light">
+                                                    <i class="fas fa-expand"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-danger"
+                                                        onclick="deletePhoto({{ $photo->id }})"
+                                                        title="Hapus Foto">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">Tidak ada foto kegiatan</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- File Lampiran Saat Ini -->
+                @if($logbook->attachments && count($logbook->attachments) > 0)
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-paperclip me-2"></i>File Lampiran Saat Ini
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="space-y-2">
+                            @foreach($logbook->attachments as $index => $attachment)
+                                <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded border">
+                                    <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                                        @php
+                                            $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
+                                            $iconClass = 'fas fa-file';
+                                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                                $iconClass = 'fas fa-image';
+                                            } elseif ($extension === 'pdf') {
+                                                $iconClass = 'fas fa-file-pdf';
+                                            } elseif (in_array($extension, ['doc', 'docx'])) {
+                                                $iconClass = 'fas fa-file-word';
+                                            } elseif (in_array($extension, ['xls', 'xlsx'])) {
+                                                $iconClass = 'fas fa-file-excel';
+                                            } elseif (in_array($extension, ['ppt', 'pptx'])) {
+                                                $iconClass = 'fas fa-file-powerpoint';
+                                            } elseif ($extension === 'txt') {
+                                                $iconClass = 'fas fa-file-alt';
+                                            }
+                                        @endphp
+                                        <i class="{{ $iconClass }} text-primary"></i>
+                                        <div class="min-w-0">
+                                            <div class="text-sm font-weight-bold text-truncate">{{ $attachment['name'] }}</div>
+                                            <div class="text-xs text-muted">{{ number_format($attachment['size'] / 1024, 1) }} KB</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <a href="{{ Storage::url($attachment['path']) }}" 
+                                           target="_blank" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteAttachment({{ $logbook->id }}, {{ $index }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    @push('styles')
+    <style>
+        .preview-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+    </style>
+    @endpush
+
+    @push('scripts')
+    <script>
+        // Kompresi gambar sebelum upload
+        function compressImage(file, callback) {
+            const maxWidth = 800;
+            const quality = 0.5;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    let scale = Math.min(maxWidth / img.width, 1);
+                    let canvas = document.createElement('canvas');
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    let ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(function(blob) {
+                        callback(new File([blob], file.name, {type: 'image/jpeg'}));
+                    }, 'image/jpeg', quality);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Preview foto yang akan diupload dengan kompresi
+        const photosInput = document.getElementById('photos');
+        const form = document.getElementById('logbookForm');
+        let compressedFiles = [];
+
+        photosInput.addEventListener('change', function(e) {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';
+            compressedFiles = [];
+            
+            const files = [...e.target.files];
+            
+            // Validasi ukuran file
+            for (const file of files) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Ukuran file tidak boleh lebih dari 2MB!');
+                    photosInput.value = '';
+                    return;
+                }
+            }
+            
+            let processed = 0;
+            files.forEach((file, idx) => {
+                compressImage(file, function(compressed) {
+                    compressedFiles[idx] = compressed;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6';
+                        col.innerHTML = `
+                            <div class="position-relative">
+                                <img src="${e.target.result}" class="preview-image">
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-dark">Preview (Compressed)</span>
+                                </div>
+                            </div>
+                        `;
+                        preview.appendChild(col);
+                    }
+                    reader.readAsDataURL(compressed);
+                    processed++;
+                });
+            });
+        });
+
+        // Handle attachment upload
+        const attachmentsInput = document.getElementById('attachments');
+        const attachmentPreview = document.getElementById('attachmentPreview');
+        let attachmentFiles = [];
+
+        attachmentsInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            // Validasi ukuran file
+            for (const file of files) {
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    alert('Ukuran file tidak boleh lebih dari 10MB!');
+                    attachmentsInput.value = '';
+                    return;
+                }
+            }
+
+            const startIndex = attachmentFiles.length;
+            
+            files.forEach((file, idx) => {
+                const actualIndex = startIndex + idx;
+                attachmentFiles[actualIndex] = file;
+                
+                const attachmentItem = document.createElement('div');
+                attachmentItem.className = 'd-flex align-items-center justify-content-between p-2 bg-light rounded border mb-2';
+                
+                // Tentukan icon berdasarkan tipe file
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                let iconClass = 'fas fa-file';
+                
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                    iconClass = 'fas fa-image';
+                } else if (['pdf'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-pdf';
+                } else if (['doc', 'docx'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-word';
+                } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-excel';
+                } else if (['ppt', 'pptx'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-powerpoint';
+                } else if (['txt'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-alt';
+                }
+                
+                attachmentItem.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                        <i class="${iconClass} text-primary"></i>
+                        <div class="min-w-0">
+                            <div class="text-sm font-weight-bold text-truncate">${file.name}</div>
+                            <div class="text-xs text-muted">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttachment(${actualIndex})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                attachmentPreview.appendChild(attachmentItem);
+            });
+            
+            // Reset input untuk memungkinkan upload file yang sama lagi
+            attachmentsInput.value = '';
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function removeAttachment(index) {
+            // Hapus dari array attachmentFiles
+            attachmentFiles.splice(index, 1);
+            
+            // Re-render semua preview
+            attachmentPreview.innerHTML = '';
+            
+            attachmentFiles.forEach((file, idx) => {
+                const attachmentItem = document.createElement('div');
+                attachmentItem.className = 'd-flex align-items-center justify-content-between p-2 bg-light rounded border mb-2';
+                
+                // Tentukan icon berdasarkan tipe file
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                let iconClass = 'fas fa-file';
+                
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                    iconClass = 'fas fa-image';
+                } else if (['pdf'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-pdf';
+                } else if (['doc', 'docx'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-word';
+                } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-excel';
+                } else if (['ppt', 'pptx'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-powerpoint';
+                } else if (['txt'].includes(fileExtension)) {
+                    iconClass = 'fas fa-file-alt';
+                }
+                
+                attachmentItem.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                        <i class="${iconClass} text-primary"></i>
+                        <div class="min-w-0">
+                            <div class="text-sm font-weight-bold text-truncate">${file.name}</div>
+                            <div class="text-xs text-muted">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttachment(${idx})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                attachmentPreview.appendChild(attachmentItem);
+            });
+        }
+
+        // Handle form submission dengan file yang sudah dikompresi
+        form.addEventListener('submit', function(e) {
+            if (compressedFiles.length > 0) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                formData.delete('photos[]');
+                compressedFiles.forEach(f => formData.append('photos[]', f));
+                
+                // Tambahkan attachments
+                formData.delete('attachments[]');
+                attachmentFiles.forEach(f => formData.append('attachments[]', f));
+                
+                // Submit via fetch agar file yang dikirim hasil kompresi
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                }).then(res => res.redirected ? window.location.href = res.url : res.json().then(data => alert(data.message)));
+            } else {
+                // Jika tidak ada foto baru, submit form normal untuk update data logbook
+                // Form akan di-submit secara normal tanpa intervensi
+            }
+        });
+
+        // Fungsi untuk menghapus foto
+        function deletePhoto(photoId) {
+            if (confirm('Apakah Anda yakin ingin menghapus foto ini?')) {
+                fetch(`/logbooks/photos/${photoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload halaman untuk memperbarui tampilan
+                        location.reload();
+                    } else {
+                        alert('Gagal menghapus foto: ' + (data.message || 'Terjadi kesalahan'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus foto');
+                });
+            }
+        }
+
+        function deleteAttachment(logbookId, index) {
+            if (confirm('Apakah Anda yakin ingin menghapus file ini?')) {
+                fetch(`/logbooks/${logbookId}/attachments`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ index: index })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Reload halaman untuk memperbarui tampilan
+                        location.reload();
+                    } else {
+                        alert('Gagal menghapus file: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus file');
+                });
+            }
+        }
+    </script>
+    @endpush
+</x-app-layout> 

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ $jenis === 'all' ? 'Semua Dokumen' : (new App\Models\Dokumen)->getJenisOptions()[$jenis] }} - {{ config('app.name') }}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/ush.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/ush.png') }}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #0B1F3A;
+            --accent-color: #F2B705;
+            --soft-blue: #E8F0F8;
+            --soft-yellow: #FFF8E7;
+            --soft-green: #E8F5E9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        h1, h2, h3, h4, h5, h6, .navbar-brand, .display-4 {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+        }
+
+        .lead {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 400;
+        }
+
+        .card-title {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 500;
+        }
+
+        .btn {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .breadcrumb {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 500;
+        }
+
+        .badge {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            padding: 0.5em 1em;
+        }
+
+        footer {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        footer h5 {
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+
+        footer a {
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-custom {
+            background-color: var(--primary-color);
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+
+        .btn-accent:hover {
+            background-color: #d9a504;
+            border-color: #d9a504;
+            color: var(--primary-color);
+        }
+
+        .page-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 60px 0;
+        }
+
+        .document-card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-footer {
+            background-color: transparent;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            padding: 1rem 1.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #0d2847;
+            border-color: #0d2847;
+        }
+
+        /* Warna soft untuk setiap jenis dokumen */
+        .document-peraturan {
+            background-color: var(--soft-blue);
+        }
+
+        .document-panduan {
+            background-color: var(--soft-yellow);
+        }
+
+        .document-template, .document-logo {
+            background-color: var(--soft-green);
+        }
+
+        .fa-file-pdf, .fa-file-word, .fa-file-excel {
+            color: var(--primary-color);
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+    <div class="container">
+            <a class="navbar-brand" href="{{ route('home') }}" style="padding: 5px;background-color: white;border-radius: 10px;">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 40px;">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('berita.public.index') }}">Berita</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('dokumen.kategori', 'all') }}">Dokumen</a>
+                    </li>
+                </ul>
+
+                @auth
+                    <a href="{{ route('dashboard') }}" class="btn btn-accent">Dashboard</a>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-accent">Login</a>
+                @endauth
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>{{ $jenis === 'all' ? 'Semua Dokumen' : (new App\Models\Dokumen)->getJenisOptions()[$jenis] }}</h1>
+            <p>Download dokumen resmi KKN Universitas Sugeng Hartono</p>
+        </div>
+    </header>
+
+    <!-- Document List -->
+    <main class="py-5">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                @php
+                                    $title = match($jenis) {
+                                        'panduan' => 'Panduan KKN',
+                                        'peraturan' => 'Peraturan KKN',
+                                        'template' => 'Template Dokumen',
+                                        'logo' => 'Logo Universitas',
+                                        'all' => 'Semua Dokumen',
+                                        default => ucfirst($jenis)
+                                    };
+                                @endphp
+                                {{ $title }}
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h1 class="fw-bold">{{ $title }}</h1>
+                        <span class="badge bg-primary fs-6">{{ $totalDokumen }} Dokumen</span>
+                    </div>
+
+                    <p class="text-muted">
+                        @php
+                            $description = match($jenis) {
+                                'panduan' => 'Petunjuk teknis pelaksanaan program KKN',
+                                'peraturan' => 'Panduan lengkap mengenai aturan dan ketentuan KKN',
+                                'template' => 'Form dan template yang digunakan dalam KKN',
+                                'logo' => 'Logo universitas dalam berbagai format',
+                                'all' => 'Semua dokumen dan berkas terkait KKN',
+                                default => 'Dokumen terkait KKN'
+                            };
+                        @endphp
+                        {{ $description }}
+                    </p>
+                </div>
+            </div>
+
+            @if($jenis === 'all')
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="btn-group">
+                        <a href="{{ route('dokumen.kategori', 'all') }}" 
+                           class="btn {{ $jenis === 'all' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Semua
+                        </a>
+                        <a href="{{ route('dokumen.kategori', 'peraturan') }}" 
+                           class="btn {{ $jenis === 'peraturan' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Peraturan
+                        </a>
+                        <a href="{{ route('dokumen.kategori', 'panduan') }}" 
+                           class="btn {{ $jenis === 'panduan' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Panduan
+                        </a>
+                        <a href="{{ route('dokumen.kategori', 'template') }}" 
+                           class="btn {{ $jenis === 'template' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Template
+                        </a>
+                        <a href="{{ route('dokumen.kategori', 'logo') }}" 
+                           class="btn {{ $jenis === 'logo' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Logo
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <div class="row">
+                @forelse($dokumen as $item)
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 document-{{ $item->jenis }}">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas {{ $item->icon_class }} fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">{{ $item->nama }}</h5>
+                                    <p class="card-text text-muted small mb-0">
+                                        {{ $item->formatted_size }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if($item->keterangan)
+                            <p class="card-text text-muted">
+                                {{ $item->keterangan }}
+                            </p>
+                            @endif
+
+                            <div class="mt-2">
+                                <span class="badge {{ $item->jenis_badge_class }}">
+                                    {{ $item->jenis_label }}
+                                </span>
+                                <small class="text-muted ms-2">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ $item->created_at->format('d/m/Y') }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ route('dokumen.download', $item) }}" 
+                               class="btn btn-primary w-100">
+                                <i class="fas fa-download me-2"></i>Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Belum ada dokumen dalam kategori ini.
+                    </div>
+                </div>
+                @endforelse
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+                {{ $dokumen->links() }}
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>Tentang USH</h5>
+                    <p>Universitas Sugeng Hartono berkomitmen untuk menghasilkan lulusan yang berkualitas dan bermanfaat bagi masyarakat dengan motto: Adaptif, Kreatif, Mandiri.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Link Cepat</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ route('home') }}" class="text-white">Beranda</a></li>
+                        <li><a href="{{ route('berita.public.index') }}" class="text-white">Berita</a></li>
+                        <li><a href="#" class="text-white">Tentang Kami</a></li>
+                        <li><a href="#" class="text-white">Kontak</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Kontak</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Jl. Ir. Soekarno No. 69 Solo Baru, Sukoharjo, Jawa Tengah, Indonesia</li>
+                        <li><i class="fas fa-phone me-2"></i> 0811-2674-670</li>
+                        <li><i class="fas fa-envelope me-2"></i> ush@sugenghartono.ac.id</li>
+                        <li><i class="fas fa-clock me-2"></i> Senin-Jumat: 08.00 - 16.30 WIB</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p class="mb-0">&copy; {{ date('Y') }} Universitas Sugeng Hartono. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

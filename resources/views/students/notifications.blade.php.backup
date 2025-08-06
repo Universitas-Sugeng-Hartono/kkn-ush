@@ -1,0 +1,256 @@
+<x-app-layout>
+    <style>
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Text adjustments */
+            h2.fw-bold {
+                font-size: 1.5rem;
+            }
+            
+            h5 {
+                font-size: 1.1rem;
+            }
+            
+            /* Button adjustments */
+            .btn {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* List group adjustments */
+            .list-group-item {
+                padding: 12px !important;
+            }
+            
+            .list-group-item h6 {
+                font-size: 1rem;
+            }
+            
+            .list-group-item p {
+                font-size: 13px;
+            }
+            
+            .list-group-item small {
+                font-size: 11px;
+            }
+            
+            /* Icon adjustments */
+            .rounded-circle {
+                width: 35px !important;
+                height: 35px !important;
+            }
+            
+            .rounded-circle i {
+                font-size: 14px;
+            }
+            
+            /* Mark read button */
+            .mark-read-btn {
+                font-size: 12px;
+                padding: 4px 6px;
+            }
+            
+            /* Stack header buttons vertically */
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .d-flex.justify-content-between .btn {
+                width: 100%;
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 5px;
+            }
+            
+            .card-body {
+                padding: 10px;
+            }
+            
+            h2.fw-bold {
+                font-size: 1.3rem;
+            }
+            
+            h5 {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .list-group-item {
+                padding: 10px !important;
+            }
+            
+            .list-group-item h6 {
+                font-size: 0.9rem;
+            }
+            
+            .list-group-item p {
+                font-size: 12px;
+            }
+            
+            .list-group-item small {
+                font-size: 10px;
+            }
+            
+            .rounded-circle {
+                width: 30px !important;
+                height: 30px !important;
+            }
+            
+            .rounded-circle i {
+                font-size: 12px;
+            }
+            
+            .mark-read-btn {
+                font-size: 11px;
+                padding: 3px 5px;
+            }
+        }
+    </style>
+
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Notifikasi') }}
+        </h2>
+    </x-slot>
+
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold">Notifikasi</h2>
+                        <p class="text-muted">Daftar semua notifikasi yang Anda terima</p>
+                    </div>
+                    <div>
+                        <button id="markAllRead" class="btn btn-primary">
+                            <i class="fas fa-check-double me-2"></i>Tandai Semua Dibaca
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                @if($notifications->count() > 0)
+                    <div class="list-group list-group-flush">
+                        @foreach($notifications as $notification)
+                            <div class="list-group-item d-flex align-items-start p-3 {{ !$notification->is_read ? 'bg-light' : '' }}" 
+                                 data-notification-id="{{ $notification->id }}">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px; background-color: {{ $notification->is_read ? '#e9ecef' : '#007bff' }};">
+                                        <i class="fas {{ $this->getNotificationIcon($notification->type) }} text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1 {{ !$notification->is_read ? 'fw-bold' : '' }}">
+                                                {{ $notification->title }}
+                                            </h6>
+                                            <p class="mb-1 text-muted">{{ $notification->message }}</p>
+                                            <small class="text-muted">
+                                                {{ $notification->created_at->diffForHumans() }}
+                                            </small>
+                                        </div>
+                                        @if(!$notification->is_read)
+                                            <button class="btn btn-sm btn-outline-primary mark-read-btn" 
+                                                    data-id="{{ $notification->id }}">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ $notifications->links() }}
+                    </div>
+                @else
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Tidak Ada Notifikasi</h5>
+                        <p class="text-muted">Anda belum memiliki notifikasi apapun</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Mark single notification as read
+            $('.mark-read-btn').on('click', function() {
+                const id = $(this).data('id');
+                const item = $(this).closest('.list-group-item');
+                
+                $.post(`/notifications/${id}/mark-read`, {
+                    _token: '{{ csrf_token() }}'
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        item.removeClass('bg-light');
+                        item.find('.fw-bold').removeClass('fw-bold');
+                        item.find('.mark-read-btn').remove();
+                        item.find('.rounded-circle').css('background-color', '#e9ecef');
+                        updateNotificationCount();
+                    }
+                });
+            });
+
+            // Mark all notifications as read
+            $('#markAllRead').on('click', function() {
+                $.post('/notifications/mark-all-read', {
+                    _token: '{{ csrf_token() }}'
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        $('.list-group-item').removeClass('bg-light');
+                        $('.fw-bold').removeClass('fw-bold');
+                        $('.mark-read-btn').remove();
+                        $('.rounded-circle').css('background-color', '#e9ecef');
+                        updateNotificationCount();
+                    }
+                });
+            });
+
+            function updateNotificationCount() {
+                $.get('/notifications/unread-count')
+                .done(function(response) {
+                    const badge = $('#notification-badge');
+                    if (response.count > 0) {
+                        badge.text(response.count).show();
+                    } else {
+                        badge.hide();
+                    }
+                });
+            }
+        });
+    </script>
+    @endpush
+</x-app-layout> 

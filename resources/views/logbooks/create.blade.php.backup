@@ -1,0 +1,202 @@
+<x-app-layout>
+    <style>
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .py-12 {
+                padding: 1rem;
+            }
+            
+            .max-w-7xl {
+                max-width: 100%;
+            }
+            
+            .p-6 {
+                padding: 1rem;
+            }
+            
+            /* Grid adjustments */
+            .grid.grid-cols-2 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .grid.grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            /* Form controls */
+            input, select, textarea {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* Button adjustments */
+            .inline-flex {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* Stack buttons vertically */
+            .flex.items-center.gap-4 {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .flex.items-center.gap-4 > * {
+                width: 100%;
+            }
+            
+            /* Text adjustments */
+            .text-sm {
+                font-size: 12px;
+            }
+            
+            /* Preview image adjustments */
+            .w-full.h-32 {
+                height: 80px;
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .py-12 {
+                padding: 0.5rem;
+            }
+            
+            .p-6 {
+                padding: 0.75rem;
+            }
+            
+            .grid.grid-cols-3 {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            input, select, textarea {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .inline-flex {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .text-sm {
+                font-size: 11px;
+            }
+            
+            .w-full.h-32 {
+                height: 60px;
+            }
+        }
+    </style>
+
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Buat Logbook Baru') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <form id="logbookForm" action="{{ route('logbooks.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                        @csrf
+
+                        <div>
+                            <x-input-label for="tanggal" value="Tanggal" />
+                            <x-text-input id="tanggal" name="tanggal" type="date" class="mt-1 block w-full" required />
+                            <x-input-error :messages="$errors->get('tanggal')" class="mt-2" />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <x-input-label for="waktu_mulai" value="Waktu Mulai" />
+                                <x-text-input id="waktu_mulai" name="waktu_mulai" type="time" class="mt-1 block w-full" required />
+                                <x-input-error :messages="$errors->get('waktu_mulai')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="waktu_selesai" value="Waktu Selesai" />
+                                <x-text-input id="waktu_selesai" name="waktu_selesai" type="time" class="mt-1 block w-full" required />
+                                <x-input-error :messages="$errors->get('waktu_selesai')" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <x-input-label for="judul" value="Judul Kegiatan" />
+                            <x-text-input id="judul" name="judul" type="text" class="mt-1 block w-full" required />
+                            <x-input-error :messages="$errors->get('judul')" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="jenis" value="Jenis Kegiatan" />
+                            <select id="jenis" name="jenis" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="">Pilih Jenis Kegiatan</option>
+                                <option value="individu">Individu</option>
+                                <option value="desa">Desa</option>
+                                <option value="kecamatan">Kecamatan</option>
+                            </select>
+                            <x-input-error :messages="$errors->get('jenis')" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="keterangan" value="Keterangan Kegiatan" />
+                            <textarea id="keterangan" name="keterangan" rows="4" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required></textarea>
+                            <x-input-error :messages="$errors->get('keterangan')" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="lokasi" value="Lokasi Kegiatan" />
+                            <x-text-input id="lokasi" name="lokasi" type="text" class="mt-1 block w-full" required />
+                            <x-input-error :messages="$errors->get('lokasi')" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="photos" value="Foto Kegiatan" />
+                            <input type="file" id="photos" name="photos[]" class="mt-1 block w-full" accept="image/*" multiple required />
+                            <p class="text-sm text-gray-500 mt-1">Upload minimal 1 foto (format: jpg, jpeg, png, max: 2MB per foto)</p>
+                            <x-input-error :messages="$errors->get('photos')" class="mt-2" />
+                            <div id="preview" class="grid grid-cols-3 gap-4 mt-4"></div>
+                        </div>
+
+                        <input type="hidden" name="status" value="submitted">
+
+                        <div class="flex items-center gap-4">
+                            <x-primary-button>{{ __('Simpan') }}</x-primary-button>
+                            <a href="{{ route('logbooks.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                                {{ __('Batal') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        // Preview foto
+        document.getElementById('photos').addEventListener('change', function(e) {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';
+            
+            [...e.target.files].forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded">
+                    `;
+                    preview.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+    @endpush
+</x-app-layout> 

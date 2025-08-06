@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title>{{ config('app.name', 'Logbook KKN') }}</title>
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/ush.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('images/ush.png') }}">
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="{{ asset("assets/fonts/inter.css") }}" rel="stylesheet">
+        
+        <!-- Bootstrap 5 CSS -->
+        <link href="{{ asset("assets/css/bootstrap.min.css") }}" rel="stylesheet">
+        
+        <!-- Font Awesome -->
+        <link href="{{ asset("assets/css/fontawesome.min.css") }}" rel="stylesheet">
+        
+        <!-- Leaflet -->
+        <link href="{{ asset("assets/css/leaflet.min.css") }}" rel="stylesheet">
+        
+        <!-- SweetAlert2 -->
+        <link href="{{ asset("assets/css/sweetalert2.min.css") }}" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <style>
+            :root {
+                --primary-color: #0B1F3A;
+                --accent-color: #F2B705;
+            }
+            
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #f8f9fa;
+            }
+            
+            .navbar {
+                background-color: var(--primary-color);
+                padding: 1rem 0;
+            }
+            
+            .navbar-brand {
+                color: #fff;
+                font-weight: 600;
+            }
+            
+            .navbar-brand:hover {
+                color: var(--accent-color);
+            }
+            
+            .nav-link {
+                color: #fff;
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                margin: 0 0.2rem;
+                border-radius: 0.375rem;
+            }
+            
+            .nav-link:hover {
+                color: var(--accent-color);
+            }
+            
+            .nav-link.active {
+                background-color: var(--accent-color);
+                color: var(--primary-color);
+            }
+            
+            .btn-primary {
+                background-color: var(--primary-color);
+                border-color: var(--primary-color);
+            }
+            
+            .btn-primary:hover {
+                background-color: #163057;
+                border-color: #163057;
+            }
+            
+            .btn-accent {
+                background-color: var(--accent-color);
+                border-color: var(--accent-color);
+                color: var(--primary-color);
+            }
+            
+            .btn-accent:hover {
+                background-color: #d9a404;
+                border-color: #d9a404;
+                color: var(--primary-color);
+            }
+            
+            .hero {
+                background-color: var(--primary-color);
+                color: #fff;
+                padding: 4rem 0;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+            
+            .card {
+                border: none;
+                box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+                border-radius: 0.5rem;
+                height: 100%;
+            }
+            
+            .card-header {
+                background-color: #fff;
+                border-bottom: 1px solid #dee2e6;
+                padding: 1rem;
+            }
+            
+            footer {
+                background-color: var(--primary-color);
+                color: #fff;
+                padding: 2rem 0;
+                margin-top: 4rem;
+            }
+            
+            footer a {
+                color: #fff;
+                text-decoration: none;
+            }
+            
+            footer a:hover {
+                color: var(--accent-color);
+            }
+        </style>
+
+        @stack('styles')
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                
+                <a class="navbar-brand" href="{{ route('home') }}" style="padding: 5px;background-color: white;border-radius: 10px;">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 40px;">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">Tentang KKN</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('berita.public.*') ? 'active' : '' }}" href="{{ route('berita.public.index') }}">Berita</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        @auth
+                            <a href="{{ route('dashboard') }}" class="btn btn-accent">Dashboard</a>
+                        @else
+                            <a href="{{ route('login') }}" class="btn btn-accent">Login</a>
+                        @endauth
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        {{ $slot }}
+
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <h5>{{ config('app.name') }}</h5>
+                        <p class="mb-0">Universitas Sugeng Hartono<br>
+                        Jl. Ir. Soekarno No. 69 Solo Baru<br>
+                        Sukoharjo, Jawa Tengah, Indonesia<br>
+                        Telepon: 0811-2674-670</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <h5>Link Penting</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ route('about') }}">Tentang KKN</a></li>
+                            <li><a href="{{ route('berita.public.index') }}">Berita</a></li>
+                            <li><a href="#documents">Dokumen</a></li>
+                            <li><a href="#complaint">Pengaduan</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <h5>Media Sosial</h5>
+                        <div class="d-flex gap-3">
+                            <a href="#" target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-youtube fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <hr class="mt-4 mb-4">
+                <div class="text-center">
+                    <p class="mb-0">&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Bootstrap JS -->
+        <script src="{{ asset("assets/js/bootstrap.bundle.min.js") }}"></script>
+        
+        <!-- jQuery -->
+        <script src="{{ asset("assets/js/jquery.min.js") }}"></script>
+        
+        <!-- Leaflet -->
+        <script src="{{ asset("assets/js/leaflet.min.js") }}"></script>
+        
+        <!-- SweetAlert2 -->
+        <script src="{{ asset("assets/js/sweetalert2.min.js") }}"></script>
+
+        <!-- Custom JS -->
+        <script>
+            // Flash message handling
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '{{ session('error') }}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+        </script>
+
+        @stack('scripts')
+    </body>
+</html>

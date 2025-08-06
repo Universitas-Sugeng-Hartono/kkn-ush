@@ -1,0 +1,492 @@
+@extends('layouts.mobile-app')
+
+@section('content')
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h2>Edit Logbook</h2>
+                <p class="date-info">{{ $logbook->created_at->format('l, d F Y') }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ route('mobile.logbooks') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="form-container">
+        <form action="{{ route('logbooks.update', $logbook) }}" method="POST" enctype="multipart/form-data" id="editLogbookForm">
+            <input type="hidden" name="redirect_to" value="mobile">
+            @csrf
+            @method('PUT')
+            
+            <div class="form-group">
+                <label for="judul">Judul Kegiatan *</label>
+                <input type="text" id="judul" name="judul" value="{{ $logbook->judul }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="jenis">Jenis Kegiatan *</label>
+                <select id="jenis" name="jenis" required>
+                    <option value="">Pilih jenis kegiatan</option>
+                    <option value="individu" {{ $logbook->jenis === 'individu' ? 'selected' : '' }}>Individu</option>
+                    <option value="desa" {{ $logbook->jenis === 'desa' ? 'selected' : '' }}>Desa</option>
+                    <option value="kecamatan" {{ $logbook->jenis === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tanggal">Tanggal *</label>
+                <input type="date" id="tanggal" name="tanggal" value="{{ $logbook->tanggal->format('Y-m-d') }}" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="waktu_mulai">Waktu Mulai *</label>
+                    <input type="time" id="waktu_mulai" name="waktu_mulai" value="{{ $logbook->waktu_mulai }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="waktu_selesai">Waktu Selesai *</label>
+                    <input type="time" id="waktu_selesai" name="waktu_selesai" value="{{ $logbook->waktu_selesai }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="lokasi">Lokasi *</label>
+                <input type="text" id="lokasi" name="lokasi" value="{{ $logbook->lokasi }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="keterangan">Deskripsi Kegiatan *</label>
+                <textarea id="keterangan" name="keterangan" rows="6" required>{{ $logbook->keterangan }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="photos">Foto Kegiatan (Opsional)</label>
+                <div class="photo-upload-area" id="photoUploadArea">
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <i class="fas fa-camera"></i>
+                        <p>Tap untuk mengambil foto atau pilih dari galeri</p>
+                    </div>
+                    <input type="file" id="photos" name="photos[]" accept="image/*" multiple style="display: none;">
+                </div>
+                <small class="form-text">Pilih satu atau lebih foto kegiatan. Format: JPG, PNG, GIF. Maksimal 5MB per foto.</small>
+                <div id="photoPreview" class="photo-preview"></div>
+            </div>
+
+            <!-- Existing Photos -->
+            @if($logbook->photos->count() > 0)
+            <div class="existing-photos">
+                <label>Foto Saat Ini:</label>
+                <div class="photo-grid">
+                    @foreach($logbook->photos as $photo)
+                    <div class="photo-item">
+                        <img src="{{ asset('storage/' . $photo->path) }}" alt="Foto kegiatan">
+                        <div class="photo-overlay">
+                            <button type="button" class="btn-delete-photo" onclick="deletePhoto({{ $photo->id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <div class="form-group">
+                <label for="status">Status Logbook *</label>
+                <select id="status" name="status" required>
+                    <option value="draft" {{ $logbook->status === 'draft' ? 'selected' : '' }}>Draft (Simpan sementara)</option>
+                    <option value="submitted" {{ $logbook->status === 'submitted' ? 'selected' : '' }}>Submit (Kirim ke DPL)</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i>
+                    <span>Update Logbook</span>
+                </button>
+                <a href="{{ route('mobile.logbooks.show', $logbook) }}" class="btn-secondary">
+                    <i class="fas fa-times"></i>
+                    <span>Batal</span>
+                </a>
+            </div>
+        </form>
+    </div>
+@endsection
+
+@push('styles')
+<style>
+    .form-container {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f3f4;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: #f8f9fa;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #0B1F3A;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .photo-upload-area {
+        border: 2px dashed #cbd5e0;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f8f9fa;
+        margin-bottom: 1rem;
+    }
+
+    .photo-upload-area:hover {
+        border-color: #0B1F3A;
+        background: #f1f3f4;
+    }
+
+    .upload-placeholder i {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-placeholder p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .photo-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .preview-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1;
+    }
+
+    .preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-remove {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    .existing-photos {
+        margin-bottom: 1.5rem;
+    }
+
+    .existing-photos label {
+        display: block;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .photo-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1;
+    }
+
+    .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .photo-item:hover .photo-overlay {
+        opacity: 1;
+    }
+
+    .btn-delete-photo {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0B1F3A 0%, #163057 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(11, 31, 58, 0.3);
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .btn-back {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #0B1F3A 0%, #163057 100%);
+        color: white;
+        padding: 1.5rem;
+        margin: -1rem -1rem 1rem -1rem;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .header-left h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .date-info {
+        font-size: 0.875rem;
+        opacity: 0.8;
+    }
+
+    @media (max-width: 480px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .photo-grid {
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+function deletePhoto(photoId) {
+    if (confirm('Apakah Anda yakin ingin menghapus foto ini?')) {
+        fetch(`/logbooks/photos/${photoId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove photo element from DOM
+                const photoElement = document.querySelector(`[onclick="deletePhoto(${photoId})"]`).closest('.photo-item');
+                photoElement.remove();
+            } else {
+                alert('Gagal menghapus foto');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus foto');
+        });
+    }
+}
+
+// Photo upload handling
+document.getElementById('photoUploadArea').addEventListener('click', function() {
+    document.getElementById('photos').click();
+});
+
+document.getElementById('photos').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const preview = document.getElementById('photoPreview');
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button type="button" class="preview-remove" onclick="removePreview(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                preview.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+});
+
+function removePreview(button) {
+    button.closest('.preview-item').remove();
+}
+
+// Form validation
+document.getElementById('editLogbookForm').addEventListener('submit', function(e) {
+    const judul = document.getElementById('judul').value.trim();
+    const jenis = document.getElementById('jenis').value;
+    const tanggal = document.getElementById('tanggal').value;
+    const waktuMulai = document.getElementById('waktu_mulai').value;
+    const waktuSelesai = document.getElementById('waktu_selesai').value;
+    const lokasi = document.getElementById('lokasi').value.trim();
+    const keterangan = document.getElementById('keterangan').value.trim();
+
+    if (!judul || !jenis || !tanggal || !waktuMulai || !waktuSelesai || !lokasi || !keterangan) {
+        e.preventDefault();
+        alert('Mohon lengkapi semua field yang wajib diisi');
+        return;
+    }
+
+    if (waktuMulai >= waktuSelesai) {
+        e.preventDefault();
+        alert('Waktu selesai harus lebih besar dari waktu mulai');
+        return;
+    }
+});
+</script>
+@endpush 

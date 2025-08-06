@@ -1,0 +1,268 @@
+<x-app-layout>
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold">{{ $group->nama_kelompok }}</h2>
+                        <p class="text-muted">Detail Kelompok KKN</p>
+                    </div>
+                    <div>
+                        <a href="{{ route('groups.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Kembali
+                        </a>
+                        <a href="{{ route('groups.edit', $group) }}" class="btn btn-warning text-white ms-2">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Informasi Utama -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Informasi Kelompok</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-muted d-block">Angkatan</label>
+                            <span class="fw-bold">{{ $group->angkatan->nama_angkatan }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted d-block">Lokasi</label>
+                            <span class="fw-bold">
+                                {{ $group->lokasi->nama_desa }}, 
+                                {{ $group->lokasi->nama_kecamatan }}, 
+                                {{ $group->lokasi->nama_kabupaten }}
+                            </span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted d-block">DPL</label>
+                            @if($group->dpl)
+                                <div class="d-flex align-items-center">
+                                    @if($group->dpl->foto_profil)
+                                        <img src="{{ asset('storage/'.$group->dpl->foto_profil) }}" 
+                                             alt="{{ $group->dpl->name }}" 
+                                             class="rounded-circle me-2"
+                                             width="30" height="30">
+                                    @else
+                                        <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center"
+                                             style="width: 30px; height: 30px;">
+                                            <span class="text-white" style="font-size: 12px;">
+                                                {{ substr($group->dpl->name, 0, 1) }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                    <span class="fw-bold">{{ $group->dpl->name }}</span>
+                                </div>
+                            @else
+                                <span class="text-muted">Belum ditentukan</span>
+                            @endif
+                        </div>
+                        @if($group->deskripsi)
+                            <div class="mb-3">
+                                <label class="text-muted d-block">Deskripsi</label>
+                                <p class="mb-0">{{ $group->deskripsi }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Statistik -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Statistik</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center mb-3">
+                                <h3 class="mb-1">{{ $group->mahasiswa->count() }}</h3>
+                                <small class="text-muted">Mahasiswa</small>
+                            </div>
+                            <div class="col-md-4 text-center mb-3">
+                                <h3 class="mb-1">{{ $group->logbooks->count() }}</h3>
+                                <small class="text-muted">Logbook</small>
+                            </div>
+                            <div class="col-md-4 text-center mb-3">
+                                <h3 class="mb-1">{{ $group->absensi->count() }}</h3>
+                                <small class="text-muted">Absensi</small>
+                            </div>
+                        </div>
+
+                        <!-- Grafik Logbook -->
+                        @if($logbookStats->isNotEmpty())
+                            <div class="mt-4">
+                                <h6>Aktivitas Logbook (7 Hari Terakhir)</h6>
+                                <canvas id="logbookChart"></canvas>
+                            </div>
+                        @endif
+
+                        <!-- Grafik Absensi -->
+                        @if($absensiStats->isNotEmpty())
+                            <div class="mt-4">
+                                <h6>Status Absensi</h6>
+                                <canvas id="absensiChart"></canvas>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Mahasiswa -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Daftar Mahasiswa</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="mahasiswaTable">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>NIM</th>
+                                        <th>Jurusan</th>
+                                        <th>Total Logbook</th>
+                                        <th>Total Absensi</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($group->mahasiswa as $mahasiswa)
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                @if($mahasiswa->foto_profil)
+                                                    <img src="{{ asset('storage/'.$mahasiswa->foto_profil) }}" 
+                                                         alt="{{ $mahasiswa->name }}" 
+                                                         class="rounded-circle me-2"
+                                                         width="30" height="30">
+                                                @else
+                                                    <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center"
+                                                         style="width: 30px; height: 30px;">
+                                                        <span class="text-white" style="font-size: 12px;">
+                                                            {{ substr($mahasiswa->name, 0, 1) }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                {{ $mahasiswa->name }}
+                                            </div>
+                                        </td>
+                                        <td>{{ $mahasiswa->nim }}</td>
+                                        <td>{{ $mahasiswa->jurusan ? ucfirst($mahasiswa->jurusan) : '-' }}</td>
+                                        <td>{{ $mahasiswa->logbooks->count() }}</td>
+                                        <td>{{ $mahasiswa->absensi->count() }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="#" 
+                                                   class="btn btn-sm btn-info text-white"
+                                                   data-bs-toggle="tooltip"
+                                                   title="Lihat Detail">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-danger"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Hapus dari Kelompok"
+                                                        onclick="removeMember({{ $mahasiswa->id }})">
+                                                    <i class="fas fa-user-minus"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script src="{{ asset("assets/js/chart.min.js") }}"></script>
+    <script>
+        // DataTables
+        $(document).ready(function() {
+            $('#mahasiswaTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json',
+                },
+            });
+        });
+
+        // Logbook Chart
+        @if($logbookStats->isNotEmpty())
+        new Chart(document.getElementById('logbookChart'), {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($logbookStats->pluck('date')->map(function($date) {
+                    return \Carbon\Carbon::parse($date)->format('d/m');
+                })) !!},
+                datasets: [{
+                    label: 'Jumlah Logbook',
+                    data: {{ json_encode($logbookStats->pluck('count')) }},
+                    borderColor: '#0d6efd',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        @endif
+
+        // Absensi Chart
+        @if($absensiStats->isNotEmpty())
+        new Chart(document.getElementById('absensiChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($absensiStats->pluck('status')) !!},
+                datasets: [{
+                    data: {{ json_encode($absensiStats->pluck('count')) }},
+                    backgroundColor: ['#0d6efd', '#dc3545', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        @endif
+
+        // Remove member confirmation
+        function removeMember(userId) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Mahasiswa akan dihapus dari kelompok ini!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/groups/{{ $group->id }}/members/${userId}/remove`;
+                }
+            });
+        }
+    </script>
+    @endpush
+</x-app-layout> 

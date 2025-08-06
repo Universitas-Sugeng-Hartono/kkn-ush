@@ -1,0 +1,535 @@
+<x-app-layout>
+    <style>
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Form layout - Stack vertically */
+            .row .col-md-6,
+            .row .col-md-8 {
+                margin-bottom: 15px;
+            }
+            
+            /* Text adjustments */
+            h2.fw-bold {
+                font-size: 1.5rem;
+            }
+            
+            h5.card-title {
+                font-size: 1.1rem;
+            }
+            
+            h6 {
+                font-size: 1rem;
+            }
+            
+            /* Form controls */
+            .form-control, .form-select {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .form-label {
+                font-size: 14px;
+                font-weight: 500;
+            }
+            
+            .form-text {
+                font-size: 12px;
+            }
+            
+            /* Button adjustments */
+            .btn {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* Card header adjustments */
+            .card-header {
+                padding: 12px 15px;
+            }
+            
+            .card-header h6 {
+                font-size: 0.9rem;
+            }
+            
+            /* Stack header buttons vertically */
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .d-flex.justify-content-between .btn {
+                width: 100%;
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 5px;
+            }
+            
+            .card-body {
+                padding: 10px;
+            }
+            
+            h2.fw-bold {
+                font-size: 1.3rem;
+            }
+            
+            h5.card-title {
+                font-size: 1rem;
+            }
+            
+            h6 {
+                font-size: 0.9rem;
+            }
+            
+            .form-control, .form-select {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .form-label {
+                font-size: 13px;
+            }
+            
+            .form-text {
+                font-size: 11px;
+            }
+            
+            .btn {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .card-header {
+                padding: 10px 12px;
+            }
+            
+            .card-header h6 {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold">Tambah Penilaian</h2>
+                        <p class="text-muted">Tambah penilaian baru untuk mahasiswa</p>
+                    </div>
+                    <a href="{{ route('grades.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Kembali
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Form Penilaian</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('grades.store') }}" method="POST">
+                            @csrf
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="user_id" class="form-label">Mahasiswa <span class="text-danger">*</span></label>
+                                        <select class="form-select @error('user_id') is-invalid @enderror" id="user_id" name="user_id" required>
+                                            <option value="">Pilih Mahasiswa</option>
+                                            @foreach($students as $student)
+                                                <option value="{{ $student->id }}" {{ old('user_id') == $student->id ? 'selected' : '' }}>
+                                                    {{ $student->name }} ({{ $student->nim }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('user_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="kelompok_id" class="form-label">Kelompok</label>
+                                        <input type="text" class="form-control" id="kelompok_display" readonly>
+                                        <input type="hidden" id="kelompok_id" name="kelompok_id">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="mb-3">Komponen Penilaian KKN Tematik</h6>
+
+                            <!-- Tahap Pembekalan (10%) -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">1. Tahap Pembekalan (10%)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_kehadiran_pembekalan" class="form-label">Kehadiran Selama Pembekalan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_kehadiran_pembekalan') is-invalid @enderror" 
+                                                       id="nilai_kehadiran_pembekalan" name="nilai_kehadiran_pembekalan" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_kehadiran_pembekalan') }}" required>
+                                                <div class="form-text">Bobot: 5% (0 - 100)</div>
+                                                @error('nilai_kehadiran_pembekalan')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_sikap_pembekalan" class="form-label">Sikap (Etika, Kesopanan, Kesantunan, Kerapian, Kedisiplinan) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_sikap_pembekalan') is-invalid @enderror" 
+                                                       id="nilai_sikap_pembekalan" name="nilai_sikap_pembekalan" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_sikap_pembekalan') }}" required>
+                                                <div class="form-text">Bobot: 5% (0 - 100)</div>
+                                                @error('nilai_sikap_pembekalan')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pelaksanaan (60%) -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">2. Pelaksanaan (60%)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_kehadiran_lokasi" class="form-label">Kehadiran di Lokasi KKN <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_kehadiran_lokasi') is-invalid @enderror" 
+                                                       id="nilai_kehadiran_lokasi" name="nilai_kehadiran_lokasi" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_kehadiran_lokasi') }}" required>
+                                                <div class="form-text">Bobot: 5% (0 - 100)</div>
+                                                @error('nilai_kehadiran_lokasi')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_sikap_pelaksanaan" class="form-label">Sikap (Etika, Kesopanan, Kesantunan, Kerapian, Kedisiplinan) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_sikap_pelaksanaan') is-invalid @enderror" 
+                                                       id="nilai_sikap_pelaksanaan" name="nilai_sikap_pelaksanaan" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_sikap_pelaksanaan') }}" required>
+                                                <div class="form-text">Bobot: 5% (0 - 100)</div>
+                                                @error('nilai_sikap_pelaksanaan')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_keterlibatan_kegiatan" class="form-label">Keterlibatan dalam Kegiatan Kemasyarakatan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_keterlibatan_kegiatan') is-invalid @enderror" 
+                                                       id="nilai_keterlibatan_kegiatan" name="nilai_keterlibatan_kegiatan" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_keterlibatan_kegiatan') }}" required>
+                                                <div class="form-text">Bobot: 15% (0 - 100)</div>
+                                                @error('nilai_keterlibatan_kegiatan')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_relevansi_program" class="form-label">Relevansi Program Kerja dengan Kondisi Masyarakat dan Tema KKN Tematik <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_relevansi_program') is-invalid @enderror" 
+                                                       id="nilai_relevansi_program" name="nilai_relevansi_program" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_relevansi_program') }}" required>
+                                                <div class="form-text">Bobot: 15% (0 - 100)</div>
+                                                @error('nilai_relevansi_program')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_keberhasilan_program" class="form-label">Keberhasilan Program Kerja dan Produk Teknologi Tepat Guna atau Produk Kewirausahaan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_keberhasilan_program') is-invalid @enderror" 
+                                                       id="nilai_keberhasilan_program" name="nilai_keberhasilan_program" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_keberhasilan_program') }}" required>
+                                                <div class="form-text">Bobot: 20% (0 - 100)</div>
+                                                @error('nilai_keberhasilan_program')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Laporan KKN Tematik (30%) -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">3. Laporan KKN Tematik (30%)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_sistematika_laporan" class="form-label">Kesesuaian dengan Sistematika Penyusunan Laporan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_sistematika_laporan') is-invalid @enderror" 
+                                                       id="nilai_sistematika_laporan" name="nilai_sistematika_laporan" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_sistematika_laporan') }}" required>
+                                                <div class="form-text">Bobot: 3% (0 - 100)</div>
+                                                @error('nilai_sistematika_laporan')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_konten_medsos" class="form-label">Konten Media Sosial <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_konten_medsos') is-invalid @enderror" 
+                                                       id="nilai_konten_medsos" name="nilai_konten_medsos" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_konten_medsos') }}" required>
+                                                <div class="form-text">Bobot: 7% (0 - 100)</div>
+                                                @error('nilai_konten_medsos')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_bahasa" class="form-label">Penggunaan Bahasa yang Baik dan Benar <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_bahasa') is-invalid @enderror" 
+                                                       id="nilai_bahasa" name="nilai_bahasa" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_bahasa') }}" required>
+                                                <div class="form-text">Bobot: 2% (0 - 100)</div>
+                                                @error('nilai_bahasa')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_analisis" class="form-label">Ketepatan Analisis dan Pembahasan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_analisis') is-invalid @enderror" 
+                                                       id="nilai_analisis" name="nilai_analisis" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_analisis') }}" required>
+                                                <div class="form-text">Bobot: 3% (0 - 100)</div>
+                                                @error('nilai_analisis')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_ketepatan_waktu" class="form-label">Ketepatan Waktu Pengumpulan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_ketepatan_waktu') is-invalid @enderror" 
+                                                       id="nilai_ketepatan_waktu" name="nilai_ketepatan_waktu" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_ketepatan_waktu') }}" required>
+                                                <div class="form-text">Bobot: 5% (0 - 100)</div>
+                                                @error('nilai_ketepatan_waktu')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="nilai_produk_teknologi" class="form-label">Produk Teknologi Tepat Guna atau Produk Kewirausahaan <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control @error('nilai_produk_teknologi') is-invalid @enderror" 
+                                                       id="nilai_produk_teknologi" name="nilai_produk_teknologi" 
+                                                       min="0" max="100" step="0.01" 
+                                                       value="{{ old('nilai_produk_teknologi') }}" required>
+                                                <div class="form-text">Bobot: 10% (0 - 100)</div>
+                                                @error('nilai_produk_teknologi')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="catatan" class="form-label">Catatan</label>
+                                <textarea class="form-control @error('catatan') is-invalid @enderror" 
+                                          id="catatan" name="catatan" rows="3" 
+                                          placeholder="Catatan tambahan untuk mahasiswa...">{{ old('catatan') }}</textarea>
+                                @error('catatan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Simpan Penilaian
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Preview Nilai</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nilai Akhir</label>
+                            <h3 class="text-primary" id="nilai_akhir">-</h3>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Grade</label>
+                            <h4 class="text-success" id="grade">-</h4>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <span class="badge bg-secondary" id="status">-</span>
+                        </div>
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Rumus Nilai Akhir:</strong><br>
+                                <strong>Tahap Pembekalan (10%):</strong><br>
+                                • Kehadiran Pembekalan (5%)<br>
+                                • Sikap Pembekalan (5%)<br>
+                                <strong>Pelaksanaan (60%):</strong><br>
+                                • Kehadiran Lokasi (5%)<br>
+                                • Sikap Pelaksanaan (5%)<br>
+                                • Keterlibatan Kegiatan (15%)<br>
+                                • Relevansi Program (15%)<br>
+                                • Keberhasilan Program (20%)<br>
+                                <strong>Laporan (30%):</strong><br>
+                                • Sistematika (3%)<br>
+                                • Konten Medsos (7%)<br>
+                                • Bahasa (2%)<br>
+                                • Analisis (3%)<br>
+                                • Ketepatan Waktu (5%)<br>
+                                • Produk Teknologi (10%)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        // Update kelompok when student is selected
+        $('#user_id').change(function() {
+            const userId = $(this).val();
+            if (userId) {
+                // Get student data
+                fetch(`/api/students/${userId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.kelompok) {
+                            $('#kelompok_display').val(data.kelompok.nama);
+                            $('#kelompok_id').val(data.kelompok.id);
+                        } else {
+                            $('#kelompok_display').val('Belum ditentukan');
+                            $('#kelompok_id').val('');
+                        }
+                    });
+            } else {
+                $('#kelompok_display').val('');
+                $('#kelompok_id').val('');
+            }
+        });
+
+        function calculateGrade() {
+            // Tahap Pembekalan (10%)
+            const kehadiranPembekalan = parseFloat($('#nilai_kehadiran_pembekalan').val()) || 0;
+            const sikapPembekalan = parseFloat($('#nilai_sikap_pembekalan').val()) || 0;
+            
+            // Pelaksanaan (60%)
+            const kehadiranLokasi = parseFloat($('#nilai_kehadiran_lokasi').val()) || 0;
+            const sikapPelaksanaan = parseFloat($('#nilai_sikap_pelaksanaan').val()) || 0;
+            const keterlibatanKegiatan = parseFloat($('#nilai_keterlibatan_kegiatan').val()) || 0;
+            const relevansiProgram = parseFloat($('#nilai_relevansi_program').val()) || 0;
+            const keberhasilanProgram = parseFloat($('#nilai_keberhasilan_program').val()) || 0;
+            
+            // Laporan KKN Tematik (30%)
+            const sistematikaLaporan = parseFloat($('#nilai_sistematika_laporan').val()) || 0;
+            const kontenMedsos = parseFloat($('#nilai_konten_medsos').val()) || 0;
+            const bahasa = parseFloat($('#nilai_bahasa').val()) || 0;
+            const analisis = parseFloat($('#nilai_analisis').val()) || 0;
+            const ketepatanWaktu = parseFloat($('#nilai_ketepatan_waktu').val()) || 0;
+            const produkTeknologi = parseFloat($('#nilai_produk_teknologi').val()) || 0;
+
+            // Hitung nilai akhir sesuai bobot
+            const nilaiPembekalan = (kehadiranPembekalan * 0.05) + (sikapPembekalan * 0.05);
+            const nilaiPelaksanaan = (kehadiranLokasi * 0.05) + (sikapPelaksanaan * 0.05) + 
+                                   (keterlibatanKegiatan * 0.15) + (relevansiProgram * 0.15) + 
+                                   (keberhasilanProgram * 0.20);
+            const nilaiLaporan = (sistematikaLaporan * 0.03) + (kontenMedsos * 0.07) + 
+                               (bahasa * 0.02) + (analisis * 0.03) + 
+                               (ketepatanWaktu * 0.05) + (produkTeknologi * 0.10);
+
+            const nilaiAkhir = nilaiPembekalan + nilaiPelaksanaan + nilaiLaporan;
+            
+            $('#nilai_akhir').text(nilaiAkhir.toFixed(1));
+
+            // Calculate grade sesuai konversi nilai
+            let grade = 'E';
+            if (nilaiAkhir >= 85) grade = 'A';
+            else if (nilaiAkhir >= 80) grade = 'A-';
+            else if (nilaiAkhir >= 75) grade = 'B+';
+            else if (nilaiAkhir >= 65) grade = 'B';
+            else if (nilaiAkhir >= 60) grade = 'C';
+            else if (nilaiAkhir >= 45) grade = 'D';
+
+            $('#grade').text(grade);
+
+            // Update status
+            const status = nilaiAkhir >= 60 ? 'Lulus' : 'Tidak Lulus';
+            const statusClass = nilaiAkhir >= 60 ? 'bg-success' : 'bg-danger';
+            $('#status').text(status).removeClass('bg-success bg-danger').addClass(statusClass);
+        }
+
+        // Listen for input changes
+        $('#nilai_kehadiran_pembekalan, #nilai_sikap_pembekalan, #nilai_kehadiran_lokasi, #nilai_sikap_pelaksanaan, #nilai_keterlibatan_kegiatan, #nilai_relevansi_program, #nilai_keberhasilan_program, #nilai_sistematika_laporan, #nilai_konten_medsos, #nilai_bahasa, #nilai_analisis, #nilai_ketepatan_waktu, #nilai_produk_teknologi').on('input', calculateGrade);
+    </script>
+    @endpush
+</x-app-layout> 

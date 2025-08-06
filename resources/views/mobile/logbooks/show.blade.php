@@ -1,0 +1,646 @@
+@extends('layouts.mobile-app')
+
+@section('content')
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h2>Detail Logbook</h2>
+                <p class="date-info">{{ $logbook->created_at->format('l, d F Y') }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ route('mobile.logbooks') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="status-section">
+        <div class="status-badge {{ $logbook->status }}">
+            @if($logbook->status === 'approved')
+                <i class="fas fa-check-circle"></i>
+                <span>Disetujui</span>
+            @elseif($logbook->status === 'rejected')
+                <i class="fas fa-times-circle"></i>
+                <span>Ditolak</span>
+            @elseif($logbook->status === 'submitted')
+                <i class="fas fa-clock"></i>
+                <span>Menunggu Review</span>
+            @else
+                <i class="fas fa-edit"></i>
+                <span>Draft</span>
+            @endif
+        </div>
+    </div>
+
+    <!-- Basic Information -->
+    <div class="info-section">
+        <h3>Informasi Kegiatan</h3>
+        
+        <div class="info-item">
+            <div class="info-label">
+                <i class="fas fa-calendar"></i>
+                <span>Tanggal</span>
+            </div>
+            <div class="info-value">{{ $logbook->tanggal->format('d F Y') }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">
+                <i class="fas fa-clock"></i>
+                <span>Waktu</span>
+            </div>
+            <div class="info-value">{{ $logbook->waktu_mulai }} - {{ $logbook->waktu_selesai }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">
+                <i class="fas fa-tag"></i>
+                <span>Jenis</span>
+            </div>
+            <div class="info-value">{{ ucfirst($logbook->jenis) }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Lokasi</span>
+            </div>
+            <div class="info-value">{{ $logbook->lokasi }}</div>
+        </div>
+    </div>
+
+    <!-- Activity Details -->
+    <div class="info-section">
+        <h3>Detail Kegiatan</h3>
+        
+        <div class="info-item">
+            <div class="info-label">
+                <i class="fas fa-heading"></i>
+                <span>Judul</span>
+            </div>
+            <div class="info-value">{{ $logbook->judul }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">
+                <i class="fas fa-align-left"></i>
+                <span>Deskripsi</span>
+            </div>
+            <div class="info-value description">{{ $logbook->keterangan }}</div>
+        </div>
+    </div>
+
+    <!-- Photos -->
+    @if($logbook->photos->count() > 0)
+    <div class="info-section">
+        <h3>Foto Kegiatan</h3>
+        <div class="photo-gallery">
+            @foreach($logbook->photos as $photo)
+            <div class="photo-item" onclick="openPhotoModal('{{ asset('storage/' . $photo->path) }}')">
+                <img src="{{ asset('storage/' . $photo->path) }}" alt="Foto kegiatan">
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- File Attachments -->
+    @if($logbook->attachments && count($logbook->attachments) > 0)
+    <div class="info-section">
+        <h3>File Lampiran</h3>
+        <div class="attachment-list">
+            @foreach($logbook->attachments as $index => $attachment)
+                <div class="attachment-item">
+                    <div class="attachment-content">
+                        @php
+                            $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
+                            $iconClass = 'fas fa-file';
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                $iconClass = 'fas fa-image';
+                            } elseif ($extension === 'pdf') {
+                                $iconClass = 'fas fa-file-pdf';
+                            } elseif (in_array($extension, ['doc', 'docx'])) {
+                                $iconClass = 'fas fa-file-word';
+                            } elseif (in_array($extension, ['xls', 'xlsx'])) {
+                                $iconClass = 'fas fa-file-excel';
+                            } elseif (in_array($extension, ['ppt', 'pptx'])) {
+                                $iconClass = 'fas fa-file-powerpoint';
+                            } elseif ($extension === 'txt') {
+                                $iconClass = 'fas fa-file-alt';
+                            }
+                        @endphp
+                        <i class="{{ $iconClass }}"></i>
+                        <div class="attachment-info">
+                            <div class="attachment-name">{{ $attachment['name'] }}</div>
+                            <div class="attachment-size">{{ number_format($attachment['size'] / 1024, 1) }} KB</div>
+                        </div>
+                    </div>
+                    <div class="attachment-actions">
+                        <a href="{{ Storage::url($attachment['path']) }}" 
+                           target="_blank" 
+                           class="btn-download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        @if(auth()->user()->can('delete', $logbook))
+                        <button type="button" 
+                                class="btn-delete"
+                                onclick="deleteAttachment({{ $logbook->id }}, {{ $index }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- DPL Comments -->
+    @if($logbook->komentar)
+    <div class="info-section">
+        <h3>Komentar DPL</h3>
+        <div class="comment-box">
+            <div class="comment-content">
+                {{ $logbook->komentar }}
+            </div>
+            <div class="comment-meta">
+                <i class="fas fa-user-tie"></i>
+                <span>DPL</span>
+                <span class="comment-date">{{ $logbook->updated_at->format('d M Y, H:i') }}</span>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Actions -->
+    @if($logbook->status === 'draft')
+    <div class="actions-section">
+        <div class="action-buttons">
+            <a href="{{ route('mobile.logbooks.edit', $logbook) }}" class="btn-action edit">
+                <i class="fas fa-edit"></i>
+                <span>Edit</span>
+            </a>
+            <button type="button" class="btn-action delete" onclick="deleteLogbook({{ $logbook->id }})">
+                <i class="fas fa-trash"></i>
+                <span>Hapus</span>
+            </button>
+        </div>
+    </div>
+    @endif
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal" onclick="closePhotoModal()">
+        <div class="modal-content">
+            <img id="modalImage" src="" alt="Foto kegiatan">
+            <button class="modal-close" onclick="closePhotoModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+@endsection
+
+@push('styles')
+<style>
+    .status-section {
+        margin-bottom: 1rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-badge.approved {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-badge.submitted {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-badge.draft {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .info-section {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f3f4;
+    }
+
+    .info-section h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        color: #1a202c;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .info-value.description {
+        white-space: pre-wrap;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #0B1F3A;
+    }
+
+    .photo-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .photo-item {
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 1;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .photo-item:hover {
+        transform: scale(1.05);
+    }
+
+    .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .comment-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        border-left: 4px solid #0B1F3A;
+    }
+
+    .comment-content {
+        color: #1a202c;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+    }
+
+    .comment-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .comment-date {
+        margin-left: auto;
+    }
+
+    .actions-section {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1rem;
+        margin: 1rem -1rem -1rem -1rem;
+        border-top: 1px solid #f1f3f4;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-action.edit {
+        background: linear-gradient(135deg, #0B1F3A 0%, #163057 100%);
+        color: white;
+    }
+
+    .btn-action.edit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(11, 31, 58, 0.3);
+    }
+
+    .btn-action.delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .btn-action.delete:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-back {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    /* Photo Modal */
+    .photo-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .modal-content img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 12px;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Attachment Styles */
+    .attachment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .attachment-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #e2e3e5;
+    }
+
+    .attachment-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .attachment-content i {
+        font-size: 1.5rem;
+        color: #6c757d;
+    }
+
+    .attachment-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .attachment-name {
+        font-weight: 600;
+        color: #1a202c;
+        font-size: 0.875rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .attachment-size {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .attachment-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-download,
+    .btn-delete {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-download {
+        background: linear-gradient(135deg, #0B1F3A 0%, #163057 100%);
+        color: white;
+    }
+
+    .btn-download:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(11, 31, 58, 0.3);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .btn-delete:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    @media (max-width: 480px) {
+        .photo-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+        
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+function openPhotoModal(imageSrc) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('photoModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePhotoModal() {
+    document.getElementById('photoModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function deleteLogbook(logbookId) {
+    if (confirm('Apakah Anda yakin ingin menghapus logbook ini?')) {
+        fetch(`/logbooks/${logbookId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{{ route("logbooks.index") }}';
+            } else {
+                alert('Gagal menghapus logbook');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus logbook');
+        });
+    }
+}
+
+function deleteAttachment(logbookId, index) {
+    if (confirm('Apakah Anda yakin ingin menghapus file ini?')) {
+        fetch(`/logbooks/${logbookId}/attachments`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ index: index })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload halaman untuk memperbarui tampilan
+                location.reload();
+            } else {
+                alert('Gagal menghapus file: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus file');
+        });
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('photoModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePhotoModal();
+    }
+});
+
+// Close modal with escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePhotoModal();
+    }
+});
+</script>
+@endpush 

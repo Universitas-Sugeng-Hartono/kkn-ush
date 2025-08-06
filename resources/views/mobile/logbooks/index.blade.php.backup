@@ -1,0 +1,204 @@
+@extends('layouts.mobile-app')
+
+@section('content')
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h2>My Logbooks</h2>
+                <p class="date-info">{{ now()->format('l, d F Y') }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ route('mobile.logbooks.create') }}" class="btn-add">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="calendar-section">
+        <div class="calendar-header">
+            <h3>Calendar View</h3>
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="previousMonth()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="current-month">{{ now()->format('F Y') }}</span>
+                <button class="nav-btn" onclick="nextMonth()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="calendar-grid">
+            <!-- Days of week -->
+            <div class="calendar-days">
+                <div class="day-header">M</div>
+                <div class="day-header">T</div>
+                <div class="day-header">W</div>
+                <div class="day-header">T</div>
+                <div class="day-header">F</div>
+                <div class="day-header">S</div>
+                <div class="day-header">S</div>
+            </div>
+            
+            <!-- Calendar dates -->
+            <div class="calendar-dates" id="calendarDates">
+                <!-- Calendar will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Events -->
+    <div class="events-section">
+        <div class="section-header">
+            <h3>Today's Activities</h3>
+            <span class="today-date">{{ now()->format('d M Y') }}</span>
+        </div>
+        
+        <div class="events-list">
+            @php
+                $todayLogbooks = \App\Models\Logbook::where('user_id', Auth::id())
+                    ->whereDate('created_at', today())
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            @endphp
+            
+            @forelse($todayLogbooks as $logbook)
+                <div class="event-item">
+                    <div class="event-time">
+                        <i class="fas fa-clock"></i>
+                        {{ $logbook->created_at->format('H:i') }}
+                    </div>
+                    <div class="event-content">
+                        <div class="event-title">{{ $logbook->judul }}</div>
+                        <div class="event-subtitle">{{ Str::limit($logbook->deskripsi, 50) }}</div>
+                    </div>
+                    <div class="event-status {{ $logbook->status }}">
+                        @if($logbook->status === 'approved')
+                            <i class="fas fa-check"></i>
+                        @elseif($logbook->status === 'rejected')
+                            <i class="fas fa-times"></i>
+                        @else
+                            <i class="fas fa-clock"></i>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="no-events">
+                    <i class="fas fa-calendar-day"></i>
+                    <p>No activities for today</p>
+                    <a href="{{ route('mobile.logbooks.create') }}" class="btn-add-event">
+                        <i class="fas fa-plus"></i>
+                        Add Logbook
+                    </a>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- Recent Logbooks -->
+    <div class="recent-section">
+        <div class="section-header">
+            <h3>Recent Logbooks</h3>
+            <a href="{{ route('mobile.logbooks') }}" class="view-all">View All</a>
+        </div>
+        
+        <div class="logbooks-list">
+            @forelse($logbooks as $logbook)
+                <div class="logbook-item" onclick="window.location.href='{{ route('mobile.logbooks.show', $logbook->id) }}'">
+                    <div class="logbook-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="logbook-content">
+                        <div class="logbook-title">{{ $logbook->judul }}</div>
+                        <div class="logbook-date">{{ $logbook->created_at->format('d M Y, H:i') }}</div>
+                    </div>
+                    <div class="logbook-status {{ $logbook->status }}">
+                        <span class="status-badge">{{ ucfirst($logbook->status) }}</span>
+                    </div>
+                    <div class="logbook-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            @empty
+                <div class="empty-state">
+                    <i class="fas fa-book"></i>
+                    <p>No logbooks yet</p>
+                    <a href="{{ route('mobile.logbooks.create') }}" class="btn-add-logbook">
+                        <i class="fas fa-plus"></i>
+                        Create First Logbook
+                    </a>
+                </div>
+            @endforelse
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+<script>
+let currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+
+function renderCalendar() {
+    const calendarDates = document.getElementById('calendarDates');
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    let html = '';
+    
+    for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const isCurrentMonth = date.getMonth() === currentMonth;
+        const isToday = date.toDateString() === new Date().toDateString();
+        const hasEvent = checkIfHasEvent(date);
+        
+        html += `
+            <div class="calendar-date ${isCurrentMonth ? 'current-month' : 'other-month'} ${isToday ? 'today' : ''} ${hasEvent ? 'has-event' : ''}" 
+                 data-date="${date.toISOString().split('T')[0]}">
+                <span class="date-number">${date.getDate()}</span>
+                ${hasEvent ? '<div class="event-dot"></div>' : ''}
+            </div>
+        `;
+    }
+    
+    calendarDates.innerHTML = html;
+    document.querySelector('.current-month').textContent = new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function checkIfHasEvent(date) {
+    // This would typically check against your logbook data
+    // For now, we'll just show some random events
+    const day = date.getDate();
+    return day % 3 === 0; // Show event every 3rd day for demo
+}
+
+function previousMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar();
+});
+</script>
+@endpush 
