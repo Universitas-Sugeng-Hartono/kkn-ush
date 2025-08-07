@@ -294,7 +294,7 @@ class AttendanceController extends Controller
         // Jika user adalah DPL, pastikan absensi dari mahasiswa bimbingannya
         if (auth()->user()->hasRole('dpl')) {
             // Cek apakah user yang absen memiliki kelompok dan apakah DPL adalah pembimbingnya
-            if (!$attendance->user->kelompok || $attendance->user->kelompok->dpl_id !== auth()->id()) {
+            if (!$attendance->user->kelompok || $attendance->user->kelompok->dpl_id != auth()->id()) {
                 abort(403, 'Anda tidak memiliki akses untuk melihat absensi ini.');
             }
         }
@@ -370,7 +370,7 @@ class AttendanceController extends Controller
     public function approve(Absensi $attendance)
     {
         // Pastikan DPL hanya bisa approve absensi dari mahasiswa bimbingannya
-        if ($attendance->user->kelompok->dpl_id !== auth()->id()) {
+        if ($attendance->user->kelompok->dpl_id != auth()->id()) {
             abort(403, 'Anda tidak memiliki akses untuk menyetujui absensi ini.');
         }
 
@@ -386,7 +386,7 @@ class AttendanceController extends Controller
     public function reject(Absensi $attendance)
     {
         // Pastikan DPL hanya bisa reject absensi dari mahasiswa bimbingannya
-        if ($attendance->user->kelompok->dpl_id !== auth()->id()) {
+        if ($attendance->user->kelompok->dpl_id != auth()->id()) {
             abort(403, 'Anda tidak memiliki akses untuk menolak absensi ini.');
         }
 

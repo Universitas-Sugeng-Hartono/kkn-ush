@@ -71,7 +71,7 @@ class HistoryLogbookController extends Controller
         $user = auth()->user();
         
         // Pastikan DPL hanya bisa melihat logbook mahasiswa bimbingannya
-        if (!$logbook->user->kelompok || $logbook->user->kelompok->dpl_id !== $user->id) {
+        if (!$logbook->user->kelompok || $logbook->user->kelompok->dpl_id != $user->id) {
             abort(403, 'Anda tidak memiliki akses untuk melihat logbook ini.');
         }
 

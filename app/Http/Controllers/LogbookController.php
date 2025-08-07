@@ -456,7 +456,7 @@ class LogbookController extends Controller
     public function approve(Logbook $logbook)
     {
         // Pastikan DPL hanya bisa approve logbook dari mahasiswa bimbingannya
-        if ($logbook->user->kelompok->dpl_id !== auth()->id()) {
+        if ($logbook->user->kelompok->dpl_id != auth()->id()) {
             abort(403, 'Anda tidak memiliki akses untuk menyetujui logbook ini.');
         }
 
@@ -475,7 +475,7 @@ class LogbookController extends Controller
     public function reject(Logbook $logbook)
     {
         // Pastikan DPL hanya bisa reject logbook dari mahasiswa bimbingannya
-        if ($logbook->user->kelompok->dpl_id !== auth()->id()) {
+        if ($logbook->user->kelompok->dpl_id != auth()->id()) {
             abort(403, 'Anda tidak memiliki akses untuk menolak logbook ini.');
         }
 

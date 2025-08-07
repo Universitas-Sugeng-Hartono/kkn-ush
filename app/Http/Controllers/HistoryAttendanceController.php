@@ -98,7 +98,7 @@ class HistoryAttendanceController extends Controller
             // Tidak ada pengecekan tambahan
         } elseif ($user->hasRole('dpl')) {
             // DPL hanya bisa melihat absensi mahasiswa bimbingannya
-            if (!$attendance->user->kelompok || $attendance->user->kelompok->dpl_id !== $user->id) {
+            if (!$attendance->user->kelompok || $attendance->user->kelompok->dpl_id != $user->id) {
                 abort(403, 'Anda tidak memiliki akses untuk melihat absensi ini.');
             }
         } else {
