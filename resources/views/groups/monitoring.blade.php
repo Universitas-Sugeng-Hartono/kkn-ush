@@ -187,6 +187,12 @@
                             <a href="{{ route('groups.monitoring.map') }}?group={{ $group->id }}" class="btn btn-success btn-sm">
                                 <i class="fas fa-map me-1"></i> Lihat Peta
                             </a>
+                            <a href="{{ route('monitoring.logbook-detail') }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-book me-1"></i> Monitoring Logbook
+                            </a>
+                            <a href="{{ route('monitoring.attendance-detail') }}" class="btn btn-info btn-sm">
+                                <i class="fas fa-calendar-check me-1"></i> Monitoring Absensi
+                            </a>
                         </div>
                     </div>
                 </div>

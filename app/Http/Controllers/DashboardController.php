@@ -393,20 +393,41 @@ class DashboardController extends Controller
             ];
         }
 
-        // Mahasiswa yang tidak aktif (tidak ada logbook dalam 7 hari)
-        $inactiveMahasiswa = User::role('mahasiswa')
+        // Mahasiswa yang tidak aktif (tidak ada logbook dalam periode KKN)
+        $inactiveMahasiswaLogbook = User::role('mahasiswa')
             ->whereIn('kelompok_id', $groups)
             ->whereDoesntHave('logbooks', function($query) {
-                $query->where('created_at', '>', now()->subDays(7));
+                $query->where('tanggal', '>=', '2025-08-04')
+                      ->where('tanggal', '<=', '2025-08-26');
             })
             ->count();
 
-        if ($inactiveMahasiswa > 0) {
+        if ($inactiveMahasiswaLogbook > 0) {
             $alerts[] = [
                 'type' => 'danger',
                 'title' => 'Mahasiswa Tidak Aktif',
-                'message' => "Ada {$inactiveMahasiswa} mahasiswa yang tidak submit logbook dalam 7 hari terakhir",
-                'action' => 'check_inactive_students'
+                'message' => "Ada {$inactiveMahasiswaLogbook} mahasiswa yang tidak submit logbook dalam periode KKN",
+                'action' => 'check_inactive_students',
+                'url' => route('monitoring.logbook-detail')
+            ];
+        }
+
+        // Mahasiswa yang tidak aktif (tidak ada absensi dalam periode KKN)
+        $inactiveMahasiswaAbsensi = User::role('mahasiswa')
+            ->whereIn('kelompok_id', $groups)
+            ->whereDoesntHave('absensi', function($query) {
+                $query->where('tanggal', '>=', '2025-08-04')
+                      ->where('tanggal', '<=', '2025-08-26');
+            })
+            ->count();
+
+        if ($inactiveMahasiswaAbsensi > 0) {
+            $alerts[] = [
+                'type' => 'danger',
+                'title' => 'Mahasiswa Tidak Aktif',
+                'message' => "Ada {$inactiveMahasiswaAbsensi} mahasiswa yang tidak absen dalam periode KKN",
+                'action' => 'check_inactive_attendance',
+                'url' => route('monitoring.attendance-detail')
             ];
         }
 

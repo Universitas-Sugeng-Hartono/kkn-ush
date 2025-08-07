@@ -113,6 +113,11 @@ Route::middleware('auth')->group(function () {
         
 
         
+        // Monitoring Detail Aktivitas Mahasiswa
+        Route::get('/monitoring/attendance-detail', [App\Http\Controllers\MonitoringController::class, 'attendanceDetail'])->name('monitoring.attendance-detail');
+        Route::get('/monitoring/logbook-detail', [App\Http\Controllers\MonitoringController::class, 'logbookDetail'])->name('monitoring.logbook-detail');
+        Route::get('/monitoring/activity-detail', [App\Http\Controllers\MonitoringController::class, 'activityDetail'])->name('monitoring.activity-detail');
+        
         // Notifikasi dan Alert
         Route::get('/dpl/notifications', [DashboardController::class, 'getNotifications'])->name('dpl.notifications.get');
         Route::get('/alerts', [DashboardController::class, 'getAlerts'])->name('alerts.get');

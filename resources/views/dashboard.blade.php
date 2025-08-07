@@ -809,11 +809,23 @@
                         container.innerHTML = '';
                         
                         alerts.forEach(alert => {
+                            const linkHtml = alert.url ? 
+                                `<a href="${alert.url}" class="btn btn-sm btn-outline-${alert.type === 'danger' ? 'danger' : 'primary'} ms-2">
+                                    <i class="fas fa-eye me-1"></i>Lihat Detail
+                                </a>` : '';
+                            
                             const alertHtml = `
                                 <div class="alert alert-${alert.type} alert-dismissible fade show" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>${alert.title}:</strong> ${alert.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>${alert.title}:</strong> ${alert.message}
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            ${linkHtml}
+                                            <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    </div>
                                 </div>
                             `;
                             container.innerHTML += alertHtml;
