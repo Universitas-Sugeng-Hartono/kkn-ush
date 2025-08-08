@@ -103,7 +103,7 @@ class HistoryAttendanceController extends Controller
             }
         } else {
             // Mahasiswa hanya bisa melihat absensi mereka sendiri
-            if ($attendance->user_id !== $user->id) {
+            if ($attendance->user_id != $user->id) {
                 abort(403, 'Anda tidak memiliki akses untuk melihat absensi ini.');
             }
         }

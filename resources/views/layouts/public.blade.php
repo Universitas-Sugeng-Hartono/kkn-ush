@@ -304,7 +304,7 @@
             });
 
             // Add easing function if not available
-            if (typeof $.easing.easeInOutExpo !== 'function') {
+            if (typeof $.easing.easeInOutExpo != 'function') {
                 $.easing.easeInOutExpo = function (x) {
                     return x === 0
                         ? 0

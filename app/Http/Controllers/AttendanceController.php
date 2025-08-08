@@ -107,7 +107,7 @@ class AttendanceController extends Controller
         ];
 
         foreach ($mobileKeywords as $keyword) {
-            if (stripos($userAgent, $keyword) !== false) {
+            if (stripos($userAgent, $keyword) != false) {
                 return true;
             }
         }
@@ -300,7 +300,7 @@ class AttendanceController extends Controller
         }
         // Jika user adalah mahasiswa, pastikan absensi miliknya sendiri
         elseif (auth()->user()->hasRole('mahasiswa')) {
-            if ($attendance->user_id !== auth()->id()) {
+            if ($attendance->user_id != auth()->id()) {
                 abort(403, 'Anda tidak memiliki akses untuk melihat absensi ini.');
             }
         }

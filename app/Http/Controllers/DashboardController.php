@@ -99,7 +99,7 @@ class DashboardController extends Controller
         ];
 
         foreach ($mobileKeywords as $keyword) {
-            if (stripos($userAgent, $keyword) !== false) {
+            if (stripos($userAgent, $keyword) != false) {
                 return true;
             }
         }

@@ -207,7 +207,7 @@ class GroupController extends Controller
 
     public function removeMember(Kelompok $group, User $member)
     {
-        if ($member->kelompok_id !== $group->id) {
+        if ($member->kelompok_id != $group->id) {
             return redirect()->route('groups.show', $group)
                 ->with('error', 'Mahasiswa bukan anggota kelompok ini.');
         }

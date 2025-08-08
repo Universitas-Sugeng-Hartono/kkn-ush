@@ -119,7 +119,7 @@ class DokumenController extends Controller
     {
         $query = Dokumen::with('user')->orderBy('created_at', 'desc');
         
-        if ($jenis !== 'all') {
+        if ($jenis != 'all') {
             $query->where('jenis', $jenis);
         }
 

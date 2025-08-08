@@ -345,9 +345,9 @@
                         var nim = data[2].toLowerCase(); // NIM column
                         var jurusan = data[3].toLowerCase(); // Jurusan column
                         
-                        if (name.indexOf(searchTerm) !== -1 || 
-                            nim.indexOf(searchTerm) !== -1 || 
-                            jurusan.indexOf(searchTerm) !== -1) {
+                        if (name.indexOf(searchTerm) != -1 || 
+                            nim.indexOf(searchTerm) != -1 || 
+                            jurusan.indexOf(searchTerm) != -1) {
                             return true;
                         }
                         return false;
@@ -360,7 +360,7 @@
             // Group filter
             $('#group_filter').on('change', function() {
                 var groupName = $(this).find('option:selected').text();
-                if (groupName && groupName !== 'Semua Kelompok') {
+                if (groupName && groupName != 'Semua Kelompok') {
                     table.column(4).search(groupName).draw(); // Kelompok column
                 } else {
                     table.column(4).search('').draw();

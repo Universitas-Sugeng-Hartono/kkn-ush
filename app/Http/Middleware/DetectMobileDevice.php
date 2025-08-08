@@ -36,7 +36,7 @@ class DetectMobileDevice
         
         // Check jika ini adalah desktop browser
         foreach ($desktopBrowsers as $browser) {
-            if (stripos($userAgent, $browser) !== false && 
+            if (stripos($userAgent, $browser) != false && 
                 stripos($userAgent, 'Mobile') === false &&
                 stripos($userAgent, 'Android') === false &&
                 stripos($userAgent, 'iPhone') === false &&
@@ -52,7 +52,7 @@ class DetectMobileDevice
         ];
 
         foreach ($mobileKeywords as $keyword) {
-            if (stripos($userAgent, $keyword) !== false) {
+            if (stripos($userAgent, $keyword) != false) {
                 return true;
             }
         }

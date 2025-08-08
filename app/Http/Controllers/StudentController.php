@@ -27,7 +27,7 @@ class StudentController extends Controller
         }
 
         // Pastikan DPL hanya bisa melihat detail mahasiswa yang dibimbingnya
-        if ($user->kelompok->dpl_id !== auth()->id()) {
+        if ($user->kelompok->dpl_id != auth()->id()) {
             abort(403, 'Anda tidak memiliki akses untuk melihat detail mahasiswa ini.');
         }
 

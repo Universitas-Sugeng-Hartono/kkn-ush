@@ -408,7 +408,7 @@ function removePhoto(button, index) {
     const files = Array.from(photoInput.files);
     
     files.forEach((file, i) => {
-        if (i !== index) {
+        if (i != index) {
             dt.items.add(file);
         }
     });

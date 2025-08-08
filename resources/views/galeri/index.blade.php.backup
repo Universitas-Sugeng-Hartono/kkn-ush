@@ -324,7 +324,7 @@
                     }
 
                     // Status filter
-                    if (statusValue && status !== statusValue) {
+                    if (statusValue && status != statusValue) {
                         show = false;
                     }
 
