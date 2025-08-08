@@ -11,7 +11,7 @@ class BeritaController extends Controller
 {
     public function index()
     {
-        $this->authorize('viewAny', Berita::class);
+        // $this->authorize('viewAny', Berita::class);
 
         $berita = Berita::with('user')
             ->orderBy('published_at', 'desc')
@@ -61,13 +61,13 @@ class BeritaController extends Controller
 
     public function create()
     {
-        $this->authorize('create', Berita::class);
+        // $this->authorize('create', Berita::class);
         return view('berita.create');
     }
 
     public function store(Request $request)
     {
-        $this->authorize('create', Berita::class);
+        // $this->authorize('create', Berita::class);
 
         $request->validate([
             'judul' => 'required|string|max:255',
@@ -102,13 +102,13 @@ class BeritaController extends Controller
 
     public function edit(Berita $berita)
     {
-        $this->authorize('update', $berita);
+        // $this->authorize('update', $berita);
         return view('berita.edit', compact('berita'));
     }
 
     public function update(Request $request, Berita $berita)
     {
-        $this->authorize('update', $berita);
+        // $this->authorize('update', $berita);
 
         $request->validate([
             'judul' => 'required|string|max:255',
@@ -149,7 +149,7 @@ class BeritaController extends Controller
 
     public function destroy(Berita $berita)
     {
-        $this->authorize('delete', $berita);
+        // $this->authorize('delete', $berita);
 
         if ($berita->gambar) {
             Storage::disk('public')->delete($berita->gambar);

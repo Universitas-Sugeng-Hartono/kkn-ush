@@ -47,7 +47,7 @@ class DokumenController extends Controller
 
     public function show(Dokumen $dokumen)
     {
-        $this->authorize('view', $dokumen);
+        // $this->authorize('view', $dokumen);
         return view('dokumen.show', compact('dokumen'));
     }
 
