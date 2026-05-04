@@ -31,7 +31,8 @@ class User extends Authenticatable
         'kelompok_id',
         'photo',
         'jurusan',
-        'angkatan_id',
+        'tahun_akademik_id',
+        'semester_id',
     ];
 
     /**
@@ -92,9 +93,15 @@ class User extends Authenticatable
         return $this->hasMany(Kelompok::class, 'dpl_id');
     }
 
-    public function angkatan()
+
+    public function tahunAkademik()
     {
-        return $this->belongsTo(Angkatan::class);
+        return $this->belongsTo(TahunAkademik::class);
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 
     public function hasKelompok(): bool

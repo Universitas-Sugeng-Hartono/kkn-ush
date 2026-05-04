@@ -1,19 +1,59 @@
 <x-app-layout>
     <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0">Kelompok KKN</h2>
+                <p class="text-muted mb-0">Kelola data kelompok KKN</p>
+                <div class="text-muted small">
+                    Periode aktif: {{ $tahunAktif?->nama ?? '-' }} - {{ $semesterAktif?->nama ?? '-' }}
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('groups.map') }}" class="btn btn-info text-white me-2">
+                    <i class="fas fa-map-marked-alt me-2"></i>Lihat Peta
+                </a>
+                <a href="{{ route('groups.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Tambah Kelompok
+                </a>
+            </div>
+        </div>
+
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2 class="fw-bold">Kelompok KKN</h2>
-                        <p class="text-muted">Kelola data kelompok KKN</p>
-                    </div>
-                    <div>
-                        <a href="{{ route('groups.map') }}" class="btn btn-info text-white me-2">
-                            <i class="fas fa-map-marked-alt me-2"></i>Lihat Peta
-                        </a>
-                        <a href="{{ route('groups.create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-2"></i>Tambah Kelompok
-                        </a>
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <form action="{{ route('groups.index') }}" method="GET" class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Tahun Akademik</label>
+                                <select name="tahun_akademik_id" class="form-select form-select-sm">
+                                    @foreach($tahunAkademikList as $ta)
+                                        <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                            {{ $ta->nama }} {{ $ta->is_aktif ? '(Aktif)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Semester</label>
+                                <select name="semester_id" class="form-select form-select-sm">
+                                    @foreach($semesterList as $sem)
+                                        <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                            {{ $sem->nama }} {{ $sem->is_aktif ? '(Aktif)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                                        <i class="fas fa-filter me-2"></i>Filter
+                                    </button>
+                                    <a href="{{ route('groups.index') }}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-undo me-2"></i>Reset
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -28,7 +68,8 @@
                                 <thead>
                                     <tr>
                                         <th>Nama Kelompok</th>
-                                        <th>Angkatan</th>
+                                        <th>Tahun Akademik</th>
+                                        <th>Semester</th>
                                         <th>Lokasi</th>
                                         <th>DPL</th>
                                         <th>Jumlah Mahasiswa</th>
@@ -41,36 +82,37 @@
                                     @foreach($groups as $group)
                                     <tr>
                                         <td>{{ $group->nama_kelompok }}</td>
-                                        <td>{{ $group->angkatan->nama_angkatan }}</td>
+                                        <td>{{ $group->tahunAkademik->nama }}</td>
+                                        <td>{{ $group->semester->nama }}</td>
                                         <td>
-                                            {{ $group->lokasi->nama_desa }}, 
+                                            {{ $group->lokasi->nama_desa }},
                                             {{ $group->lokasi->nama_kecamatan }}
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-info text-white ms-2"
-                                                    onclick="showMap({{ $group->lokasi->latitude }}, {{ $group->lokasi->longitude }}, '{{ $group->nama_kelompok }}')">
+                                            <button type="button"
+                                                class="btn btn-sm btn-info text-white ms-2"
+                                                onclick="showMap({{ $group->lokasi->latitude }}, {{ $group->lokasi->longitude }}, '{{ $group->nama_kelompok }}')">
                                                 <i class="fas fa-map-marker-alt"></i>
                                             </button>
                                         </td>
                                         <td>
                                             @if($group->dpl)
-                                                <div class="d-flex align-items-center">
-                                                    @if($group->dpl->foto_profil)
-                                                        <img src="{{ asset('storage/'.$group->dpl->foto_profil) }}" 
-                                                             alt="{{ $group->dpl->name }}" 
-                                                             class="rounded-circle me-2"
-                                                             width="30" height="30">
-                                                    @else
-                                                        <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center"
-                                                             style="width: 30px; height: 30px;">
-                                                            <span class="text-white" style="font-size: 12px;">
-                                                                {{ substr($group->dpl->name, 0, 1) }}
-                                                            </span>
-                                                        </div>
-                                                    @endif
-                                                    {{ $group->dpl->name }}
+                                            <div class="d-flex align-items-center">
+                                                @if($group->dpl->foto_profil)
+                                                <img src="{{ asset('storage/'.$group->dpl->foto_profil) }}"
+                                                    alt="{{ $group->dpl->name }}"
+                                                    class="rounded-circle me-2"
+                                                    width="30" height="30">
+                                                @else
+                                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center"
+                                                    style="width: 30px; height: 30px;">
+                                                    <span class="text-white" style="font-size: 12px;">
+                                                        {{ substr($group->dpl->name, 0, 1) }}
+                                                    </span>
                                                 </div>
+                                                @endif
+                                                {{ $group->dpl->name }}
+                                            </div>
                                             @else
-                                                <span class="text-muted">Belum ditentukan</span>
+                                            <span class="text-muted">Belum ditentukan</span>
                                             @endif
                                         </td>
                                         <td>{{ $group->mahasiswa->count() }}</td>
@@ -78,31 +120,31 @@
                                         <td>{{ $group->absensi_count }}</td>
                                         <td>
                                             <div class="btn-group">
-                                                <a href="{{ route('groups.show', $group) }}" 
-                                                   class="btn btn-sm btn-info text-white"
-                                                   data-bs-toggle="tooltip"
-                                                   title="Detail">
+                                                <a href="{{ route('groups.show', $group) }}"
+                                                    class="btn btn-sm btn-info text-white"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Detail">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ route('groups.edit', $group) }}" 
-                                                   class="btn btn-sm btn-warning text-white"
-                                                   data-bs-toggle="tooltip"
-                                                   title="Edit">
+                                                <a href="{{ route('groups.edit', $group) }}"
+                                                    class="btn btn-sm btn-warning text-white"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-danger"
-                                                        data-bs-toggle="tooltip"
-                                                        title="Hapus"
-                                                        onclick="deleteGroup({{ $group->id }})">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Hapus"
+                                                    onclick="deleteGroup({{ $group->id }})">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
 
-                                            <form id="delete-form-{{ $group->id }}" 
-                                                  action="{{ route('groups.destroy', $group) }}" 
-                                                  method="POST" 
-                                                  class="d-none">
+                                            <form id="delete-form-{{ $group->id }}"
+                                                action="{{ route('groups.destroy', $group) }}"
+                                                method="POST"
+                                                class="d-none">
                                                 @csrf
                                                 @method('DELETE')
                                             </form>
@@ -164,16 +206,17 @@
 
         // Leaflet Map in Modal
         let map;
+
         function showMap(lat, lng, title) {
             $('#mapModal').modal('show');
-            
+
             $('#mapModal').on('shown.bs.modal', function() {
                 if (map) {
                     map.remove();
                 }
 
                 map = L.map('map').setView([lat, lng], 13);
-                
+
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(map);
@@ -190,4 +233,4 @@
         }
     </script>
     @endpush
-</x-app-layout> 
+</x-app-layout>

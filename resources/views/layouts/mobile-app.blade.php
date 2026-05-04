@@ -1390,6 +1390,10 @@
 </head>
 <body>
     <div class="mobile-app">
+        @php
+            $tahunAktifMobile = \App\Models\TahunAkademik::getAktif();
+            $semesterAktifMobile = \App\Models\Semester::getAktif();
+        @endphp
         <!-- Header -->
         <header class="app-header">
             <div class="header-content">
@@ -1397,7 +1401,14 @@
                     <div class="app-logo">
                         <img src="{{ asset('images/ush.png') }}" alt="USH Logo">
                     </div>
-                    <span>KKN-USH</span>
+                    <div>
+                        <span class="d-block">KKN-USH</span>
+                        @if($tahunAktifMobile && $semesterAktifMobile)
+                        <span class="badge bg-success" style="font-size: 0.65rem; font-weight: 500;">
+                            {{ $tahunAktifMobile->nama }} - {{ $semesterAktifMobile->nama }}
+                        </span>
+                        @endif
+                    </div>
                 </div>
                 <div class="header-actions">
                     <button class="btn-icon" onclick="toggleNotifications()">

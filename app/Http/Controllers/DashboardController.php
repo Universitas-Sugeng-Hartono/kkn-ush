@@ -7,6 +7,8 @@ use App\Models\Logbook;
 use App\Models\Absensi;
 use App\Models\Kelompok;
 use App\Models\Pengaduan;
+use App\Models\Semester;
+use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,12 +19,15 @@ class DashboardController extends Controller
         $user = Auth::user();
         $data = [];
 
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
         if ($user->hasRole('admin')) {
-            $data = $this->getAdminDashboardData();
-            return view('dashboard', compact('data'));
+            $data = $this->getAdminDashboardData($tahunAktif, $semesterAktif);
+            return view('dashboard', compact('data', 'tahunAktif', 'semesterAktif'));
         } elseif ($user->hasRole('dpl')) {
-            $data = $this->getDplDashboardData($user);
-            return view('dashboard', compact('data'));
+            $data = $this->getDplDashboardData($user, $tahunAktif, $semesterAktif);
+            return view('dashboard', compact('data', 'tahunAktif', 'semesterAktif'));
         } elseif ($user->hasRole('mahasiswa')) {
             $data = $this->getMahasiswaDashboardData($user);
             
@@ -73,15 +78,17 @@ class DashboardController extends Controller
                     'recentActivities' => $this->getRecentActivities($user),
                     'group' => $group,
                     'dpl' => $dpl,
-                    'groupMembers' => $groupMembers
+                    'groupMembers' => $groupMembers,
+                    'tahunAktif' => $tahunAktif,
+                    'semesterAktif' => $semesterAktif,
                 ]);
             } else {
                 // Tampilkan view desktop untuk mahasiswa
-                return view('dashboard', compact('data'));
+                return view('dashboard', compact('data', 'tahunAktif', 'semesterAktif'));
             }
         }
 
-        return view('dashboard', compact('data'));
+        return view('dashboard', compact('data', 'tahunAktif', 'semesterAktif'));
     }
 
     /**
@@ -107,24 +114,42 @@ class DashboardController extends Controller
         return false;
     }
 
-    private function getAdminDashboardData()
+    private function getAdminDashboardData($tahunAktif = null, $semesterAktif = null)
     {
+        $kelompokIds = null;
+        if ($tahunAktif && $semesterAktif) {
+            $kelompokIds = Kelompok::where('tahun_akademik_id', $tahunAktif->id)
+                ->where('semester_id', $semesterAktif->id)
+                ->pluck('id');
+        }
+
         return [
-            'total_mahasiswa' => User::role('mahasiswa')->count(),
+            'total_mahasiswa' => User::role('mahasiswa')
+                ->when($tahunAktif && $semesterAktif, function ($q) use ($tahunAktif, $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)->where('semester_id', $semesterAktif->id);
+                })
+                ->count(),
             'total_dpl' => User::role('dpl')->count(),
-            'total_kelompok' => Kelompok::count(),
-            'total_logbook' => Logbook::count(),
-            'total_absensi' => Absensi::count(),
+            'total_kelompok' => Kelompok::when($kelompokIds, fn ($q) => $q->whereIn('id', $kelompokIds))->count(),
+            'total_logbook' => Logbook::when($kelompokIds, fn ($q) => $q->whereIn('kelompok_id', $kelompokIds))->count(),
+            'total_absensi' => Absensi::when($kelompokIds, fn ($q) => $q->whereIn('kelompok_id', $kelompokIds))->count(),
             'pengaduan_baru' => Pengaduan::where('status', 'pending')->count(),
             'logbook_stats' => $this->getLogbookStats(),
             'absensi_stats' => $this->getAbsensiStats(),
         ];
     }
 
-    private function getDplDashboardData($user)
+    private function getDplDashboardData($user, $tahunAktif = null, $semesterAktif = null)
     {
+
         // Ambil kelompok yang dibimbing oleh dosen ini
-        $groups = Kelompok::where('dpl_id', $user->id)->with(['mahasiswa', 'logbooks', 'absensi'])->get();
+        $groups = Kelompok::where('dpl_id', $user->id)
+            ->when($tahunAktif && $semesterAktif, function($q) use ($tahunAktif, $semesterAktif) {
+                return $q->where('tahun_akademik_id', $tahunAktif->id)
+                    ->where('semester_id', $semesterAktif->id);
+            })
+            ->with(['mahasiswa', 'logbooks', 'absensi'])
+            ->get();
         
         // Hitung statistik
         $totalMahasiswa = $groups->sum(function($group) { return $group->mahasiswa->count(); });
@@ -243,7 +268,15 @@ class DashboardController extends Controller
             return response()->json([]);
         }
 
-        $groups = Kelompok::where('dpl_id', $user->id)->pluck('id');
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $groupsQuery = Kelompok::where('dpl_id', $user->id);
+        if ($tahunAktif && $semesterAktif) {
+            $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                        ->where('semester_id', $semesterAktif->id);
+        }
+        $groups = $groupsQuery->pluck('id');
         
         $notifications = [];
 
@@ -359,7 +392,15 @@ class DashboardController extends Controller
             return response()->json([]);
         }
 
-        $groups = Kelompok::where('dpl_id', $user->id)->pluck('id');
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $groupsQuery = Kelompok::where('dpl_id', $user->id);
+        if ($tahunAktif && $semesterAktif) {
+            $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                        ->where('semester_id', $semesterAktif->id);
+        }
+        $groups = $groupsQuery->pluck('id');
         
         $alerts = [];
 

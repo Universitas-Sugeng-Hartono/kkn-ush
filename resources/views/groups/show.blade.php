@@ -28,8 +28,12 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="text-muted d-block">Angkatan</label>
-                            <span class="fw-bold">{{ $group->angkatan->nama_angkatan }}</span>
+                            <label class="text-muted d-block">Tahun Akademik</label>
+                            <span class="fw-bold">{{ $group->tahunAkademik->nama }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted d-block">Semester</label>
+                            <span class="fw-bold">{{ $group->semester->nama }}</span>
                         </div>
                         <div class="mb-3">
                             <label class="text-muted d-block">Lokasi</label>

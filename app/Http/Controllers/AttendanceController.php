@@ -353,10 +353,17 @@ class AttendanceController extends Controller
 
     public function pending()
     {
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
         // Ambil absensi yang pending dari mahasiswa bimbingan DPL
-        $attendances = Absensi::whereHas('user', function($query) {
-            $query->whereHas('kelompok', function($q) {
+        $attendances = Absensi::whereHas('user', function($query) use ($tahunAktif, $semesterAktif) {
+            $query->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
                 $q->where('dpl_id', auth()->id());
+                if ($tahunAktif && $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                }
             });
         })
         ->where('status', 'pending')
@@ -413,9 +420,16 @@ class AttendanceController extends Controller
 
     public function approveAll()
     {
-        $attendances = Absensi::whereHas('user', function($query) {
-            $query->whereHas('kelompok', function($q) {
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        $attendances = Absensi::whereHas('user', function($query) use ($tahunAktif, $semesterAktif) {
+            $query->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
                 $q->where('dpl_id', auth()->id());
+                if ($tahunAktif && $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                }
             });
         })
         ->where('status', 'pending')
@@ -436,9 +450,16 @@ class AttendanceController extends Controller
 
     public function rejectAll()
     {
-        $attendances = Absensi::whereHas('user', function($query) {
-            $query->whereHas('kelompok', function($q) {
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        $attendances = Absensi::whereHas('user', function($query) use ($tahunAktif, $semesterAktif) {
+            $query->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
                 $q->where('dpl_id', auth()->id());
+                if ($tahunAktif && $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                }
             });
         })
         ->where('status', 'pending')

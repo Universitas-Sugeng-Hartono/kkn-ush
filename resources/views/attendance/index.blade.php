@@ -452,7 +452,7 @@
                         <div class="mb-3">
                             <label class="form-label">Lokasi</label>
                             <div class="input-group">
-                            <input type="text" class="form-control" id="lokasi" disabled>
+                            <input type="text" class="form-control" id="lokasi" name="lokasi" readonly>
                                 <button type="button" class="btn btn-outline-secondary" onclick="refreshLocation()">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
@@ -890,14 +890,45 @@
         document.getElementById('attendanceModal').addEventListener('hidden.bs.modal', function() {
             const video = document.getElementById('camera');
             const canvas = document.getElementById('canvas');
+            const placeholder = document.getElementById('capturePlaceholder');
             
             if (video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
             }
             
-            video.style.display = 'block';
+            video.style.display = 'none';
+            placeholder.style.display = 'block';
             canvas.style.display = 'none';
             document.getElementById('submitBtn').disabled = true;
+        });
+
+        // Inisialisasi kamera saat modal dibuka
+        document.getElementById('attendanceModal').addEventListener('shown.bs.modal', function() {
+            const video = document.getElementById('camera');
+            const placeholder = document.getElementById('capturePlaceholder');
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "user",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    video.play();
+                })
+                .catch(err => {
+                    console.error("Error accessing camera: ", err);
+                    showToast('error', 'Gagal mengakses kamera. Pastikan izin kamera telah diberikan.');
+                });
+            } else {
+                showToast('error', 'Browser Anda tidak mendukung akses kamera.');
+            }
         });
 
         // Submit form absensi web pakai AJAX agar bisa toast & redirect
@@ -927,7 +958,8 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
                     }
                 })
                 .then(async response => {

@@ -5,21 +5,42 @@ namespace App\Http\Controllers;
 use App\Models\Kelompok;
 use App\Models\User;
 use App\Models\Lokasi;
-use App\Models\Angkatan;
 use App\Http\Requests\GroupRequest;
+use App\Models\Semester;
+use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $tahun_akademik_id = $request->query('tahun_akademik_id', $tahunAktif?->id);
+        $semester_id = $request->query('semester_id', $semesterAktif?->id);
+
         // Query yang dioptimalkan untuk menghindari duplikasi
-        $groups = Kelompok::with([
-            'angkatan', 
+        $groupsQuery = Kelompok::with([
+            'tahunAkademik',
+            'semester',
             'lokasi', 
             'dpl', 
             'mahasiswa'
-        ])->groupBy('id')->get();
+        ])->groupBy('id');
+
+        // Apply filters
+        if ($tahun_akademik_id) {
+            $groupsQuery->where('tahun_akademik_id', $tahun_akademik_id);
+        }
+        if ($semester_id) {
+            $groupsQuery->where('semester_id', $semester_id);
+        }
+
+        $groups = $groupsQuery->get();
+        
+        $tahunAkademikList = TahunAkademik::all();
+        $semesterList = Semester::all();
         
         // Hitung logbook dan absensi secara terpisah untuk menghindari duplikasi
         foreach($groups as $group) {
@@ -27,17 +48,29 @@ class GroupController extends Controller
             $group->absensi_count = $group->absensi()->count();
         }
         
-        return view('groups.index', compact('groups'));
+        return view('groups.index', compact('groups', 'tahunAktif', 'semesterAktif', 'tahunAkademikList', 'semesterList', 'tahun_akademik_id', 'semester_id'));
     }
 
     public function create()
     {
-        $angkatan = Angkatan::all();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $tahunAkademik = TahunAkademik::all();
+        $semester = Semester::all();
+
         $lokasi = Lokasi::all();
         $dpl = User::role('dpl')->get();
-        $mahasiswa = User::role('mahasiswa')->whereNull('kelompok_id')->get();
+        $mahasiswaQuery = User::role('mahasiswa')->whereNull('kelompok_id');
         
-        return view('groups.create', compact('angkatan', 'lokasi', 'dpl', 'mahasiswa'));
+        if ($tahunAktif && $semesterAktif) {
+            $mahasiswaQuery->where('tahun_akademik_id', $tahunAktif->id)
+                           ->where('semester_id', $semesterAktif->id);
+        }
+        
+        $mahasiswa = $mahasiswaQuery->get();
+        
+        return view('groups.create', compact('tahunAkademik', 'semester', 'lokasi', 'dpl', 'mahasiswa', 'tahunAktif', 'semesterAktif'));
     }
 
     public function store(GroupRequest $request)
@@ -56,7 +89,7 @@ class GroupController extends Controller
 
     public function show(Kelompok $group)
     {
-        $group->load(['angkatan', 'lokasi', 'dpl', 'mahasiswa', 'logbooks', 'absensi']);
+        $group->load(['tahunAkademik', 'semester', 'lokasi', 'dpl', 'mahasiswa', 'logbooks', 'absensi']);
         
         // Statistik logbook
         $logbookStats = $group->logbooks()
@@ -77,17 +110,31 @@ class GroupController extends Controller
 
     public function edit(Kelompok $group)
     {
-        $angkatan = Angkatan::all();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $tahunAkademik = TahunAkademik::all();
+        $semester = Semester::all();
+
         $lokasi = Lokasi::all();
         $dpl = User::role('dpl')->get();
-        $mahasiswa = User::role('mahasiswa')
+        $mahasiswaQuery = User::role('mahasiswa')
             ->where(function($query) use ($group) {
-                $query->whereNull('kelompok_id')
-                    ->orWhere('kelompok_id', $group->id);
-            })
-            ->get();
+                // Selalu sertakan mahasiswa yang sudah menjadi anggota kelompok ini
+                $query->where('kelompok_id', $group->id)
+                    // ATAU mahasiswa yang belum punya kelompok DAN periodenya cocok dengan kelompok ini (atau NULL)
+                    ->orWhere(function($q) use ($group) {
+                        $q->whereNull('kelompok_id');
+                        if ($group->tahun_akademik_id && $group->semester_id) {
+                            $q->where('tahun_akademik_id', $group->tahun_akademik_id)
+                              ->where('semester_id', $group->semester_id);
+                        }
+                    });
+            });
 
-        return view('groups.edit', compact('group', 'angkatan', 'lokasi', 'dpl', 'mahasiswa'));
+        $mahasiswa = $mahasiswaQuery->get();
+
+        return view('groups.edit', compact('group', 'tahunAkademik', 'semester', 'lokasi', 'dpl', 'mahasiswa', 'tahunAktif', 'semesterAktif'));
     }
 
     public function update(GroupRequest $request, Kelompok $group)
@@ -126,14 +173,30 @@ class GroupController extends Controller
     }
 
     // Monitoring methods untuk DPL
-    public function monitoring()
+    public function monitoring(Request $request)
     {
         $user = auth()->user();
+
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
         
+        $tahun_akademik_id = $request->query('tahun_akademik_id', $tahunAktif?->id);
+        $semester_id = $request->query('semester_id', $semesterAktif?->id);
+
         // Ambil kelompok yang dibimbing oleh dosen ini
-        $groups = Kelompok::with(['angkatan', 'lokasi', 'dpl', 'mahasiswa', 'logbooks', 'absensi'])
-            ->where('dpl_id', $user->id)
-            ->get();
+        $groupsQuery = Kelompok::with(['tahunAkademik', 'semester', 'lokasi', 'dpl', 'mahasiswa', 'logbooks', 'absensi'])
+            ->where('dpl_id', $user->id);
+
+        if ($tahun_akademik_id) {
+            $groupsQuery->where('tahun_akademik_id', $tahun_akademik_id);
+        }
+        if ($semester_id) {
+            $groupsQuery->where('semester_id', $semester_id);
+        }
+
+        $groups = $groupsQuery->get();
+        $tahunAkademikList = TahunAkademik::all();
+        $semesterList = Semester::all();
 
         // Statistik untuk dashboard
         $stats = [
@@ -148,7 +211,7 @@ class GroupController extends Controller
             }),
         ];
 
-        return view('groups.monitoring', compact('groups', 'stats'));
+        return view('groups.monitoring', compact('groups', 'stats', 'tahunAktif', 'semesterAktif', 'tahunAkademikList', 'semesterList', 'tahun_akademik_id', 'semester_id'));
     }
 
     public function monitoringMap()
@@ -160,9 +223,18 @@ class GroupController extends Controller
     {
         $user = auth()->user();
         
-        $groups = Kelompok::with(['lokasi', 'mahasiswa', 'logbooks', 'absensi'])
-            ->where('dpl_id', $user->id)
-            ->get();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $groupsQuery = Kelompok::with(['lokasi', 'mahasiswa', 'logbooks', 'absensi'])
+            ->where('dpl_id', $user->id);
+
+        if ($tahunAktif && $semesterAktif) {
+            $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                        ->where('semester_id', $semesterAktif->id);
+        }
+
+        $groups = $groupsQuery->get();
 
         $data = [];
         foreach ($groups as $group) {
@@ -220,13 +292,33 @@ class GroupController extends Controller
 
     public function map()
     {
-        $groups = Kelompok::with(['lokasi', 'mahasiswa', 'dpl'])->get();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $groupsQuery = Kelompok::with(['lokasi', 'mahasiswa', 'dpl']);
+        
+        if ($tahunAktif && $semesterAktif) {
+            $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                        ->where('semester_id', $semesterAktif->id);
+        }
+
+        $groups = $groupsQuery->get();
         return view('groups.map', compact('groups'));
     }
 
     public function getMapData()
     {
-        $groups = Kelompok::with(['lokasi', 'mahasiswa', 'dpl', 'logbooks', 'absensi'])->get();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $groupsQuery = Kelompok::with(['lokasi', 'mahasiswa', 'dpl', 'logbooks', 'absensi']);
+        
+        if ($tahunAktif && $semesterAktif) {
+            $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                        ->where('semester_id', $semesterAktif->id);
+        }
+
+        $groups = $groupsQuery->get();
         
         return response()->json([
             'type' => 'FeatureCollection',

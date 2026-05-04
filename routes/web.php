@@ -18,6 +18,9 @@ use App\Http\Controllers\StudentNotificationController;
 use App\Http\Controllers\DplNotificationController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\MobileController;
+use App\Http\Controllers\LaporanKelompokController;
+use App\Http\Controllers\DplLaporanKelompokController;
+use App\Http\Controllers\TahunAkademikController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
@@ -64,7 +67,20 @@ Route::middleware('auth')->group(function () {
 
     // Admin Routes
     Route::middleware('role:admin')->group(function () {
+        Route::post('users/import', [UserController::class, 'import'])->name('users.import');
+        Route::get('users/template', [UserController::class, 'downloadTemplate'])->name('users.template');
         Route::resource('users', UserController::class);
+        Route::get('pengaturan/akademik', [TahunAkademikController::class, 'index'])->name('tahun-akademik.index');
+        Route::post('pengaturan/tahun-akademik', [TahunAkademikController::class, 'store'])->name('tahun-akademik.store');
+        Route::put('pengaturan/tahun-akademik/{tahunAkademik}', [TahunAkademikController::class, 'update'])->name('tahun-akademik.update');
+        Route::delete('pengaturan/tahun-akademik/{tahunAkademik}', [TahunAkademikController::class, 'destroy'])->name('tahun-akademik.destroy');
+        Route::post('pengaturan/tahun-akademik/{tahunAkademik}/aktif', [TahunAkademikController::class, 'setAktif'])->name('tahun-akademik.set-aktif');
+
+        Route::post('pengaturan/semester', [TahunAkademikController::class, 'storeSemester'])->name('semester.store');
+        Route::put('pengaturan/semester/{semester}', [TahunAkademikController::class, 'updateSemester'])->name('semester.update');
+        Route::delete('pengaturan/semester/{semester}', [TahunAkademikController::class, 'destroySemester'])->name('semester.destroy');
+        Route::post('pengaturan/semester/{semester}/aktif', [TahunAkademikController::class, 'setSemesterAktif'])->name('semester.set-aktif');
+
         Route::get('locations/map', [LocationController::class, 'map'])->name('locations.map');
         Route::get('locations/data', [LocationController::class, 'getLocations'])->name('locations.data');
         Route::resource('locations', LocationController::class);
@@ -133,6 +149,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dpl/monitoring', [GroupController::class, 'monitoring'])->name('groups.monitoring');
         Route::get('/dpl/monitoring/map', [GroupController::class, 'monitoringMap'])->name('groups.monitoring.map');
         Route::get('/dpl/monitoring/data', [GroupController::class, 'getMonitoringData'])->name('groups.monitoring.data');
+
+        Route::get('/dpl/laporan-kelompok', [DplLaporanKelompokController::class, 'index'])->name('dpl.laporan-kelompok.index');
     });
 
     // Mahasiswa Routes
@@ -141,6 +159,10 @@ Route::middleware('auth')->group(function () {
         Route::put('/logbooks/{logbook}/submit', [LogbookController::class, 'submit'])->name('logbooks.submit');
         Route::resource('attendance', AttendanceController::class)->except(['show']);
         Route::get('/attendance/check-today', [AttendanceController::class, 'checkTodayAttendance'])->name('attendance.check-today');
+        Route::get('/laporan-kelompok', [LaporanKelompokController::class, 'index'])->name('laporan-kelompok.index');
+        Route::post('/laporan-kelompok', [LaporanKelompokController::class, 'store'])->name('laporan-kelompok.store');
+        Route::get('/laporan-kelompok/{laporanKelompok}/download', [LaporanKelompokController::class, 'download'])->name('laporan-kelompok.download');
+        Route::delete('/laporan-kelompok/{laporanKelompok}', [LaporanKelompokController::class, 'destroy'])->name('laporan-kelompok.destroy');
         Route::get('/notifications', [StudentNotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{id}/mark-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
         Route::post('/notifications/mark-all-read', [StudentNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
@@ -157,6 +179,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/attendance', [MobileController::class, 'attendance'])->name('mobile.attendance');
             Route::get('/attendance/create', [MobileController::class, 'createAttendance'])->name('mobile.attendance.create');
             Route::get('/attendance/{id}', [MobileController::class, 'showAttendance'])->name('mobile.attendance.show');
+            Route::get('/laporan-kelompok', [MobileController::class, 'laporanKelompok'])->name('mobile.laporan-kelompok.index');
             Route::get('/notifications', [MobileController::class, 'notifications'])->name('mobile.notifications');
             Route::get('/profile', [MobileController::class, 'profile'])->name('mobile.profile');
             Route::get('/profile/edit', [MobileController::class, 'editProfile'])->name('mobile.profile.edit');

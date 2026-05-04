@@ -90,15 +90,24 @@
             <h3>Photo</h3>
             <p class="form-hint">Ambil foto untuk bukti kehadiran</p>
             
-            <div class="photo-capture-area" id="photoCaptureArea">
-                <div class="capture-placeholder" id="capturePlaceholder">
-                    <i class="fas fa-camera"></i>
-                    <p>Tap untuk mengambil foto</p>
+            <div class="photo-capture-area p-0 overflow-hidden" id="photoCaptureArea" style="position: relative; aspect-ratio: 3/4; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <video id="camera" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 12px;"></video>
+                <canvas id="canvas" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 12px;"></canvas>
+                <div class="capture-placeholder" id="capturePlaceholder" style="position: absolute; z-index: 2; text-align: center;">
+                    <i class="fas fa-camera text-white mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-white m-0" style="color: white !important;">Memuat kamera...</p>
                 </div>
-                <input type="file" id="photo" name="foto" accept="image/*" capture="environment" style="display: none;" required>
+                <input type="hidden" id="photo">
             </div>
             
-            <div id="photoPreview" class="photo-preview"></div>
+            <div class="d-flex gap-2" style="display: flex; gap: 0.5rem;">
+                <button type="button" class="w-100" id="captureBtn" style="display: none; background: #0B1F3A; color: white; border: none; padding: 0.75rem; border-radius: 8px; flex: 1; font-weight: 600;">
+                    <i class="fas fa-camera"></i> Ambil Foto
+                </button>
+                <button type="button" class="w-100" id="retakeBtn" style="display: none; background: #6c757d; color: white; border: none; padding: 0.75rem; border-radius: 8px; flex: 1; font-weight: 600;">
+                    <i class="fas fa-redo"></i> Ulangi
+                </button>
+            </div>
             
             @error('foto')
                 <span class="error-message">{{ $message }}</span>
@@ -801,51 +810,81 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
 
-    
-    // Photo capture functionality
-        console.log('Setting up photo capture functionality');
-    const photoCaptureArea = document.getElementById('photoCaptureArea');
-    const photoInput = document.getElementById('photo');
-    
-    photoCaptureArea.addEventListener('click', function() {
-            console.log('Photo capture area clicked');
-        photoInput.click();
-    });
-    
-    photoInput.addEventListener('change', function(e) {
-            console.log('Photo input changed');
-        const file = e.target.files[0];
-                    if (file && file.size > 20 * 1024 * 1024) {
-                console.log('File too large:', file.size);
-                showToast('error', 'Ukuran file tidak boleh lebih dari 20MB!');
-            photoInput.value = '';
+    // Camera functionality
+    console.log('Setting up camera functionality');
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const placeholder = document.getElementById('capturePlaceholder');
+    let stream = null;
+
+    function startCamera() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            placeholder.querySelector('p').textContent = "Memuat kamera...";
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "user"
+                } 
+            })
+            .then(s => {
+                stream = s;
+                video.srcObject = stream;
+                video.style.display = 'block';
+                placeholder.style.display = 'none';
+                captureBtn.style.display = 'block';
+                retakeBtn.style.display = 'none';
+                canvas.style.display = 'none';
+                document.getElementById('photoCaptureArea').style.cursor = 'default';
+                video.play();
+            })
+            .catch(err => {
+                console.error("Error accessing camera: ", err);
+                placeholder.innerHTML = '<i class="fas fa-exclamation-triangle text-warning mb-2" style="font-size: 2rem;"></i><p class="text-white m-0" style="color: white !important;">Kamera tidak dapat diakses</p>';
+                showToast('error', 'Gagal mengakses kamera. Pastikan izin kamera telah diberikan.');
+            });
+        } else {
+            placeholder.innerHTML = '<i class="fas fa-times-circle text-danger mb-2" style="font-size: 2rem;"></i><p class="text-white m-0" style="color: white !important;">Browser tidak mendukung kamera</p>';
+            showToast('error', 'Browser Anda tidak mendukung akses kamera.');
+        }
+    }
+
+    startCamera();
+
+    captureBtn.addEventListener('click', function() {
+        const context = canvas.getContext('2d');
+        if (!video.videoWidth || !video.videoHeight) {
+            showToast('error', 'Kamera belum siap. Mohon tunggu beberapa detik.');
             return;
         }
-        if (file && file.type.startsWith('image/')) {
-                console.log('Valid image file, compressing...');
-            compressImage(file, function(compressed) {
-                    console.log('Image compressed successfully');
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                        console.log('Image loaded for preview');
-                        document.getElementById('capturePlaceholder').style.display = 'none';
-                    const photoItem = document.createElement('div');
-                    photoItem.className = 'photo-item';
-                    photoItem.innerHTML = `<img src="${e.target.result}" alt="Attendance photo">`;
-                        document.getElementById('photoPreview').innerHTML = '';
-                        document.getElementById('photoPreview').appendChild(photoItem);
-                    const reader2 = new FileReader();
-                    reader2.onload = function(ev) {
-                            console.log('Image converted to data URL');
-                        document.getElementById('foto').value = ev.target.result;
-                        photoTaken = true;
-                        checkFormValidity();
-                    };
-                    reader2.readAsDataURL(compressed);
-                };
-                reader.readAsDataURL(compressed);
-            });
-        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+        document.getElementById('foto').value = dataUrl;
+        document.getElementById('photo').value = dataUrl;
+        
+        video.style.display = 'none';
+        canvas.style.display = 'block';
+        captureBtn.style.display = 'none';
+        retakeBtn.style.display = 'block';
+        
+        photoTaken = true;
+        checkFormValidity();
+    });
+
+    retakeBtn.addEventListener('click', function() {
+        document.getElementById('foto').value = '';
+        document.getElementById('photo').value = '';
+        photoTaken = false;
+        checkFormValidity();
+        
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        captureBtn.style.display = 'block';
+        retakeBtn.style.display = 'none';
     });
     
     // Form submission
@@ -1129,7 +1168,8 @@ document.addEventListener('DOMContentLoaded', function() {
             body: formData,
             signal: controller.signal,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
             }
         })
         .then(response => {

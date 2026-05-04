@@ -3,21 +3,62 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\TahunAkademik;
+use App\Models\Semester;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $tahun_akademik_id = $request->query('tahun_akademik_id', $tahunAktif?->id);
+        $semester_id = $request->query('semester_id', $semesterAktif?->id);
+        $selected_jurusan = $request->query('jurusan');
+
         // Ambil mahasiswa yang dibimbing oleh DPL yang sedang login
-        $students = User::role('mahasiswa')
-            ->whereHas('kelompok', function($query) {
+        $studentsQuery = User::role('mahasiswa')
+            ->whereHas('kelompok', function ($query) use ($tahun_akademik_id, $semester_id) {
                 $query->where('dpl_id', auth()->id());
-            })
-            ->with(['kelompok', 'kelompok.lokasi'])
-            ->get();
-            
-        return view('students.index', compact('students'));
+
+                if ($tahun_akademik_id) {
+                    $query->where('tahun_akademik_id', $tahun_akademik_id);
+                }
+                if ($semester_id) {
+                    $query->where('semester_id', $semester_id);
+                }
+            });
+
+        // Ambil list jurusan yang tersedia untuk mahasiswa bimbingan DPL ini (di periode terpilih)
+        $jurusanList = (clone $studentsQuery)
+            ->whereNotNull('jurusan')
+            ->select('jurusan', \DB::raw('count(*) as count'))
+            ->groupBy('jurusan')
+            ->pluck('count', 'jurusan');
+
+        // Filter berdasarkan jurusan jika dipilih
+        if ($selected_jurusan) {
+            $studentsQuery->where('jurusan', $selected_jurusan);
+        }
+
+        $students = $studentsQuery->with(['kelompok', 'kelompok.lokasi'])->get();
+
+        $tahunAkademikList = TahunAkademik::all();
+        $semesterList = Semester::all();
+
+        return view('students.index', compact(
+            'students',
+            'tahunAktif',
+            'semesterAktif',
+            'tahunAkademikList',
+            'semesterList',
+            'tahun_akademik_id',
+            'semester_id',
+            'jurusanList',
+            'selected_jurusan'
+        ));
     }
 
     public function show(User $user)
@@ -34,15 +75,15 @@ class StudentController extends Controller
         $user->load([
             'kelompok',
             'kelompok.lokasi',
-            'logbooks' => function($query) {
+            'logbooks' => function ($query) {
                 $query->latest();
             },
             'nilai',
-            'absensi' => function($query) {
+            'absensi' => function ($query) {
                 $query->latest();
             }
         ]);
 
         return view('students.show', compact('user'));
     }
-} 
+}

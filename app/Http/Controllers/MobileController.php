@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Logbook;
 use App\Models\Absensi;
 use App\Models\Notification;
+use App\Models\LaporanKelompok;
 
 class MobileController extends Controller
 {
@@ -148,6 +149,27 @@ class MobileController extends Controller
     {
         $attendance = Absensi::where('user_id', Auth::id())->findOrFail($id);
         return view('mobile.attendance.show', compact('attendance'));
+    }
+
+    public function laporanKelompok()
+    {
+        $user = Auth::user();
+
+        if (!$user?->kelompok_id) {
+            return view('mobile.laporan-kelompok.index', [
+                'kelompok' => null,
+                'laporan' => collect(),
+            ]);
+        }
+
+        $kelompok = $user->kelompok()->with(['tahunAkademik', 'semester', 'lokasi', 'dpl'])->first();
+
+        $laporan = LaporanKelompok::with('user')
+            ->where('kelompok_id', $user->kelompok_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('mobile.laporan-kelompok.index', compact('kelompok', 'laporan'));
     }
 
     public function notifications()

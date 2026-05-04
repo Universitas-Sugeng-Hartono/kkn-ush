@@ -18,7 +18,8 @@ class Kelompok extends Model
         'nama_kelompok',
         'lokasi_id',
         'dpl_id',
-        'angkatan_id',
+        'tahun_akademik_id',
+        'semester_id',
         'deskripsi'
     ];
 
@@ -32,9 +33,19 @@ class Kelompok extends Model
         return $this->belongsTo(User::class, 'dpl_id');
     }
 
-    public function angkatan(): BelongsTo
+    public function tahunAkademik(): BelongsTo
     {
-        return $this->belongsTo(Angkatan::class);
+        return $this->belongsTo(TahunAkademik::class, 'tahun_akademik_id');
+    }
+
+    public function semester(): BelongsTo
+    {
+        return $this->belongsTo(Semester::class);
+    }
+
+    public function laporanKelompok(): HasMany
+    {
+        return $this->hasMany(LaporanKelompok::class, 'kelompok_id');
     }
 
     public function mahasiswa(): HasMany

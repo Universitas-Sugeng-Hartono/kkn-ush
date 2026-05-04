@@ -43,20 +43,39 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="angkatan_id" class="form-label">Angkatan</label>
-                                        <select class="form-select @error('angkatan_id') is-invalid @enderror" 
-                                                id="angkatan_id" 
-                                                name="angkatan_id" 
+                                        <label for="tahun_akademik_id" class="form-label">Tahun Akademik</label>
+                                        <select class="form-select @error('tahun_akademik_id') is-invalid @enderror" 
+                                                id="tahun_akademik_id" 
+                                                name="tahun_akademik_id" 
                                                 required>
-                                            <option value="">Pilih Angkatan</option>
-                                            @foreach($angkatan as $a)
-                                                <option value="{{ $a->id }}" 
-                                                        {{ old('angkatan_id', $group->angkatan_id) == $a->id ? 'selected' : '' }}>
-                                                    {{ $a->nama_angkatan }}
+                                            <option value="">Pilih Tahun Akademik</option>
+                                            @foreach($tahunAkademik as $ta)
+                                                <option value="{{ $ta->id }}" 
+                                                        {{ old('tahun_akademik_id', $group->tahun_akademik_id) == $ta->id ? 'selected' : '' }}>
+                                                    {{ $ta->nama }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                        @error('angkatan_id')
+                                        @error('tahun_akademik_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="semester_id" class="form-label">Semester</label>
+                                        <select class="form-select @error('semester_id') is-invalid @enderror" 
+                                                id="semester_id" 
+                                                name="semester_id" 
+                                                required>
+                                            <option value="">Pilih Semester</option>
+                                            @foreach($semester as $s)
+                                                <option value="{{ $s->id }}" 
+                                                        {{ old('semester_id', $group->semester_id) == $s->id ? 'selected' : '' }}>
+                                                    {{ $s->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('semester_id')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -161,7 +180,11 @@
     <script>
         // Initialize Select2 for better select boxes
         $(document).ready(function() {
-            $('#angkatan_id').select2({
+            $('#tahun_akademik_id').select2({
+                theme: 'bootstrap-5'
+            });
+
+            $('#semester_id').select2({
                 theme: 'bootstrap-5'
             });
 

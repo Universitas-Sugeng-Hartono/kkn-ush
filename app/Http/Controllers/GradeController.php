@@ -13,9 +13,19 @@ class GradeController extends Controller
     {
         $user = auth()->user();
         
+        // Data untuk filter
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+        
         // Jika dosen, hanya tampilkan penilaian mahasiswa bimbingannya
         if ($user->hasRole('dpl')) {
-            $groups = Kelompok::where('dpl_id', $user->id)->pluck('id');
+            $groupsQuery = Kelompok::where('dpl_id', $user->id);
+            if ($tahunAktif && $semesterAktif) {
+                $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                            ->where('semester_id', $semesterAktif->id);
+            }
+            $groups = $groupsQuery->pluck('id');
+            
             $grades = Nilai::with(['user', 'user.kelompok'])
                 ->whereIn('kelompok_id', $groups)
                 ->latest()
@@ -25,14 +35,23 @@ class GradeController extends Controller
                     return $grade->user && $grade->user->kelompok && $grade->user->kelompok->dpl_id == $user->id;
                 });
         } else {
-            // Admin bisa lihat semua
-            $grades = Nilai::with(['user', 'user.kelompok'])
-                ->latest()
-                ->get();
+            // Admin bisa lihat semua pada periode aktif
+            $gradesQuery = Nilai::with(['user', 'user.kelompok']);
+            if ($tahunAktif && $semesterAktif) {
+                $gradesQuery->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                });
+            }
+            $grades = $gradesQuery->latest()->get();
         }
         
-        // Data untuk filter
-        $groups = Kelompok::all();
+        $groupsQuery = Kelompok::query();
+        if ($tahunAktif && $semesterAktif) {
+            $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                        ->where('semester_id', $semesterAktif->id);
+        }
+        $groups = $groupsQuery->get();
             
         return view('grades.index', compact('grades', 'groups'));
     }
@@ -40,16 +59,29 @@ class GradeController extends Controller
     public function create()
     {
         $user = auth()->user();
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
         
         // Jika dosen, hanya tampilkan mahasiswa bimbingannya
         if ($user->hasRole('dpl')) {
-            $groups = Kelompok::where('dpl_id', $user->id)->pluck('id');
+            $groupsQuery = Kelompok::where('dpl_id', $user->id);
+            if ($tahunAktif && $semesterAktif) {
+                $groupsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                            ->where('semester_id', $semesterAktif->id);
+            }
+            $groups = $groupsQuery->pluck('id');
+            
             $students = User::role('mahasiswa')
                 ->whereIn('kelompok_id', $groups)
                 ->get();
         } else {
-            // Admin bisa pilih semua mahasiswa
-            $students = User::role('mahasiswa')->get();
+            // Admin bisa pilih semua mahasiswa pada periode aktif
+            $studentsQuery = User::role('mahasiswa');
+            if ($tahunAktif && $semesterAktif) {
+                $studentsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                              ->where('semester_id', $semesterAktif->id);
+            }
+            $students = $studentsQuery->get();
         }
         
         return view('grades.create', compact('students'));
@@ -119,7 +151,16 @@ class GradeController extends Controller
 
     public function edit(Nilai $grade)
     {
-        $students = User::role('mahasiswa')->get();
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+        
+        $studentsQuery = User::role('mahasiswa');
+        if ($tahunAktif && $semesterAktif) {
+            $studentsQuery->where('tahun_akademik_id', $tahunAktif->id)
+                          ->where('semester_id', $semesterAktif->id);
+        }
+        $students = $studentsQuery->get();
+        
         return view('grades.edit', compact('grade', 'students'));
     }
 

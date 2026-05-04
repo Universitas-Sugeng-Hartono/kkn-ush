@@ -56,19 +56,20 @@
                 <div class="notification-item {{ $notification->read_at ? 'read' : 'unread' }}" 
                      onclick="markAsRead({{ $notification->id }}, this)">
                     <div class="notification-icon">
-                        @if($notification->data['type'] === 'logbook')
+                        @php $type = $notification->data['type'] ?? ''; @endphp
+                        @if($type === 'logbook')
                             <i class="fas fa-book"></i>
-                        @elseif($notification->data['type'] === 'attendance')
+                        @elseif($type === 'attendance')
                             <i class="fas fa-calendar-check"></i>
-                        @elseif($notification->data['type'] === 'system')
+                        @elseif($type === 'system')
                             <i class="fas fa-info-circle"></i>
                         @else
                             <i class="fas fa-bell"></i>
                         @endif
                     </div>
                     <div class="notification-content">
-                        <div class="notification-title">{{ $notification->data['title'] }}</div>
-                        <div class="notification-message">{{ $notification->data['message'] }}</div>
+                        <div class="notification-title">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                        <div class="notification-message">{{ $notification->data['message'] ?? '-' }}</div>
                         <div class="notification-time">{{ $notification->created_at->diffForHumans() }}</div>
                     </div>
                     <div class="notification-status">

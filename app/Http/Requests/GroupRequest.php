@@ -15,7 +15,8 @@ class GroupRequest extends FormRequest
     {
         return [
             'nama_kelompok' => ['required', 'string', 'max:255'],
-            'angkatan_id' => ['required', 'exists:angkatan,id'],
+            'tahun_akademik_id' => ['required', 'exists:tahun_akademik,id'],
+            'semester_id' => ['required', 'exists:semester,id'],
             'lokasi_id' => ['required', 'exists:lokasi,id'],
             'dpl_id' => ['required', 'exists:users,id'],
             'deskripsi' => ['nullable', 'string'],
@@ -28,8 +29,10 @@ class GroupRequest extends FormRequest
     {
         return [
             'nama_kelompok.required' => 'Nama kelompok wajib diisi.',
-            'angkatan_id.required' => 'Angkatan wajib dipilih.',
-            'angkatan_id.exists' => 'Angkatan tidak valid.',
+            'tahun_akademik_id.required' => 'Tahun akademik wajib dipilih.',
+            'tahun_akademik_id.exists' => 'Tahun akademik tidak valid.',
+            'semester_id.required' => 'Semester wajib dipilih.',
+            'semester_id.exists' => 'Semester tidak valid.',
             'lokasi_id.required' => 'Lokasi wajib dipilih.',
             'lokasi_id.exists' => 'Lokasi tidak valid.',
             'dpl_id.required' => 'DPL wajib dipilih.',

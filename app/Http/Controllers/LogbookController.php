@@ -414,10 +414,17 @@ class LogbookController extends Controller
 
     public function pending(Request $request)
     {
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
         // Ambil logbook yang pending (submitted) dari mahasiswa bimbingan DPL
-        $query = Logbook::whereHas('user', function($query) {
-            $query->whereHas('kelompok', function($q) {
+        $query = Logbook::whereHas('user', function($query) use ($tahunAktif, $semesterAktif) {
+            $query->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
                 $q->where('dpl_id', auth()->id());
+                if ($tahunAktif && $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                }
             });
         })
         ->where('status', 'submitted')
@@ -493,9 +500,16 @@ class LogbookController extends Controller
 
     public function approveAll()
     {
-        $logbooks = Logbook::whereHas('user', function($query) {
-            $query->whereHas('kelompok', function($q) {
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        $logbooks = Logbook::whereHas('user', function($query) use ($tahunAktif, $semesterAktif) {
+            $query->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
                 $q->where('dpl_id', auth()->id());
+                if ($tahunAktif && $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                }
             });
         })
         ->where('status', 'submitted')
@@ -517,9 +531,16 @@ class LogbookController extends Controller
 
     public function rejectAll()
     {
-        $logbooks = Logbook::whereHas('user', function($query) {
-            $query->whereHas('kelompok', function($q) {
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        $logbooks = Logbook::whereHas('user', function($query) use ($tahunAktif, $semesterAktif) {
+            $query->whereHas('kelompok', function($q) use ($tahunAktif, $semesterAktif) {
                 $q->where('dpl_id', auth()->id());
+                if ($tahunAktif && $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)
+                      ->where('semester_id', $semesterAktif->id);
+                }
             });
         })
         ->where('status', 'submitted')
