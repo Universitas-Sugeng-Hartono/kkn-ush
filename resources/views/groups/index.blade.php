@@ -82,16 +82,20 @@
                                     @foreach($groups as $group)
                                     <tr>
                                         <td>{{ $group->nama_kelompok }}</td>
-                                        <td>{{ $group->tahunAkademik->nama }}</td>
-                                        <td>{{ $group->semester->nama }}</td>
+                                        <td>{{ $group->tahunAkademik?->nama ?? '-' }}</td>
+                                        <td>{{ $group->semester?->nama ?? '-' }}</td>
                                         <td>
-                                            {{ $group->lokasi->nama_desa }},
-                                            {{ $group->lokasi->nama_kecamatan }}
-                                            <button type="button"
-                                                class="btn btn-sm btn-info text-white ms-2"
-                                                onclick="showMap({{ $group->lokasi->latitude }}, {{ $group->lokasi->longitude }}, '{{ $group->nama_kelompok }}')">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                            </button>
+                                            @if($group->lokasi)
+                                                {{ $group->lokasi->nama_desa }},
+                                                {{ $group->lokasi->nama_kecamatan }}
+                                                <button type="button"
+                                                    class="btn btn-sm btn-info text-white ms-2"
+                                                    onclick="showMap({{ $group->lokasi->latitude }}, {{ $group->lokasi->longitude }}, '{{ $group->nama_kelompok }}')">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                </button>
+                                            @else
+                                                -
+                                            @endif
                                         </td>
                                         <td>
                                             @if($group->dpl)
