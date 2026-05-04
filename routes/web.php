@@ -75,11 +75,13 @@ Route::middleware('auth')->group(function () {
         Route::put('pengaturan/tahun-akademik/{tahunAkademik}', [TahunAkademikController::class, 'update'])->name('tahun-akademik.update');
         Route::delete('pengaturan/tahun-akademik/{tahunAkademik}', [TahunAkademikController::class, 'destroy'])->name('tahun-akademik.destroy');
         Route::post('pengaturan/tahun-akademik/{tahunAkademik}/aktif', [TahunAkademikController::class, 'setAktif'])->name('tahun-akademik.set-aktif');
+        Route::post('pengaturan/tahun-akademik/{tahunAkademik}/nonaktif', [TahunAkademikController::class, 'setNonaktif'])->name('tahun-akademik.set-nonaktif');
 
         Route::post('pengaturan/semester', [TahunAkademikController::class, 'storeSemester'])->name('semester.store');
         Route::put('pengaturan/semester/{semester}', [TahunAkademikController::class, 'updateSemester'])->name('semester.update');
         Route::delete('pengaturan/semester/{semester}', [TahunAkademikController::class, 'destroySemester'])->name('semester.destroy');
         Route::post('pengaturan/semester/{semester}/aktif', [TahunAkademikController::class, 'setSemesterAktif'])->name('semester.set-aktif');
+        Route::post('pengaturan/semester/{semester}/nonaktif', [TahunAkademikController::class, 'setSemesterNonaktif'])->name('semester.set-nonaktif');
 
         Route::get('locations/map', [LocationController::class, 'map'])->name('locations.map');
         Route::get('locations/data', [LocationController::class, 'getLocations'])->name('locations.data');

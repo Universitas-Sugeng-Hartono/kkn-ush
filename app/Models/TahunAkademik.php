@@ -33,6 +33,11 @@ class TahunAkademik extends Model
         $this->forceFill(['is_aktif' => true])->save();
     }
 
+    public function setAsNonaktif(): void
+    {
+        $this->forceFill(['is_aktif' => false])->save();
+    }
+
     public function kelompok(): HasMany
     {
         return $this->hasMany(Kelompok::class, 'tahun_akademik_id');

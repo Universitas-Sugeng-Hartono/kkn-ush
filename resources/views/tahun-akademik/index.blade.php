@@ -128,6 +128,13 @@
                                                         <i class="fas fa-toggle-on me-1"></i>Aktifkan
                                                     </button>
                                                 </form>
+                                                @else
+                                                <form method="POST" action="{{ route('tahun-akademik.set-nonaktif', $ta) }}">
+                                                    @csrf
+                                                    <button class="btn btn-sm btn-light border text-danger rounded-pill px-3" type="submit" title="Nonaktifkan">
+                                                        <i class="fas fa-toggle-off me-1"></i>Nonaktifkan
+                                                    </button>
+                                                </form>
                                                 @endif
                                                 <button class="btn btn-sm btn-light border text-primary rounded-pill px-3"
                                                     data-bs-toggle="modal"
@@ -224,6 +231,13 @@
                                                     @csrf
                                                     <button class="btn btn-sm btn-light border text-success rounded-pill px-3" type="submit" title="Aktifkan">
                                                         <i class="fas fa-toggle-on me-1"></i>Aktifkan
+                                                    </button>
+                                                </form>
+                                                @else
+                                                <form method="POST" action="{{ route('semester.set-nonaktif', $sem) }}">
+                                                    @csrf
+                                                    <button class="btn btn-sm btn-light border text-danger rounded-pill px-3" type="submit" title="Nonaktifkan">
+                                                        <i class="fas fa-toggle-off me-1"></i>Nonaktifkan
                                                     </button>
                                                 </form>
                                                 @endif

@@ -77,9 +77,15 @@ class TahunAkademikController extends Controller
     public function setAktif(TahunAkademik $tahunAkademik)
     {
         $tahunAkademik->setAsAktif();
-
         return redirect()->route('tahun-akademik.index')
             ->with('success', "Tahun Akademik {$tahunAkademik->nama} berhasil diaktifkan.");
+    }
+
+    public function setNonaktif(TahunAkademik $tahunAkademik)
+    {
+        $tahunAkademik->setAsNonaktif();
+        return redirect()->route('tahun-akademik.index')
+            ->with('success', "Tahun Akademik {$tahunAkademik->nama} berhasil dinonaktifkan.");
     }
 
     public function storeSemester(Request $request)
@@ -136,9 +142,15 @@ class TahunAkademikController extends Controller
     public function setSemesterAktif(Semester $semester)
     {
         $semester->setAsAktif();
-
         return redirect()->route('tahun-akademik.index')
             ->with('success', "Semester {$semester->nama} berhasil diaktifkan.");
+    }
+
+    public function setSemesterNonaktif(Semester $semester)
+    {
+        $semester->setAsNonaktif();
+        return redirect()->route('tahun-akademik.index')
+            ->with('success', "Semester {$semester->nama} berhasil dinonaktifkan.");
     }
 
 }
