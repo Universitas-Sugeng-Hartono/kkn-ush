@@ -15,12 +15,12 @@ class MahasiswaTemplateExport implements FromArray, WithHeadings, WithColumnWidt
     public function array(): array
     {
         // Contoh data
-        // return [
-        //     ['220101001', 'Budi Santoso',   'budi.santoso@email.com',   'mahasiswa', 'informatika',   '08123456789', 'Jl. Merdeka No. 1, Semarang'],
-        //     ['220101002', 'Siti Rahayu',    'siti.rahayu@email.com',    'mahasiswa', 'bisnis digital', '08234567890', 'Jl. Sudirman No. 5, Jakarta'],
-        //     ['220101003', 'Ahmad Fauzi',    'ahmad.fauzi@email.com',    'mahasiswa', 'gizi',           '08345678901', 'Jl. Diponegoro No. 10, Bandung'],
-        //     ['198501012', 'Dr. Budi Utomo', 'budi.utomo@ush.ac.id',     'dpl',       '',               '08456789012', 'Jl. Kampus No. 1, Semarang'],
-        // ];
+        return [
+            ['220101001', 'Budi Santoso',   'budi.santoso@email.com',   'mahasiswa', 'informatika',   '08123456789', 'Jl. Merdeka No. 1, Semarang'],
+            ['220101002', 'Siti Rahayu',    'siti.rahayu@email.com',    'mahasiswa', 'bisnis digital', '08234567890', 'Jl. Sudirman No. 5, Jakarta'],
+            ['220101003', 'Ahmad Fauzi',    'ahmad.fauzi@email.com',    'mahasiswa', 'gizi',           '08345678901', 'Jl. Diponegoro No. 10, Bandung'],
+            ['198501012', 'Dr. Budi Utomo', 'budi.utomo@ush.ac.id',     'dpl',       '',               '08456789012', 'Jl. Kampus No. 1, Semarang'],
+        ];
     }
 
     public function headings(): array
