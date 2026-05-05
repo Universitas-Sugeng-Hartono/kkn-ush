@@ -8,6 +8,10 @@ use App\Models\Kelompok;
 use App\Models\Dokumen;
 use App\Models\Galeri;
 use Illuminate\Http\Request;
+use App\Models\TahunAkademik;
+use App\Models\Semester;
+
+
 
 class HomeController extends Controller
 {
@@ -18,9 +22,27 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
-        $lokasi = Lokasi::with(['kelompok' => function($query) {
-            $query->withCount('mahasiswa')->with('dpl');
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        // filtering lokasi yang memiliki kelompok diperiode yang aktif saja
+        $lokasi = lokasi::whereHas('kelompok', function ($query) use ($tahunAktif, $semesterAktif) {
+            if ($tahunAktif) {
+                $query->where('tahun_akademik_id', $tahunAktif->id);
+            }
+            if ($semesterAktif) {
+                $query->where('semester_id', $semesterAktif->id);
+            }
+        })->with(['kelompok' => function ($query) use ($tahunAktif, $semesterAktif) {
+            if ($tahunAktif) {
+                $query->where('tahun_akademik_id', $tahunAktif->id);
+            }
+            if ($semesterAktif) {
+                $query->where('semester_id', $semesterAktif->id);
+            }
         }])->get();
+
+
 
         $kelompokData = [];
         foreach ($lokasi as $lok) {
@@ -49,4 +71,4 @@ class HomeController extends Controller
     {
         return view('about');
     }
-} 
+}
