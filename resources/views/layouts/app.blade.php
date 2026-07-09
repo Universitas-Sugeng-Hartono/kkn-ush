@@ -303,8 +303,31 @@
 
 <body>
     @php
-    $tahunAktifLayout = \App\Models\TahunAkademik::getAktif();
-    $semesterAktifLayout = \App\Models\Semester::getAktif();
+    $tahunAktifLayout = null;
+    $semesterAktifLayout = null;
+    
+    $layoutUser = auth()->user();
+    if ($layoutUser && $layoutUser->hasRole('mahasiswa')) {
+        $tahunAktifLayout = $layoutUser->tahunAkademik;
+        $semesterAktifLayout = $layoutUser->semester;
+    } else {
+        $tahun_akademik_id_layout = request()->query('tahun_akademik_id');
+        $semester_id_layout = request()->query('semester_id');
+        
+        if ($tahun_akademik_id_layout) {
+            $tahunAktifLayout = \App\Models\TahunAkademik::find($tahun_akademik_id_layout);
+        }
+        if ($semester_id_layout) {
+            $semesterAktifLayout = \App\Models\Semester::find($semester_id_layout);
+        }
+    }
+    
+    if (!$tahunAktifLayout) {
+        $tahunAktifLayout = \App\Models\TahunAkademik::getAktif();
+    }
+    if (!$semesterAktifLayout) {
+        $semesterAktifLayout = \App\Models\Semester::getAktif();
+    }
     @endphp
     <div class="wrapper">
         <!-- Sidebar -->
@@ -385,6 +408,18 @@
                         <span>History Absensi</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('monitoring.attendance-detail') }}" class="{{ request()->routeIs('monitoring.attendance-detail') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        <span>Monitoring Absensi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('monitoring.logbook-detail') }}" class="{{ request()->routeIs('monitoring.logbook-detail') ? 'active' : '' }}">
+                        <i class="fas fa-book me-2"></i>
+                        <span>Monitoring Logbook</span>
+                    </a>
+                </li>
                 @endrole
 
                 @role('admin')
@@ -440,6 +475,18 @@
                     <a href="{{ route('tahun-akademik.index') }}" class="{{ request()->routeIs('tahun-akademik.*') ? 'active' : '' }}">
                         <i class="fas fa-sliders-h me-2"></i>
                         <span>Pengaturan Akademik</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('monitoring.attendance-detail') }}" class="{{ request()->routeIs('monitoring.attendance-detail') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        <span>Monitoring Absensi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('monitoring.logbook-detail') }}" class="{{ request()->routeIs('monitoring.logbook-detail') ? 'active' : '' }}">
+                        <i class="fas fa-book me-2"></i>
+                        <span>Monitoring Logbook</span>
                     </a>
                 </li>
                 @endrole

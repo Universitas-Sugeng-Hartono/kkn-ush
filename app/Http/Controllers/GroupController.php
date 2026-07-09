@@ -14,11 +14,17 @@ class GroupController extends Controller
 {
     public function index(Request $request)
     {
-        $tahunAktif = TahunAkademik::getAktif();
+        $tahunAktif    = TahunAkademik::getAktif();
         $semesterAktif = Semester::getAktif();
 
-        $tahun_akademik_id = $request->query('tahun_akademik_id', $tahunAktif?->id);
-        $semester_id = $request->query('semester_id', $semesterAktif?->id);
+        // Default ke periode aktif jika tidak ada parameter query sama sekali
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id') && $tahunAktif && $semesterAktif) {
+            $tahun_akademik_id = $tahunAktif->id;
+            $semester_id = $semesterAktif->id;
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id       = $request->query('semester_id');
+        }
 
         // Query yang dioptimalkan untuk menghindari duplikasi
         $groupsQuery = Kelompok::with([
@@ -39,8 +45,8 @@ class GroupController extends Controller
 
         $groups = $groupsQuery->get();
         
-        $tahunAkademikList = TahunAkademik::all();
-        $semesterList = Semester::all();
+        $tahunAkademikList = TahunAkademik::where('is_aktif', true)->orderBy('nama', 'desc')->get();
+        $semesterList      = Semester::where('is_aktif', true)->orderBy('nama', 'asc')->get();
         
         // Hitung logbook dan absensi secara terpisah untuk menghindari duplikasi
         foreach($groups as $group) {

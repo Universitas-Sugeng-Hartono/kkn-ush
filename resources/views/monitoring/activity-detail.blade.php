@@ -191,14 +191,75 @@
                             <div class="stat-label">Hari KKN</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">04 Aug - 26 Aug 2025</div>
+                            <div class="stat-number">{{ $startDate->format('d M') }} - {{ $endDate->format('d M Y') }}</div>
                             <div class="stat-label">Periode KKN</div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Filter Form -->
+                <div class="p-6 border-t border-gray-100 bg-light bg-opacity-25">
+                    <form method="GET" action="{{ route('monitoring.activity-detail') }}" id="filterForm">
+                        <div class="row g-3 align-items-center justify-content-center">
+                            @if($dplList)
+                                <div class="col-md-4">
+                                    <select class="form-select border border-gray-300 rounded shadow-sm py-2 px-3" name="dpl_id" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Semua DPL Pendamping</option>
+                                        @foreach($dplList as $dplOption)
+                                            <option value="{{ $dplOption->id }}" {{ $dpl_id == $dplOption->id ? 'selected' : '' }}>
+                                                DPL: {{ $dplOption->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select border border-gray-300 rounded shadow-sm py-2 px-3" name="tahun_akademik_id" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Semua Tahun Akademik</option>
+                                        @foreach($tahunAkademikList as $ta)
+                                            <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                                Tahun Akademik: {{ $ta->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select border border-gray-300 rounded shadow-sm py-2 px-3" name="semester_id" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Semua Semester</option>
+                                        @foreach($semesterList as $sem)
+                                            <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                                Semester: {{ $sem->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @else
+                                <div class="col-md-5">
+                                    <select class="form-select border border-gray-300 rounded shadow-sm py-2 px-3" name="tahun_akademik_id" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Semua Tahun Akademik</option>
+                                        @foreach($tahunAkademikList as $ta)
+                                            <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                                Tahun Akademik: {{ $ta->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <select class="form-select border border-gray-300 rounded shadow-sm py-2 px-3" name="semester_id" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Semua Semester</option>
+                                        @foreach($semesterList as $sem)
+                                            <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                                Semester: {{ $sem->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
+                        </div>
+                    </form>
+                </div>
                 
                 <!-- Navigation Buttons -->
-                <div class="p-6 bg-gray-50">
+                <div class="p-6 bg-gray-50 border-t border-gray-100">
                     <div class="nav-buttons flex flex-wrap justify-center">
                         <a href="{{ route('monitoring.attendance-detail') }}" class="nav-btn bg-blue-500 hover:bg-blue-600 text-white">
                             <i class="fas fa-calendar-check"></i>
@@ -246,6 +307,25 @@
 
             <!-- Activity Table -->
             <div class="activity-card overflow-hidden mb-6">
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
+                    <h6 class="fw-bold mb-0 text-gray-800">
+                        <i class="fas fa-table me-2 text-primary"></i>
+                        Data Aktivitas Mahasiswa —
+                        <span class="{{ $tipe === 'kelompok' ? 'text-success' : 'text-primary' }} fw-bold">
+                            Logbook {{ $tipe === 'kelompok' ? 'Kelompok' : 'Individu' }}
+                        </span>
+                    </h6>
+                    <div class="btn-group shadow-sm" role="group" aria-label="Tipe Logbook">
+                        <a href="{{ request()->fullUrlWithQuery(['tipe' => 'individu']) }}"
+                           class="btn btn-sm {{ $tipe === 'individu' ? 'btn-primary' : 'btn-outline-primary' }} fw-semibold px-3">
+                            <i class="fas fa-user me-1"></i>Individu
+                        </a>
+                        <a href="{{ request()->fullUrlWithQuery(['tipe' => 'kelompok']) }}"
+                           class="btn btn-sm {{ $tipe === 'kelompok' ? 'btn-success' : 'btn-outline-success' }} fw-semibold px-3">
+                            <i class="fas fa-users me-1"></i>Kelompok
+                        </a>
+                    </div>
+                </div>
                 <div class="table-container">
                     <table class="min-w-full">
                         <!-- Header dengan tanggal lengkap -->

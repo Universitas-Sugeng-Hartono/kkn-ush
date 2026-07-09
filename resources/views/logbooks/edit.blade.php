@@ -215,6 +215,17 @@
                             </div>
 
                             <div class="mb-3">
+                                <label for="is_kelompok" class="form-label fw-bold">Tipe Logbook</label>
+                                <select class="form-select" id="is_kelompok" name="is_kelompok" required>
+                                    <option value="0" {{ old('is_kelompok', $logbook->is_kelompok) == 0 ? 'selected' : '' }}>Logbook Individu</option>
+                                    <option value="1" {{ old('is_kelompok', $logbook->is_kelompok) == 1 ? 'selected' : '' }}>Logbook Kelompok (Sharing)</option>
+                                </select>
+                                @error('is_kelompok')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
                                 <label for="jenis" class="form-label fw-bold">Jenis Kegiatan</label>
                                 <select class="form-select" id="jenis" name="jenis" required>
                                     <option value="individu" {{ old('jenis', $logbook->jenis) === 'individu' ? 'selected' : '' }}>Individu</option>
@@ -581,6 +592,46 @@
                 
                 attachmentPreview.appendChild(attachmentItem);
             });
+        }
+
+        // Dynamic adjust jenis dropdown options based on is_kelompok select list
+        const isKelompokSelect = document.getElementById('is_kelompok');
+        const jenisSelect = document.getElementById('jenis');
+
+        function adjustJenisOptions() {
+            const isKelompok = isKelompokSelect.value;
+            const options = jenisSelect.options;
+            
+            if (isKelompok === '1') {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === 'individu') {
+                        options[i].style.display = 'none';
+                        options[i].disabled = true;
+                    } else if (options[i].value !== '') {
+                        options[i].style.display = 'block';
+                        options[i].disabled = false;
+                    }
+                }
+                if (jenisSelect.value === 'individu') {
+                    jenisSelect.value = 'desa';
+                }
+            } else {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === 'desa' || options[i].value === 'kecamatan') {
+                        options[i].style.display = 'none';
+                        options[i].disabled = true;
+                    } else if (options[i].value !== '') {
+                        options[i].style.display = 'block';
+                        options[i].disabled = false;
+                    }
+                }
+                jenisSelect.value = 'individu';
+            }
+        }
+
+        if (isKelompokSelect && jenisSelect) {
+            isKelompokSelect.addEventListener('change', adjustJenisOptions);
+            adjustJenisOptions();
         }
 
         // Handle form submission dengan file yang sudah dikompresi

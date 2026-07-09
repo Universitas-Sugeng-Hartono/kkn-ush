@@ -12,28 +12,53 @@ use Illuminate\Support\Facades\Storage;
 
 class LogbookController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $logbooks = Logbook::where('user_id', auth()->id())
+        $user = auth()->user();
+        $tipe = $request->query('tipe', 'individu');
+        
+        $logbooksIndividu = Logbook::where('user_id', $user->id)
+            ->where('is_kelompok', false)
             ->with(['photos'])
             ->orderBy('tanggal', 'desc')
-            ->paginate(10);
+            ->paginate(10, ['*'], 'page_individu');
 
-        // Statistik
+        $logbooksKelompok = Logbook::where('kelompok_id', $user->kelompok_id)
+            ->where('is_kelompok', true)
+            ->with(['user', 'photos'])
+            ->orderBy('tanggal', 'desc')
+            ->paginate(10, ['*'], 'page_kelompok');
+
+        // Backward compatibility for view that expects $logbooks
+        $logbooks = $tipe === 'kelompok' ? $logbooksKelompok : $logbooksIndividu;
+
+        // Tentukan query aktivitas berdasarkan tipe terpilih
+        if ($tipe === 'kelompok') {
+            $myActivitiesQuery = function($query) use ($user) {
+                $query->where('kelompok_id', $user->kelompok_id)
+                      ->where('is_kelompok', true);
+            };
+        } else {
+            $myActivitiesQuery = function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->where('is_kelompok', false);
+            };
+        }
+
         $stats = [
-            'total' => Logbook::where('user_id', auth()->id())->count(),
-            'draft' => Logbook::where('user_id', auth()->id())->where('status', 'draft')->count(),
-            'submitted' => Logbook::where('user_id', auth()->id())->where('status', 'submitted')->count(),
-            'approved' => Logbook::where('user_id', auth()->id())->where('status', 'approved')->count(),
-            'rejected' => Logbook::where('user_id', auth()->id())->where('status', 'rejected')->count(),
+            'total' => Logbook::where($myActivitiesQuery)->count(),
+            'draft' => Logbook::where($myActivitiesQuery)->where('status', 'draft')->count(),
+            'submitted' => Logbook::where($myActivitiesQuery)->where('status', 'submitted')->count(),
+            'approved' => Logbook::where($myActivitiesQuery)->where('status', 'approved')->count(),
+            'rejected' => Logbook::where($myActivitiesQuery)->where('status', 'rejected')->count(),
         ];
 
         // Data untuk kalender
-        $allLogbooks = Logbook::where('user_id', auth()->id())->get();
+        $allLogbooks = Logbook::where($myActivitiesQuery)->get();
         $events = $allLogbooks->map(function($logbook) {
             return [
                 'id' => $logbook->id,
-                'title' => $logbook->judul,
+                'title' => ($logbook->is_kelompok ? '[Kelompok] ' : '') . $logbook->judul,
                 'start' => $logbook->tanggal->format('Y-m-d'),
                 'backgroundColor' => $this->getStatusColor($logbook->status),
                 'borderColor' => $this->getStatusColor($logbook->status),
@@ -62,11 +87,20 @@ class LogbookController extends Controller
             ]]);
         }
         
+        // Pluck logbookDates for mobile calendar view
+        $logbookDates = Logbook::where(function($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->orWhere(function ($q) use ($user) {
+                      $q->where('kelompok_id', $user->kelompok_id)
+                        ->where('is_kelompok', true);
+                  });
+        })->whereIn('status', ['submitted', 'approved'])->pluck('tanggal')->map(fn($d) => $d->format('Y-m-d'))->toArray();
+
         if ($isMobile && auth()->user()->hasRole('mahasiswa')) {
-            return view('mobile.logbooks.index', compact('logbooks'));
+            return view('mobile.logbooks.index', compact('logbooksIndividu', 'logbooksKelompok', 'logbookDates'));
         }
 
-        return view('logbooks.index', compact('logbooks', 'stats', 'events'));
+        return view('logbooks.index', compact('logbooks', 'logbooksIndividu', 'logbooksKelompok', 'stats', 'events', 'tipe'));
     }
 
     /**
@@ -137,7 +171,8 @@ class LogbookController extends Controller
             'photos.*' => 'image|mimes:jpg,jpeg,png|max:20480',
             'attachments' => 'sometimes|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png,gif|max:20480',
-            'status' => 'required|in:draft,submitted'
+            'status' => 'required|in:draft,submitted',
+            'is_kelompok' => 'nullable'
         ]);
 
         // Create logbook
@@ -151,7 +186,8 @@ class LogbookController extends Controller
             'jenis' => $validated['jenis'],
             'keterangan' => $validated['keterangan'],
             'lokasi' => $validated['lokasi'],
-            'status' => $validated['status']
+            'status' => $validated['status'],
+            'is_kelompok' => $request->boolean('is_kelompok')
         ]);
 
         // Upload photos
@@ -243,7 +279,8 @@ class LogbookController extends Controller
             'photos.*' => 'image|mimes:jpg,jpeg,png|max:20480',
             'attachments' => 'sometimes|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png,gif|max:20480',
-            'status' => 'required|in:draft,submitted'
+            'status' => 'required|in:draft,submitted',
+            'is_kelompok' => 'nullable'
         ]);
 
         // Update logbook
@@ -255,7 +292,8 @@ class LogbookController extends Controller
             'jenis' => $validated['jenis'],
             'keterangan' => $validated['keterangan'],
             'lokasi' => $validated['lokasi'],
-            'status' => $validated['status']
+            'status' => $validated['status'],
+            'is_kelompok' => $request->boolean('is_kelompok')
         ]);
 
         // Upload new photos if any

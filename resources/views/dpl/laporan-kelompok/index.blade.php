@@ -11,10 +11,10 @@
 
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-body">
-                <form method="GET" action="{{ route('dpl.laporan-kelompok.index') }}" class="row g-3 align-items-end">
-                    <div class="col-md-3">
+                <form method="GET" action="{{ route('dpl.laporan-kelompok.index') }}" class="row g-3 align-items-end" id="filterForm">
+                    <div class="col-md-4">
                         <label class="form-label fw-bold small">Tahun Akademik</label>
-                        <select name="tahun_akademik_id" class="form-select form-select-sm">
+                        <select name="tahun_akademik_id" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">Semua Tahun</option>
                             @foreach($tahunAkademikList as $ta)
                                 <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
@@ -23,9 +23,9 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label fw-bold small">Semester</label>
-                        <select name="semester_id" class="form-select form-select-sm">
+                        <select name="semester_id" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">Semua Semester</option>
                             @foreach($semesterList as $sem)
                                 <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
@@ -34,9 +34,9 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label fw-bold small">Kelompok</label>
-                        <select class="form-select form-select-sm" name="kelompok_id">
+                        <select class="form-select form-select-sm" name="kelompok_id" onchange="this.form.submit()">
                             <option value="">Semua Kelompok</option>
                             @foreach($kelompokList as $k)
                                 <option value="{{ $k->id }}" {{ $selected_kelompok_id == $k->id ? 'selected' : '' }}>
@@ -44,16 +44,6 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                                <i class="fas fa-filter me-2"></i>Tampilkan
-                            </button>
-                            <a href="{{ route('dpl.laporan-kelompok.index') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-undo me-2"></i>Reset
-                            </a>
-                        </div>
                     </div>
                 </form>
             </div>

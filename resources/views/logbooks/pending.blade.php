@@ -239,15 +239,15 @@
                         </h6>
                     </div>
                     <div class="card-body">
-                        <form method="GET" action="{{ route('logbooks.pending') }}" class="row g-3">
-                            <div class="col-md-3">
-                                <label for="nama" class="form-label">Nama Mahasiswa</label>
-                                <input type="text" class="form-control" id="nama" name="nama" 
-                                       value="{{ request('nama') }}" placeholder="Cari nama mahasiswa...">
+                        <form method="GET" action="{{ route('logbooks.pending') }}" class="row g-3" id="filterForm">
+                            <div class="col-md-4">
+                                <label for="nama" class="form-label fw-semibold small text-muted">Nama Mahasiswa</label>
+                                <input type="text" class="form-control form-control-sm" id="nama" name="nama" 
+                                       value="{{ request('nama') }}" placeholder="Cari nama..." onchange="this.form.submit()">
                             </div>
-                            <div class="col-md-3">
-                                <label for="jenis" class="form-label">Jenis Kegiatan</label>
-                                <select class="form-select" id="jenis" name="jenis">
+                            <div class="col-md-4">
+                                <label for="jenis" class="form-label fw-semibold small text-muted">Jenis Kegiatan</label>
+                                <select class="form-select form-select-sm" id="jenis" name="jenis" onchange="this.form.submit()">
                                     <option value="">Semua Jenis</option>
                                     @foreach($jenisKegiatan as $key => $value)
                                         <option value="{{ $key }}" {{ request('jenis') == $key ? 'selected' : '' }}>
@@ -256,9 +256,9 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="jurusan" class="form-label">Jurusan</label>
-                                <select class="form-select" id="jurusan" name="jurusan">
+                            <div class="col-md-4">
+                                <label for="jurusan" class="form-label fw-semibold small text-muted">Jurusan</label>
+                                <select class="form-select form-select-sm" id="jurusan" name="jurusan" onchange="this.form.submit()">
                                     <option value="">Semua Jurusan</option>
                                     @foreach($jurusanList as $jurusan)
                                         <option value="{{ $jurusan }}" {{ request('jurusan') == $jurusan ? 'selected' : '' }}>
@@ -266,16 +266,6 @@
                                         </option>
                                     @endforeach
                                 </select>
-                            </div>
-                            <div class="col-md-3 d-flex align-items-end">
-                                <div class="d-flex gap-2 w-100">
-                                    <button type="submit" class="btn btn-primary flex-fill">
-                                        <i class="fas fa-search me-1"></i>Filter
-                                    </button>
-                                    <a href="{{ route('logbooks.pending') }}" class="btn btn-secondary">
-                                        <i class="fas fa-times me-1"></i>Reset
-                                    </a>
-                                </div>
                             </div>
                         </form>
                     </div>

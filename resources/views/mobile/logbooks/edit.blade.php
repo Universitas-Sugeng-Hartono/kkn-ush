@@ -29,6 +29,14 @@
             </div>
 
             <div class="form-group">
+                <label for="is_kelompok">Tipe Logbook *</label>
+                <select id="is_kelompok" name="is_kelompok" required>
+                    <option value="0" {{ !$logbook->is_kelompok ? 'selected' : '' }}>Logbook Individu</option>
+                    <option value="1" {{ $logbook->is_kelompok ? 'selected' : '' }}>Logbook Kelompok (Sharing)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="jenis">Jenis Kegiatan *</label>
                 <select id="jenis" name="jenis" required>
                     <option value="">Pilih jenis kegiatan</option>
@@ -1002,6 +1010,44 @@ function deleteAttachment(logbookId, index) {
             location.reload();
         });
     }
+// Dynamic adjust jenis dropdown options based on is_kelompok select list
+const isKelompokSelect = document.getElementById('is_kelompok');
+const jenisSelect = document.getElementById('jenis');
+
+function adjustJenisOptions() {
+    const isKelompok = isKelompokSelect.value;
+    const options = jenisSelect.options;
+    
+    if (isKelompok === '1') {
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === 'individu') {
+                options[i].style.display = 'none';
+                options[i].disabled = true;
+            } else if (options[i].value !== '') {
+                options[i].style.display = 'block';
+                options[i].disabled = false;
+            }
+        }
+        if (jenisSelect.value === 'individu') {
+            jenisSelect.value = 'desa';
+        }
+    } else {
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === 'desa' || options[i].value === 'kecamatan') {
+                options[i].style.display = 'none';
+                options[i].disabled = true;
+            } else if (options[i].value !== '') {
+                options[i].style.display = 'block';
+                options[i].disabled = false;
+            }
+        }
+        jenisSelect.value = 'individu';
+    }
+}
+
+if (isKelompokSelect && jenisSelect) {
+    isKelompokSelect.addEventListener('change', adjustJenisOptions);
+    adjustJenisOptions();
 }
 </script>
 @endpush 

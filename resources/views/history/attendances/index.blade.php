@@ -136,32 +136,60 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('history.attendances.index') }}">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="nama" class="form-label">Nama Mahasiswa</label>
-                                <input type="text" class="form-control" id="nama" name="nama" 
-                                       value="{{ request('nama') }}" placeholder="Cari nama mahasiswa...">
+                <form method="GET" action="{{ route('history.attendances.index') }}" id="filterForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div>
+                                <label for="nama" class="form-label fw-semibold small text-muted mb-1">Nama Mahasiswa</label>
+                                <input type="text" class="form-control form-control-sm" id="nama" name="nama" 
+                                       value="{{ request('nama') }}" placeholder="Cari nama..." onchange="this.form.submit()">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="jurusan" class="form-label">Jurusan</label>
-                                <select class="form-select" id="jurusan" name="jurusan">
-                                    <option value="">Semua Jurusan</option>
-                                    @foreach($jurusanList as $jurusan)
-                                        <option value="{{ $jurusan }}" {{ request('jurusan') == $jurusan ? 'selected' : '' }}>
-                                            {{ $jurusan }}
+                        <div class="col-md-4">
+                            <div>
+                                <label for="tahun_akademik_id" class="form-label fw-semibold small text-muted mb-1">Tahun Akademik</label>
+                                <select class="form-select form-select-sm" id="tahun_akademik_id" name="tahun_akademik_id" onchange="this.form.submit()">
+                                    <option value="">Semua Tahun</option>
+                                    @foreach($tahunAkademikList as $ta)
+                                        <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                            {{ $ta->nama }} {{ $ta->is_aktif ? '(Aktif)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status">
+                        <div class="col-md-4">
+                            <div>
+                                <label for="semester_id" class="form-label fw-semibold small text-muted mb-1">Semester</label>
+                                <select class="form-select form-select-sm" id="semester_id" name="semester_id" onchange="this.form.submit()">
+                                    <option value="">Semua Semester</option>
+                                    @foreach($semesterList as $sem)
+                                        <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                            {{ $sem->nama }} {{ $sem->is_aktif ? '(Aktif)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <div>
+                                <label for="jurusan" class="form-label fw-semibold small text-muted mb-1">Jurusan</label>
+                                <select class="form-select form-select-sm" id="jurusan" name="jurusan" onchange="this.form.submit()">
+                                    <option value="">Semua Jurusan</option>
+                                    @foreach($jurusanList as $jurusan)
+                                        <option value="{{ $jurusan }}" {{ request('jurusan') == $jurusan ? 'selected' : '' }}>
+                                            {{ ucfirst($jurusan) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div>
+                                <label for="status" class="form-label fw-semibold small text-muted mb-1">Status</label>
+                                <select class="form-select form-select-sm" id="status" name="status" onchange="this.form.submit()">
                                     <option value="">Semua Status</option>
                                     @foreach($statusList as $key => $value)
                                         <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>
@@ -171,46 +199,34 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
-                                <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai" 
-                                       value="{{ request('tanggal_mulai') }}">
+                        <div class="col-md-4">
+                            <div>
+                                <label for="tanggal_mulai" class="form-label fw-semibold small text-muted mb-1">Tanggal Mulai</label>
+                                <input type="date" class="form-control form-control-sm" id="tanggal_mulai" name="tanggal_mulai" 
+                                       value="{{ request('tanggal_mulai') }}" onchange="this.form.submit()">
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
-                                <input type="date" class="form-control" id="tanggal_akhir" name="tanggal_akhir" 
-                                       value="{{ request('tanggal_akhir') }}">
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <div>
+                                <label for="tanggal_akhir" class="form-label fw-semibold small text-muted mb-1">Tanggal Akhir</label>
+                                <input type="date" class="form-control form-control-sm" id="tanggal_akhir" name="tanggal_akhir" 
+                                       value="{{ request('tanggal_akhir') }}" onchange="this.form.submit()">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="waktu_mulai" class="form-label">Waktu Mulai</label>
-                                <input type="time" class="form-control" id="waktu_mulai" name="waktu_mulai" 
-                                       value="{{ request('waktu_mulai') }}">
+                        <div class="col-md-4">
+                            <div>
+                                <label for="waktu_mulai" class="form-label fw-semibold small text-muted mb-1">Waktu Mulai</label>
+                                <input type="time" class="form-control form-control-sm" id="waktu_mulai" name="waktu_mulai" 
+                                       value="{{ request('waktu_mulai') }}" onchange="this.form.submit()">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="waktu_akhir" class="form-label">Waktu Akhir</label>
-                                <input type="time" class="form-control" id="waktu_akhir" name="waktu_akhir" 
-                                       value="{{ request('waktu_akhir') }}">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3 d-flex align-items-end h-100">
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search me-2"></i>Filter
-                                    </button>
-                                    <a href="{{ route('history.attendances.index') }}" class="btn btn-secondary">
-                                        <i class="fas fa-refresh me-2"></i>Reset
-                                    </a>
-                                </div>
+                        <div class="col-md-4">
+                            <div>
+                                <label for="waktu_akhir" class="form-label fw-semibold small text-muted mb-1">Waktu Akhir</label>
+                                <input type="time" class="form-control form-control-sm" id="waktu_akhir" name="waktu_akhir" 
+                                       value="{{ request('waktu_akhir') }}" onchange="this.form.submit()">
                             </div>
                         </div>
                     </div>

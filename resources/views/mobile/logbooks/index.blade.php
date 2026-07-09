@@ -50,39 +50,93 @@
         </div>
     </div>
 
+    <!-- Tab Switcher -->
+    <div class="tabs-section mb-3" style="padding: 0 16px;">
+        <div class="d-flex bg-light rounded-pill p-1">
+            <button class="btn btn-sm rounded-pill flex-fill py-2 btn-primary" id="tab-individu" onclick="switchTab('individu')">
+                <i class="fas fa-user me-1"></i> Individu
+            </button>
+            <button class="btn btn-sm rounded-pill flex-fill py-2 text-dark bg-transparent border-0" id="tab-kelompok" onclick="switchTab('kelompok')">
+                <i class="fas fa-users me-1"></i> Kelompok
+            </button>
+        </div>
+    </div>
+
     <!-- Recent Logbooks -->
     <div class="recent-section">
-        <div class="section-header">
-            <h3>Recent Logbooks</h3>
-        </div>
-        
-        <div class="logbooks-list">
-            @forelse($logbooks as $logbook)
-                <div class="logbook-item" onclick="window.location.href='{{ route('mobile.logbooks.show', $logbook->id) }}'">
-                    <div class="logbook-icon">
+        <!-- Logbook Individu List -->
+        <div id="list-individu">
+            <div class="section-header">
+                <h3>Logbook Individu</h3>
+            </div>
+            
+            <div class="logbooks-list">
+                @forelse($logbooksIndividu as $logbook)
+                    <div class="logbook-item" onclick="window.location.href='{{ route('mobile.logbooks.show', $logbook->id) }}'">
+                        <div class="logbook-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="logbook-content">
+                            <div class="logbook-title">{{ $logbook->judul }}</div>
+                            <div class="logbook-date">{{ $logbook->tanggal->format('d M Y') }}</div>
+                        </div>
+                        <div class="logbook-status {{ $logbook->status }}">
+                            <span class="status-badge">{{ ucfirst($logbook->status) }}</span>
+                        </div>
+                        <div class="logbook-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                @empty
+                    <div class="empty-state">
                         <i class="fas fa-book"></i>
+                        <p>Belum ada logbook individu</p>
+                        <a href="{{ route('mobile.logbooks.create') }}?tipe=individu" class="btn-add-logbook">
+                            <i class="fas fa-plus"></i>
+                            Buat Logbook Individu
+                        </a>
                     </div>
-                    <div class="logbook-content">
-                        <div class="logbook-title">{{ $logbook->judul }}</div>
-                        <div class="logbook-date">{{ $logbook->tanggal->format('d M Y') }}</div>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Logbook Kelompok List -->
+        <div id="list-kelompok" style="display: none;">
+            <div class="section-header">
+                <h3>Logbook Kelompok</h3>
+            </div>
+            
+            <div class="logbooks-list">
+                @forelse($logbooksKelompok as $logbook)
+                    <div class="logbook-item" onclick="window.location.href='{{ route('mobile.logbooks.show', $logbook->id) }}'">
+                        <div class="logbook-icon bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="logbook-content">
+                            <div class="logbook-title">{{ $logbook->judul }}</div>
+                            <div class="logbook-date">
+                                {{ $logbook->tanggal->format('d M Y') }} 
+                                <span class="text-muted text-xs ms-1">| Oleh: {{ $logbook->user?->name ?? 'Unknown' }}</span>
+                            </div>
+                        </div>
+                        <div class="logbook-status {{ $logbook->status }}">
+                            <span class="status-badge">{{ ucfirst($logbook->status) }}</span>
+                        </div>
+                        <div class="logbook-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
                     </div>
-                    <div class="logbook-status {{ $logbook->status }}">
-                        <span class="status-badge">{{ ucfirst($logbook->status) }}</span>
+                @empty
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>Belum ada logbook kelompok</p>
+                        <a href="{{ route('mobile.logbooks.create') }}?tipe=kelompok" class="btn-add-logbook bg-success border-success text-white">
+                            <i class="fas fa-plus"></i>
+                            Buat Logbook Kelompok
+                        </a>
                     </div>
-                    <div class="logbook-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-            @empty
-                <div class="empty-state">
-                    <i class="fas fa-book"></i>
-                    <p>No logbooks yet</p>
-                    <a href="{{ route('mobile.logbooks.create') }}" class="btn-add-logbook">
-                        <i class="fas fa-plus"></i>
-                        Create First Logbook
-                    </a>
-                </div>
-            @endforelse
+                @endforelse
+            </div>
         </div>
     </div>
 @endsection
@@ -151,12 +205,47 @@ function nextMonth() {
 function onCalendarDateClick(dateStr, isCurrentMonth) {
     if (!isCurrentMonth) return;
     console.log('Clicked date:', dateStr, 'isCurrentMonth:', isCurrentMonth);
+    const activeTab = document.getElementById('tab-individu').classList.contains('btn-primary') ? 'individu' : 'kelompok';
     // Redirect ke create logbook dengan tanggal terisi otomatis
-    window.location.href = `{{ route('mobile.logbooks.create') }}?tanggal=${dateStr}`;
+    window.location.href = `{{ route('mobile.logbooks.create') }}?tanggal=${dateStr}&tipe=${activeTab}`;
+}
+
+function switchTab(type) {
+    const btnIndividu = document.getElementById('tab-individu');
+    const btnKelompok = document.getElementById('tab-kelompok');
+    const listIndividu = document.getElementById('list-individu');
+    const listKelompok = document.getElementById('list-kelompok');
+    
+    if (type === 'individu') {
+        btnIndividu.classList.add('btn-primary');
+        btnIndividu.classList.remove('text-dark', 'bg-transparent', 'border-0');
+        
+        btnKelompok.classList.remove('btn-primary');
+        btnKelompok.classList.add('text-dark', 'bg-transparent', 'border-0');
+        
+        listIndividu.style.display = 'block';
+        listKelompok.style.display = 'none';
+    } else {
+        btnKelompok.classList.add('btn-primary');
+        btnKelompok.classList.remove('text-dark', 'bg-transparent', 'border-0');
+        
+        btnIndividu.classList.remove('btn-primary');
+        btnIndividu.classList.add('text-dark', 'bg-transparent', 'border-0');
+        
+        listIndividu.style.display = 'none';
+        listKelompok.style.display = 'block';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
+    
+    // Auto switch to tab from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const tipe = urlParams.get('tipe');
+    if (tipe === 'kelompok') {
+        switchTab('kelompok');
+    }
 });
 </script>
 @endpush 

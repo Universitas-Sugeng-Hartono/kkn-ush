@@ -58,6 +58,17 @@
             </div>
 
             <div class="form-group">
+                <label for="is_kelompok">Tipe Logbook</label>
+                <select id="is_kelompok" name="is_kelompok" class="form-control" required>
+                    <option value="0" {{ old('is_kelompok', request('tipe') === 'kelompok' ? '1' : '0') == '0' ? 'selected' : '' }}>Logbook Individu</option>
+                    <option value="1" {{ old('is_kelompok', request('tipe') === 'kelompok' ? '1' : '0') == '1' ? 'selected' : '' }}>Logbook Kelompok (Sharing)</option>
+                </select>
+                @error('is_kelompok')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="jenis">Jenis Kegiatan</label>
                 <select id="jenis" name="jenis" class="form-control" required>
                     <option value="">Pilih jenis kegiatan</option>
@@ -735,6 +746,46 @@ function formatFileSize(bytes) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Dynamic adjust jenis dropdown options based on is_kelompok select list
+const isKelompokSelect = document.getElementById('is_kelompok');
+const jenisSelect = document.getElementById('jenis');
+
+function adjustJenisOptions() {
+    const isKelompok = isKelompokSelect.value;
+    const options = jenisSelect.options;
+    
+    if (isKelompok === '1') {
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === 'individu') {
+                options[i].style.display = 'none';
+                options[i].disabled = true;
+            } else if (options[i].value !== '') {
+                options[i].style.display = 'block';
+                options[i].disabled = false;
+            }
+        }
+        if (jenisSelect.value === 'individu') {
+            jenisSelect.value = 'desa';
+        }
+    } else {
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === 'desa' || options[i].value === 'kecamatan') {
+                options[i].style.display = 'none';
+                options[i].disabled = true;
+            } else if (options[i].value !== '') {
+                options[i].style.display = 'block';
+                options[i].disabled = false;
+            }
+        }
+        jenisSelect.value = 'individu';
+    }
+}
+
+if (isKelompokSelect && jenisSelect) {
+    isKelompokSelect.addEventListener('change', adjustJenisOptions);
+    adjustJenisOptions();
 }
 </script>
 @endpush 

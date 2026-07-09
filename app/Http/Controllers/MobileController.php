@@ -73,16 +73,34 @@ class MobileController extends Controller
     public function logbooks()
     {
         $user = Auth::user();
-        $logbooks = \App\Models\Logbook::where('user_id', $user->id)
+        
+        $logbooksIndividu = \App\Models\Logbook::where('user_id', $user->id)
+            ->where('is_kelompok', false)
             ->orderBy('tanggal', 'desc')
-            ->paginate(10);
+            ->get();
+
+        $logbooksKelompok = \App\Models\Logbook::where('kelompok_id', $user->kelompok_id)
+            ->where('is_kelompok', true)
+            ->with('user')
+            ->orderBy('tanggal', 'desc')
+            ->get();
+
         // Ambil semua tanggal logbook yang statusnya submitted/approved
-        $logbookDates = \App\Models\Logbook::where('user_id', $user->id)
+        $myActivitiesQuery = function($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->orWhere(function ($q) use ($user) {
+                      $q->where('kelompok_id', $user->kelompok_id)
+                        ->where('is_kelompok', true);
+                  });
+        };
+
+        $logbookDates = \App\Models\Logbook::where($myActivitiesQuery)
             ->whereIn('status', ['submitted', 'approved'])
             ->pluck('tanggal')
             ->map(fn($d) => $d->format('Y-m-d'))
             ->toArray();
-        return view('mobile.logbooks.index', compact('logbooks', 'logbookDates'));
+
+        return view('mobile.logbooks.index', compact('logbooksIndividu', 'logbooksKelompok', 'logbookDates'));
     }
 
     public function createLogbook()
@@ -92,13 +110,27 @@ class MobileController extends Controller
 
     public function showLogbook($id)
     {
-        $logbook = Logbook::where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+        $logbook = Logbook::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->orWhere(function ($q) use ($user) {
+                      $q->where('kelompok_id', $user->kelompok_id)
+                        ->where('is_kelompok', true);
+                  });
+        })->findOrFail($id);
         return view('mobile.logbooks.show', compact('logbook'));
     }
 
     public function editLogbook($id)
     {
-        $logbook = Logbook::where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+        $logbook = Logbook::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->orWhere(function ($q) use ($user) {
+                      $q->where('kelompok_id', $user->kelompok_id)
+                        ->where('is_kelompok', true);
+                  });
+        })->findOrFail($id);
         
         return view('mobile.logbooks.edit', compact('logbook'));
     }

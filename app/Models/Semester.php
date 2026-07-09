@@ -22,14 +22,27 @@ class Semester extends Model
     ];
 
 
+    /**
+     * Ambil satu record aktif pertama (backward compat).
+     */
     public static function getAktif(): ?self
     {
         return self::query()->where('is_aktif', true)->first();
     }
 
+    /**
+     * Ambil semua record yang aktif (multi-aktif).
+     */
+    public static function getAktifList(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()->where('is_aktif', true)->get();
+    }
+
+    /**
+     * Aktifkan record ini TANPA menonaktifkan yang lain.
+     */
     public function setAsAktif(): void
     {
-        self::query()->update(['is_aktif' => false]);
         $this->forceFill(['is_aktif' => true])->save();
     }
 

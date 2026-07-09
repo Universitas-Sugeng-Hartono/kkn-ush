@@ -17,172 +17,60 @@
         <!-- Statistik Cards - Menggunakan style dashboard -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
-                <div class="card bg-primary text-white" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card bg-primary text-white shadow-sm h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="mb-0">{{ count($logbookData) }}</h4>
-                                <p class="mb-0">Total Mahasiswa</p>
+                                <h4 class="mb-0 fw-bold">{{ $stats['total'] }}</h4>
+                                <p class="mb-0">Total Logbook</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="fas fa-users fa-2x"></i>
+                                <i class="fas fa-book fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-success text-white" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card bg-success text-white shadow-sm h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="mb-0">{{ count($days) }}</h4>
-                                <p class="mb-0">Hari KKN</p>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="fas fa-calendar fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-warning text-white" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 class="mb-0">
-                                    @php
-                                        $pendingTotal = 0;
-                                        foreach($logbookData as $data) {
-                                            foreach($data['days'] as $dayData) {
-                                                if($dayData['status'] === 'submitted' || $dayData['status'] === 'pending') $pendingTotal++;
-                                            }
-                                        }
-                                    @endphp
-                                    {{ $pendingTotal }}
-                                </h4>
-                                <p class="mb-0">Pending</p>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="fas fa-clock fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-info text-white" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 class="mb-0">
-                                    @php
-                                        $totalApproved = 0;
-                                        foreach($logbookData as $data) {
-                                            foreach($data['days'] as $dayData) {
-                                                if($dayData['status'] === 'approved') $totalApproved++;
-                                            }
-                                        }
-                                    @endphp
-                                    {{ $totalApproved }}
-                                </h4>
+                                <h4 class="mb-0 fw-bold">{{ $stats['approved'] }}</h4>
                                 <p class="mb-0">Disetujui</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="fas fa-check-circle fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary Cards - Style dashboard -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="card-subtitle mb-2 text-muted">Rajin Submit</h6>
-                                <h2 class="card-title mb-0 text-success">
-                                    @php
-                                        $rajinSubmit = 0;
-                                        foreach($logbookData as $data) {
-                                            $approvedCount = 0;
-                                            foreach($data['days'] as $dayData) {
-                                                if($dayData['status'] === 'approved') $approvedCount++;
-                                            }
-                                            if($approvedCount >= 20) $rajinSubmit++;
-                                        }
-                                    @endphp
-                                    {{ $rajinSubmit }}
-                                </h2>
-                                <small class="text-muted">≥20 logbook disetujui</small>
-                            </div>
-                            <div class="bg-success rounded-circle p-3">
-                                <i class="fas fa-book fa-fw text-white"></i>
+                                <i class="fas fa-check-circle fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card bg-warning text-white shadow-sm h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-subtitle mb-2 text-muted">Pending Approval</h6>
-                                <h2 class="card-title mb-0 text-warning">{{ $pendingTotal }}</h2>
-                                <small class="text-muted">Butuh review</small>
+                                <h4 class="mb-0 fw-bold">{{ $stats['pending'] }}</h4>
+                                <p class="mb-0">Menunggu Review</p>
                             </div>
-                            <div class="bg-warning rounded-circle p-3">
-                                <i class="fas fa-clock fa-fw text-white"></i>
+                            <div class="align-self-center">
+                                <i class="fas fa-clock fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card bg-danger text-white shadow-sm h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-subtitle mb-2 text-muted">Jarang Submit</h6>
-                                <h2 class="card-title mb-0 text-danger">
-                                    @php
-                                        $jarangSubmit = 0;
-                                        foreach($logbookData as $data) {
-                                            $approvedCount = 0;
-                                            foreach($data['days'] as $dayData) {
-                                                if($dayData['status'] === 'approved') $approvedCount++;
-                                            }
-                                            if($approvedCount <= 10) $jarangSubmit++;
-                                        }
-                                    @endphp
-                                    {{ $jarangSubmit }}
-                                </h2>
-                                <small class="text-muted">≤10 logbook disetujui</small>
+                                <h4 class="mb-0 fw-bold">{{ $stats['rejected'] }}</h4>
+                                <p class="mb-0">Ditolak</p>
                             </div>
-                            <div class="bg-danger rounded-circle p-3">
-                                <i class="fas fa-exclamation-triangle fa-fw text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="card-subtitle mb-2 text-muted">Total Mahasiswa</h6>
-                                <h2 class="card-title mb-0 text-primary">{{ count($logbookData) }}</h2>
-                                <small class="text-muted">Yang dibimbing</small>
-                            </div>
-                            <div class="bg-primary rounded-circle p-3">
-                                <i class="fas fa-users fa-fw text-white"></i>
+                            <div class="align-self-center">
+                                <i class="fas fa-times-circle fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
@@ -193,27 +81,76 @@
         <!-- Control Panel -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Kontrol Panel</h5>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold"><i class="fas fa-sliders-h me-2"></i>Filter & Pencarian</h5>
+                        <div class="d-flex align-items-center text-muted small fw-semibold">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                            <span>{{ $startDate->format('d M Y') }} - {{ $endDate->format('d M Y') }}</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control" placeholder="Cari mahasiswa..." id="searchInput">
-                                </div>
+                        <form method="GET" action="{{ route('monitoring.logbook-detail') }}" id="filterForm">
+                            <!-- Retain 'tipe' query parameter if it exists -->
+                            @if(request()->has('tipe'))
+                                <input type="hidden" name="tipe" value="{{ request('tipe') }}">
+                            @endif
+                            <div class="row g-3 align-items-center">
+                                @if($dplList)
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="dpl_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua DPL Pendamping</option>
+                                            @foreach($dplList as $dplOption)
+                                                <option value="{{ $dplOption->id }}" {{ $dpl_id == $dplOption->id ? 'selected' : '' }}>
+                                                    DPL: {{ $dplOption->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="tahun_akademik_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Tahun Akademik</option>
+                                            @foreach($tahunAkademikList as $ta)
+                                                <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                                    {{ $ta->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="semester_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Semester</option>
+                                            @foreach($semesterList as $sem)
+                                                <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                                    {{ $sem->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @else
+                                    <div class="col-md-6">
+                                        <select class="form-select" name="tahun_akademik_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Tahun Akademik</option>
+                                            @foreach($tahunAkademikList as $ta)
+                                                <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                                    {{ $ta->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-select" name="semester_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Semester</option>
+                                            @foreach($semesterList as $sem)
+                                                <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                                    {{ $sem->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="col-md-6 text-center">
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-calendar-alt me-2"></i>
-                                    <span class="text-muted">04 Aug 2025 - 26 Aug 2025</span>
-                                </div>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -223,134 +160,92 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-table me-2"></i>
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-table me-2 text-primary"></i>
                             Data Logbook Mahasiswa
+                            <span class="badge {{ $tipe === 'kelompok' ? 'bg-success' : 'bg-primary' }} ms-2 fs-6">
+                                {{ $tipe === 'kelompok' ? 'Kelompok' : 'Individu' }}
+                            </span>
                         </h5>
+                        <div class="btn-group shadow-sm" role="group" aria-label="Tipe Logbook">
+                            <a href="{{ request()->fullUrlWithQuery(['tipe' => 'individu']) }}"
+                               class="btn btn-sm {{ $tipe === 'individu' ? 'btn-primary' : 'btn-outline-primary' }} fw-semibold px-3">
+                                <i class="fas fa-user me-1"></i>Individu
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['tipe' => 'kelompok']) }}"
+                               class="btn btn-sm {{ $tipe === 'kelompok' ? 'btn-success' : 'btn-outline-success' }} fw-semibold px-3">
+                                <i class="fas fa-users me-1"></i>Kelompok
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <h6 class="text-muted mb-0">Periode Logbook KKN ({{ count($days) }} Hari)</h6>
+                            <h6 class="text-muted mb-0">Periode Logbook KKN ({{ $stats['hari_kkn'] ?? 0 }} Hari) — Menampilkan logbook <strong>{{ $tipe === 'kelompok' ? 'kelompok' : 'individu' }}</strong></h6>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="sticky-col bg-light" style="left: 0; z-index: 10; min-width: 120px;">NIM</th>
-                                        <th class="sticky-col bg-light" style="left: 120px; z-index: 10; min-width: 250px;">Nama Mahasiswa</th>
-                                        <th class="sticky-col bg-light text-center" style="left: 370px; z-index: 10; min-width: 120px;">Summary</th>
-                                        @foreach($days as $day)
-                                            @php
-                                                $date = \Carbon\Carbon::parse($day);
-                                                $dayName = $date->locale('id')->dayName;
-                                                $isToday = $date->isToday();
-                                                $isWeekend = $date->isWeekend();
-                                            @endphp
-                                            <th class="text-center border" style="min-width: 60px; background-color: {{ $isToday ? '#ff6b6b' : ($isWeekend ? '#fff3e0' : '#f8f9fa') }};">
-                                                <div class="text-xs text-muted mb-1">{{ substr($dayName, 0, 3) }}</div>
-                                                <div class="font-bold {{ $isToday ? 'text-white' : '' }}">{{ $date->format('d') }}</div>
-                                                <div class="text-xs {{ $isToday ? 'text-white' : 'text-muted' }}">{{ $date->format('M') }}</div>
-                                            </th>
-                                        @endforeach
+                                        <th style="width: 5%">No</th>
+                                        <th style="width: 15%">Tanggal</th>
+                                        <th style="width: 25%">Pembuat</th>
+                                        <th style="width: 35%">Kegiatan</th>
+                                        <th style="width: 10%" class="text-center">Status</th>
+                                        <th style="width: 10%" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($logbookData as $data)
+                                    @forelse($logbooks as $index => $logbook)
                                         <tr>
-                                            <td class="sticky-col bg-white" style="left: 0; z-index: 5; min-width: 120px;">
-                                                <div class="font-mono fw-bold">{{ $data['mahasiswa']->nim ?? '-' }}</div>
+                                            <td>{{ $logbooks->firstItem() + $index }}</td>
+                                            <td>
+                                                <div class="fw-bold">{{ \Carbon\Carbon::parse($logbook->tanggal)->translatedFormat('d M Y') }}</div>
                                             </td>
-                                            <td class="sticky-col bg-white" style="left: 120px; z-index: 5; min-width: 250px;">
+                                            <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px; font-weight: bold;">
-                                                        {{ strtoupper(substr($data['mahasiswa']->name, 0, 1)) }}
+                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px; font-size: 12px; font-weight: bold;">
+                                                        {{ strtoupper(substr($logbook->user->name ?? 'M', 0, 1)) }}
                                                     </div>
                                                     <div>
-                                                        <div class="fw-bold">{{ $data['mahasiswa']->name }}</div>
-                                                        @if($data['mahasiswa']->jurusan)
-                                                            <small class="text-muted">{{ ucfirst($data['mahasiswa']->jurusan) }}</small>
+                                                        <div class="fw-bold text-truncate" style="max-width: 200px;">{{ $logbook->user->name ?? 'Mahasiswa' }}</div>
+                                                        <small class="text-muted">{{ $logbook->user->nim ?? '-' }}</small>
+                                                        @if($tipe === 'kelompok' && $logbook->kelompok)
+                                                            <div class="badge bg-info mt-1 text-truncate" style="max-width: 200px;">{{ $logbook->kelompok->nama_kelompok }}</div>
                                                         @endif
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="sticky-col bg-white text-center" style="left: 370px; z-index: 5; min-width: 120px;">
-                                                @php
-                                                    $approvedCount = 0;
-                                                    $pendingCount = 0;
-                                                    foreach($data['days'] as $dayData) {
-                                                        if($dayData['status'] === 'approved') $approvedCount++;
-                                                        elseif($dayData['status'] === 'submitted' || $dayData['status'] === 'pending') $pendingCount++;
-                                                    }
-                                                    $logbookRate = round(($approvedCount / count($days)) * 100);
-                                                @endphp
-                                                <div class="text-sm">
-                                                    <div class="text-success fw-bold">✓ {{ $approvedCount }}/{{ count($days) }}</div>
-                                                    @if($pendingCount > 0)
-                                                        <div class="text-warning">⏳ {{ $pendingCount }}</div>
-                                                    @endif
-                                                    <div class="text-muted">{{ $logbookRate }}%</div>
+                                            <td>
+                                                <div class="fw-bold text-truncate" style="max-width: 300px;">{{ $logbook->judul }}</div>
+                                                <div class="text-muted small text-truncate" style="max-width: 300px;">
+                                                    {{ Str::limit(strip_tags($logbook->keterangan), 60) }}
                                                 </div>
                                             </td>
-                                            @foreach($days as $day)
-                                                @php
-                                                    $dayData = $data['days'][$day];
-                                                    $logbook = $dayData['logbook'];
-                                                    $date = \Carbon\Carbon::parse($day);
-                                                    
-                                                    if($logbook) {
-                                                        if($logbook->status === 'approved') {
-                                                            $bgColor = 'bg-success';
-                                                            $symbol = '✓';
-                                                            $title = 'Logbook Disetujui';
-                                                        } elseif($logbook->status === 'submitted' || $logbook->status === 'pending') {
-                                                            $bgColor = 'bg-warning';
-                                                            $symbol = '⏳';
-                                                            $title = 'Pending Review';
-                                                        } else {
-                                                            $bgColor = 'bg-secondary';
-                                                            $symbol = '?';
-                                                            $title = 'Status: ' . $logbook->status;
-                                                        }
-                                                    } else {
-                                                        $bgColor = 'bg-danger';
-                                                        $symbol = '✗';
-                                                        $title = 'Tidak Submit Logbook';
-                                                    }
-                                                @endphp
-                                                <td class="text-center border" style="min-width: 60px;">
-                                                    <div class="d-flex align-items-center justify-content-center" style="height: 40px;">
-                                                        @if($logbook)
-                                                            <a href="{{ route('history.logbooks.show', $logbook->id) }}" 
-                                                               class="text-decoration-none">
-                                                                <div class="rounded-circle d-flex align-items-center justify-content-center {{ $bgColor }} text-white" 
-                                                                     style="width: 32px; height: 32px; font-size: 16px; font-weight: bold;"
-                                                                     data-bs-toggle="tooltip" 
-                                                                     data-bs-placement="top" 
-                                                                     title="{{ $title }}">
-                                                                    {{ $symbol }}
-                                                                </div>
-                                                            </a>
-                                                        @else
-                                                            <div class="rounded-circle d-flex align-items-center justify-content-center {{ $bgColor }} text-white" 
-                                                                 style="width: 32px; height: 32px; font-size: 16px; font-weight: bold;"
-                                                                 data-bs-toggle="tooltip" 
-                                                                 data-bs-placement="top" 
-                                                                 title="{{ $title }}">
-                                                                {{ $symbol }}
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            @endforeach
+                                            <td class="text-center">
+                                                @if($logbook->status === 'approved')
+                                                    <span class="badge bg-success">Disetujui</span>
+                                                @elseif($logbook->status === 'rejected')
+                                                    <span class="badge bg-danger">Ditolak</span>
+                                                @elseif($logbook->status === 'submitted')
+                                                    <span class="badge bg-warning">Pending Review</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ ucfirst($logbook->status) }}</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="{{ route('logbooks.show', $logbook->id) }}" class="btn btn-sm btn-outline-primary shadow-sm" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i>Detail
+                                                </a>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="{{ 3 + count($days) }}" class="text-center py-5">
+                                            <td colspan="6" class="text-center py-5">
                                                 <div class="d-flex flex-column align-items-center">
-                                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                                                    <h5 class="text-muted">Tidak ada mahasiswa yang dibimbing</h5>
-                                                    <p class="text-muted">Anda belum memiliki mahasiswa bimbingan.</p>
+                                                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                                    <h5 class="text-muted">Tidak ada data logbook</h5>
+                                                    <p class="text-muted">Belum ada logbook {{ $tipe }} yang disubmit untuk filter ini.</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -358,32 +253,47 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Pagination -->
+                        @if($logbooks->hasPages())
+                            <div class="d-flex justify-content-center mt-4">
+                                {{ $logbooks->withQueryString()->links() }}
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    @push('styles')
+    <style>
+        .sticky-col {
+            position: sticky !important;
+            background-color: #f8f9fa !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+        td.sticky-col {
+            background-color: #ffffff !important;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            position: relative;
+        }
+    </style>
+    @endpush
+
     @push('scripts')
     <script>
         // Search functionality
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('searchInput');
-            const tableRows = document.querySelectorAll('tbody tr');
-            
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                
-                tableRows.forEach(row => {
-                    const studentName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                    const studentNim = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                    
-                    if (studentName.includes(searchTerm) || studentNim.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+
+            // Prevent form submit on Enter press in search input
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         });
     </script>

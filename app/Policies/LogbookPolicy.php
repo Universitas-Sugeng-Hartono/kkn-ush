@@ -10,6 +10,7 @@ class LogbookPolicy
     public function view(User $user, Logbook $logbook): bool
     {
         return $user->id === $logbook->user_id || 
+               ($logbook->is_kelompok && $user->kelompok_id && $user->kelompok_id === $logbook->kelompok_id) ||
                $user->hasRole('dpl') || 
                $user->hasRole('admin');
     }
@@ -21,17 +22,23 @@ class LogbookPolicy
 
     public function update(User $user, Logbook $logbook): bool
     {
-        return $user->id === $logbook->user_id && $logbook->status === 'draft';
+        $isAuthorized = $user->id === $logbook->user_id || 
+                       ($logbook->is_kelompok && $user->kelompok_id && $user->kelompok_id === $logbook->kelompok_id);
+        return $isAuthorized && $logbook->status === 'draft';
     }
 
     public function delete(User $user, Logbook $logbook): bool
     {
-        return $user->id === $logbook->user_id && $logbook->status === 'draft';
+        $isAuthorized = $user->id === $logbook->user_id || 
+                       ($logbook->is_kelompok && $user->kelompok_id && $user->kelompok_id === $logbook->kelompok_id);
+        return $isAuthorized && $logbook->status === 'draft';
     }
 
     public function submit(User $user, Logbook $logbook): bool
     {
-        return $user->id === $logbook->user_id && $logbook->status === 'draft';
+        $isAuthorized = $user->id === $logbook->user_id || 
+                       ($logbook->is_kelompok && $user->kelompok_id && $user->kelompok_id === $logbook->kelompok_id);
+        return $isAuthorized && $logbook->status === 'draft';
     }
 
     public function review(User $user, Logbook $logbook): bool

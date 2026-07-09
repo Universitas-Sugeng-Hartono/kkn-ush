@@ -2,15 +2,59 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kelompok;
 use App\Models\Lokasi;
+use App\Models\Semester;
+use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $locations = Lokasi::all();
-        return view('locations.index', compact('locations'));
+        $tahunAktif    = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        // Default ke periode aktif jika tidak ada parameter query sama sekali
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id') && $tahunAktif && $semesterAktif) {
+            $tahun_akademik_id = $tahunAktif->id;
+            $semester_id = $semesterAktif->id;
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id       = $request->query('semester_id');
+        }
+
+        $tahunAkademikList = TahunAkademik::where('is_aktif', true)->orderBy('nama', 'desc')->get();
+        $semesterList      = Semester::where('is_aktif', true)->orderBy('nama', 'asc')->get();
+
+        // Ambil lokasi yang sesuai dengan periode yang dipilih, beserta kelompoknya
+        $locationsQuery = Lokasi::query();
+        if ($tahun_akademik_id) {
+            $locationsQuery->where('tahun_akademik_id', $tahun_akademik_id);
+        }
+        if ($semester_id) {
+            $locationsQuery->where('semester_id', $semester_id);
+        }
+
+        $locations = $locationsQuery->with(['kelompok' => function ($query) use ($tahun_akademik_id, $semester_id) {
+            if ($tahun_akademik_id) {
+                $query->where('tahun_akademik_id', $tahun_akademik_id);
+            }
+            if ($semester_id) {
+                $query->where('semester_id', $semester_id);
+            }
+            $query->with('mahasiswa');
+        }])->get();
+
+        return view('locations.index', compact(
+            'locations',
+            'tahunAktif',
+            'semesterAktif',
+            'tahunAkademikList',
+            'semesterList',
+            'tahun_akademik_id',
+            'semester_id'
+        ));
     }
 
     public function create()
@@ -30,7 +74,13 @@ class LocationController extends Controller
             'deskripsi' => 'nullable|string'
         ]);
 
-        Lokasi::create($validated);
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        Lokasi::create(array_merge($validated, [
+            'tahun_akademik_id' => $tahunAktif?->id,
+            'semester_id' => $semesterAktif?->id
+        ]));
 
         return redirect()->route('locations.index')
             ->with('success', 'Lokasi berhasil ditambahkan');
@@ -75,13 +125,35 @@ class LocationController extends Controller
 
     public function map()
     {
-        $locations = Lokasi::with(['kelompok', 'kelompok.mahasiswa'])->get();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $locationsQuery = Lokasi::query();
+        if ($tahunAktif) {
+            $locationsQuery->where('tahun_akademik_id', $tahunAktif->id);
+        }
+        if ($semesterAktif) {
+            $locationsQuery->where('semester_id', $semesterAktif->id);
+        }
+
+        $locations = $locationsQuery->with(['kelompok', 'kelompok.mahasiswa'])->get();
         return view('locations.map', compact('locations'));
     }
 
     public function getLocations()
     {
-        $locations = Lokasi::with(['kelompok', 'kelompok.mahasiswa'])->get();
+        $tahunAktif = TahunAkademik::getAktif();
+        $semesterAktif = Semester::getAktif();
+
+        $locationsQuery = Lokasi::query();
+        if ($tahunAktif) {
+            $locationsQuery->where('tahun_akademik_id', $tahunAktif->id);
+        }
+        if ($semesterAktif) {
+            $locationsQuery->where('semester_id', $semesterAktif->id);
+        }
+
+        $locations = $locationsQuery->with(['kelompok', 'kelompok.mahasiswa'])->get();
         return response()->json([
             'type' => 'FeatureCollection',
             'features' => $locations->map(function ($location) {

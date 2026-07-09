@@ -82,6 +82,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('pengaturan/semester/{semester}', [TahunAkademikController::class, 'destroySemester'])->name('semester.destroy');
         Route::post('pengaturan/semester/{semester}/aktif', [TahunAkademikController::class, 'setSemesterAktif'])->name('semester.set-aktif');
         Route::post('pengaturan/semester/{semester}/nonaktif', [TahunAkademikController::class, 'setSemesterNonaktif'])->name('semester.set-nonaktif');
+        Route::post('pengaturan/angkatan', [TahunAkademikController::class, 'storeOrUpdateAngkatan'])->name('angkatan.store-or-update');
+        Route::delete('pengaturan/angkatan/{angkatan}', [TahunAkademikController::class, 'destroyAngkatan'])->name('angkatan.destroy');
 
         Route::get('locations/map', [LocationController::class, 'map'])->name('locations.map');
         Route::get('locations/data', [LocationController::class, 'getLocations'])->name('locations.data');
@@ -130,12 +132,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/attendance/reject-all', [AttendanceController::class, 'rejectAll'])->name('attendance.rejectAll');
         
 
-        
-        // Monitoring Detail Aktivitas Mahasiswa
-        Route::get('/monitoring/attendance-detail', [App\Http\Controllers\MonitoringController::class, 'attendanceDetail'])->name('monitoring.attendance-detail');
-        Route::get('/monitoring/logbook-detail', [App\Http\Controllers\MonitoringController::class, 'logbookDetail'])->name('monitoring.logbook-detail');
-        Route::get('/monitoring/activity-detail', [App\Http\Controllers\MonitoringController::class, 'activityDetail'])->name('monitoring.activity-detail');
-        
         // Notifikasi dan Alert
         Route::get('/dpl/notifications', [DashboardController::class, 'getNotifications'])->name('dpl.notifications.get');
         Route::get('/alerts', [DashboardController::class, 'getAlerts'])->name('alerts.get');
@@ -144,6 +140,13 @@ Route::middleware('auth')->group(function () {
         // History Logbook dan Absensi
         Route::get('/history/logbooks', [App\Http\Controllers\HistoryLogbookController::class, 'index'])->name('history.logbooks.index');
         Route::get('/history/logbooks/{logbook}', [App\Http\Controllers\HistoryLogbookController::class, 'show'])->name('history.logbooks.show');
+    });
+
+    // Monitoring Detail Aktivitas Mahasiswa (DPL & Admin)
+    Route::middleware(['auth', 'role:dpl|admin'])->group(function () {
+        Route::get('/monitoring/attendance-detail', [App\Http\Controllers\MonitoringController::class, 'attendanceDetail'])->name('monitoring.attendance-detail');
+        Route::get('/monitoring/logbook-detail', [App\Http\Controllers\MonitoringController::class, 'logbookDetail'])->name('monitoring.logbook-detail');
+        Route::get('/monitoring/activity-detail', [App\Http\Controllers\MonitoringController::class, 'activityDetail'])->name('monitoring.activity-detail');
     });
 
     // Monitoring Kelompok untuk DPL

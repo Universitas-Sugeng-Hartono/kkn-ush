@@ -434,12 +434,24 @@ class DashboardController extends Controller
             ];
         }
 
+        $startDate = '2025-08-04';
+        $endDate = '2025-08-26';
+        if ($tahunAktif && $semesterAktif) {
+            $angkatan = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
+                ->where('semester_id', $semesterAktif->id)
+                ->first();
+            if ($angkatan && $angkatan->tanggal_mulai && $angkatan->tanggal_selesai) {
+                $startDate = $angkatan->tanggal_mulai->format('Y-m-d');
+                $endDate = $angkatan->tanggal_selesai->format('Y-m-d');
+            }
+        }
+
         // Mahasiswa yang tidak aktif (tidak ada logbook dalam periode KKN)
         $inactiveMahasiswaLogbook = User::role('mahasiswa')
             ->whereIn('kelompok_id', $groups)
-            ->whereDoesntHave('logbooks', function($query) {
-                $query->where('tanggal', '>=', '2025-08-04')
-                      ->where('tanggal', '<=', '2025-08-26');
+            ->whereDoesntHave('logbooks', function($query) use ($startDate, $endDate) {
+                $query->where('tanggal', '>=', $startDate)
+                      ->where('tanggal', '<=', $endDate);
             })
             ->count();
 
@@ -456,9 +468,9 @@ class DashboardController extends Controller
         // Mahasiswa yang tidak aktif (tidak ada absensi dalam periode KKN)
         $inactiveMahasiswaAbsensi = User::role('mahasiswa')
             ->whereIn('kelompok_id', $groups)
-            ->whereDoesntHave('absensi', function($query) {
-                $query->where('tanggal', '>=', '2025-08-04')
-                      ->where('tanggal', '<=', '2025-08-26');
+            ->whereDoesntHave('absensi', function($query) use ($startDate, $endDate) {
+                $query->where('tanggal', '>=', $startDate)
+                      ->where('tanggal', '<=', $endDate);
             })
             ->count();
 

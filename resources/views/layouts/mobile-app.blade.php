@@ -1391,8 +1391,31 @@
 <body>
     <div class="mobile-app">
         @php
-            $tahunAktifMobile = \App\Models\TahunAkademik::getAktif();
-            $semesterAktifMobile = \App\Models\Semester::getAktif();
+            $tahunAktifMobile = null;
+            $semesterAktifMobile = null;
+            
+            $mobileUser = auth()->user();
+            if ($mobileUser && $mobileUser->hasRole('mahasiswa')) {
+                $tahunAktifMobile = $mobileUser->tahunAkademik;
+                $semesterAktifMobile = $mobileUser->semester;
+            } else {
+                $tahun_akademik_id_mobile = request()->query('tahun_akademik_id');
+                $semester_id_mobile = request()->query('semester_id');
+                
+                if ($tahun_akademik_id_mobile) {
+                    $tahunAktifMobile = \App\Models\TahunAkademik::find($tahun_akademik_id_mobile);
+                }
+                if ($semester_id_mobile) {
+                    $semesterAktifMobile = \App\Models\Semester::find($semester_id_mobile);
+                }
+            }
+            
+            if (!$tahunAktifMobile) {
+                $tahunAktifMobile = \App\Models\TahunAkademik::getAktif();
+            }
+            if (!$semesterAktifMobile) {
+                $semesterAktifMobile = \App\Models\Semester::getAktif();
+            }
         @endphp
         <!-- Header -->
         <header class="app-header">

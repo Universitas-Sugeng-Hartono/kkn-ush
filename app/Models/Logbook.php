@@ -24,12 +24,14 @@ class Logbook extends Model
         'keterangan',
         'lokasi',
         'status',
-        'attachments'
+        'attachments',
+        'is_kelompok'
     ];
 
     protected $casts = [
         'tanggal' => 'date',
-        'attachments' => 'array'
+        'attachments' => 'array',
+        'is_kelompok' => 'boolean'
     ];
 
     public function user(): BelongsTo

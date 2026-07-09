@@ -210,8 +210,24 @@
         <!-- Page Header -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <h2 class="fw-bold">Logbook Harian</h2>
-                <p class="text-muted">Catat aktivitas KKN harian Anda dengan detail lokasi, foto, dan keterangan lengkap</p>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 bg-white p-3 rounded shadow-sm">
+                    <div>
+                        <h2 class="fw-bold mb-1">Logbook Harian</h2>
+                        <p class="text-muted mb-0 small">Catat aktivitas KKN harian Anda dengan detail lokasi, foto, dan keterangan lengkap</p>
+                    </div>
+                    <div>
+                        <div class="btn-group shadow-sm" role="group">
+                            <a href="{{ route('logbooks.index', ['tipe' => 'individu']) }}" 
+                               class="btn {{ $tipe === 'individu' ? 'btn-primary text-white' : 'btn-outline-primary' }} fw-semibold px-4">
+                                <i class="fas fa-user me-2"></i> Logbook Individu
+                            </a>
+                            <a href="{{ route('logbooks.index', ['tipe' => 'kelompok']) }}" 
+                               class="btn {{ $tipe === 'kelompok' ? 'btn-success text-white' : 'btn-outline-success' }} fw-semibold px-4">
+                                <i class="fas fa-users me-2"></i> Logbook Kelompok
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -221,7 +237,7 @@
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-calendar me-2"></i>Kalender Aktivitas
+                            <i class="fas fa-calendar me-2"></i>Kalender Aktivitas ({{ $tipe === 'kelompok' ? 'Kelompok' : 'Individu' }})
                         </h5>
                     </div>
                     <div class="card-body">
@@ -233,71 +249,139 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-list me-2"></i>Riwayat Logbook
+                            @if($tipe === 'kelompok')
+                                <i class="fas fa-users me-2 text-success"></i>Riwayat Logbook Kelompok
+                            @else
+                                <i class="fas fa-user me-2 text-primary"></i>Riwayat Logbook Individu
+                            @endif
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="logbookTable">
-                                <thead>
-                                    <tr>
-                                        <th>Tanggal</th>
-                                        <th>Waktu</th>
-                                        <th>Judul Kegiatan</th>
-                                        <th>Jenis</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($logbooks as $logbook)
+                            <table class="table table-hover logbook-datatable" id="logbookTable">
+                                @if($tipe === 'kelompok')
+                                    <thead>
                                         <tr>
-                                            <td>{{ $logbook->tanggal->format('d/m/Y') }}</td>
-                                            <td>{{ $logbook->waktu_mulai }} - {{ $logbook->waktu_selesai }}</td>
-                                            <td>{{ $logbook->judul }}</td>
-                                            <td>
-                                                <span class="badge bg-{{ $logbook->jenis === 'individu' ? 'primary' : ($logbook->jenis === 'desa' ? 'success' : 'info') }}">
-                                                    {{ ucfirst($logbook->jenis) }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-{{ $logbook->status === 'draft' ? 'warning' : ($logbook->status === 'submitted' ? 'info' : ($logbook->status === 'approved' ? 'success' : 'danger')) }}">
-                                                    {{ ucfirst($logbook->status) }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    <a href="{{ route('logbooks.show', $logbook) }}" 
-                                                        class="btn btn-sm btn-info"
-                                                        title="Lihat Detail">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    @if($logbook->status === 'draft')
-                                                        <a href="{{ route('logbooks.edit', $logbook) }}" 
-                                                            class="btn btn-sm btn-primary"
-                                                            title="Edit">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                        <button type="button" 
-                                                                class="btn btn-sm btn-danger delete-logbook" 
-                                                                data-id="{{ $logbook->id }}"
-                                                                title="Hapus"
-                                                                onclick="deleteLogbook({{ $logbook->id }})">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-success" title="Submit ke DPL" onclick="submitLogbookToDpl({{ $logbook->id }})">
-                                                            <i class="fab fa-telegram-plane"></i>
-                                                        </button>
-                                                        <form id="submit-logbook-{{ $logbook->id }}" action="{{ route('logbooks.submit', $logbook) }}" method="POST" style="display:none;">
-                                                            @csrf
-                                                            @method('PUT')
-                                                        </form>
-                                                    @endif
-                                                </div>
-                                            </td>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Judul Kegiatan</th>
+                                            <th>Jenis</th>
+                                            <th>Oleh</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($logbooksKelompok as $logbook)
+                                            <tr>
+                                                <td>{{ $logbook->tanggal->format('d/m/Y') }}</td>
+                                                <td>{{ $logbook->waktu_mulai }} - {{ $logbook->waktu_selesai }}</td>
+                                                <td>{{ $logbook->judul }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ $logbook->jenis === 'individu' ? 'primary' : ($logbook->jenis === 'desa' ? 'success' : 'info') }}">
+                                                        {{ ucfirst($logbook->jenis) }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ $logbook->user?->name ?? '-' }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ $logbook->status === 'draft' ? 'warning' : ($logbook->status === 'submitted' ? 'info' : ($logbook->status === 'approved' ? 'success' : 'danger')) }}">
+                                                        {{ ucfirst($logbook->status) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="{{ route('logbooks.show', $logbook) }}" 
+                                                            class="btn btn-sm btn-info text-white"
+                                                            title="Lihat Detail">
+                                                            <i class="fas fa-eye text-white"></i>
+                                                        </a>
+                                                        @if($logbook->status === 'draft' && Gate::allows('update', $logbook))
+                                                            <a href="{{ route('logbooks.edit', $logbook) }}" 
+                                                                class="btn btn-sm btn-primary"
+                                                                title="Edit">
+                                                                <i class="fas fa-edit text-white"></i>
+                                                            </a>
+                                                            <button type="button" 
+                                                                    class="btn btn-sm btn-danger delete-logbook" 
+                                                                    data-id="{{ $logbook->id }}"
+                                                                    title="Hapus"
+                                                                    onclick="deleteLogbook({{ $logbook->id }})">
+                                                                <i class="fas fa-trash text-white"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-success text-white" title="Submit ke DPL" onclick="submitLogbookToDpl({{ $logbook->id }})">
+                                                                <i class="fab fa-telegram-plane text-white"></i>
+                                                            </button>
+                                                            <form id="submit-logbook-{{ $logbook->id }}" action="{{ route('logbooks.submit', $logbook) }}" method="POST" style="display:none;">
+                                                                @csrf
+                                                                @method('PUT')
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                @else
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Judul Kegiatan</th>
+                                            <th>Jenis</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($logbooksIndividu as $logbook)
+                                            <tr>
+                                                <td>{{ $logbook->tanggal->format('d/m/Y') }}</td>
+                                                <td>{{ $logbook->waktu_mulai }} - {{ $logbook->waktu_selesai }}</td>
+                                                <td>{{ $logbook->judul }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ $logbook->jenis === 'individu' ? 'primary' : ($logbook->jenis === 'desa' ? 'success' : 'info') }}">
+                                                        {{ ucfirst($logbook->jenis) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{{ $logbook->status === 'draft' ? 'warning' : ($logbook->status === 'submitted' ? 'info' : ($logbook->status === 'approved' ? 'success' : 'danger')) }}">
+                                                        {{ ucfirst($logbook->status) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="{{ route('logbooks.show', $logbook) }}" 
+                                                            class="btn btn-sm btn-info text-white"
+                                                            title="Lihat Detail">
+                                                            <i class="fas fa-eye text-white"></i>
+                                                        </a>
+                                                        @if($logbook->status === 'draft' && Gate::allows('update', $logbook))
+                                                            <a href="{{ route('logbooks.edit', $logbook) }}" 
+                                                                class="btn btn-sm btn-primary"
+                                                                title="Edit">
+                                                                <i class="fas fa-edit text-white"></i>
+                                                            </a>
+                                                            <button type="button" 
+                                                                    class="btn btn-sm btn-danger delete-logbook" 
+                                                                    data-id="{{ $logbook->id }}"
+                                                                    title="Hapus"
+                                                                    onclick="deleteLogbook({{ $logbook->id }})">
+                                                                <i class="fas fa-trash text-white"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-success text-white" title="Submit ke DPL" onclick="submitLogbookToDpl({{ $logbook->id }})">
+                                                                <i class="fab fa-telegram-plane text-white"></i>
+                                                            </button>
+                                                            <form id="submit-logbook-{{ $logbook->id }}" action="{{ route('logbooks.submit', $logbook) }}" method="POST" style="display:none;">
+                                                                @csrf
+                                                                @method('PUT')
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                @endif
                             </table>
                         </div>
                     </div>
@@ -424,13 +508,21 @@
                                     <label class="form-label">Waktu Selesai</label>
                                     <input type="time" class="form-control" name="waktu_selesai" required>
                                 </div>
-                                <div class="col-md-8">
+                                <div class="col-md-12">
                                     <label class="form-label">Judul Kegiatan</label>
                                     <input type="text" class="form-control" name="judul" required>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tipe Logbook</label>
+                                    <select class="form-select" id="modal_is_kelompok_display" disabled>
+                                        <option value="0">Logbook Individu</option>
+                                        <option value="1">Logbook Kelompok (Sharing)</option>
+                                    </select>
+                                    <input type="hidden" name="is_kelompok" id="modal_is_kelompok">
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label">Jenis Kegiatan</label>
-                                    <select class="form-select" name="jenis" required>
+                                    <select class="form-select" name="jenis" id="modal_jenis" required>
                                         <option value="individu">Individu</option>
                                         <option value="desa">Desa</option>
                                         <option value="kecamatan">Kecamatan</option>
@@ -677,6 +769,26 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Function to dynamically adjust jenis select options based on is_kelompok value
+            function adjustJenisOptions() {
+                const isKelompok = $('#modal_is_kelompok').val();
+                const jenisSelect = $('#modal_jenis');
+                
+                if (isKelompok === '1') {
+                    // Kelompok: hide/disable individu
+                    jenisSelect.find('option[value="individu"]').hide().prop('disabled', true);
+                    jenisSelect.find('option[value="desa"], option[value="kecamatan"]').show().prop('disabled', false);
+                    if (jenisSelect.val() === 'individu' || !jenisSelect.val()) {
+                        jenisSelect.val('desa');
+                    }
+                } else {
+                    // Individu: hide/disable desa/kecamatan
+                    jenisSelect.find('option[value="individu"]').show().prop('disabled', false);
+                    jenisSelect.find('option[value="desa"], option[value="kecamatan"]').hide().prop('disabled', true);
+                    jenisSelect.val('individu');
+                }
+            }
+
             // Initialize Calendar
             var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
                 initialView: 'dayGridMonth',
@@ -695,6 +807,15 @@
                     
                     // Set tanggal
                     $('input[name="tanggal"]').val(info.dateStr);
+                    
+                    // Set default tipe based on active filter
+                    const activeTipe = '{{ $tipe }}' === 'kelompok' ? '1' : '0';
+                    $('#modal_is_kelompok').val(activeTipe);
+                    $('#modal_is_kelompok_display').val(activeTipe);
+                    adjustJenisOptions();
+
+                    // Set default action
+                    $('#logbookForm').attr('action', '{{ route("logbooks.store") }}');
                     
                     // Show modal
                     $('#logbookModal').modal('show');
@@ -891,7 +1012,7 @@
             });
 
             // Initialize DataTable
-            $('#logbookTable').DataTable({
+            $('.logbook-datatable').DataTable({
                 order: [[0, 'desc']],
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'

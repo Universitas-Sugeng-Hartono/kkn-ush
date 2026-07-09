@@ -22,10 +22,11 @@
             <div class="col-md-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <form action="{{ route('groups.index') }}" method="GET" class="row g-3 align-items-end">
-                            <div class="col-md-4">
+                        <form action="{{ route('groups.index') }}" method="GET" class="row g-3 align-items-end" id="filterForm">
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold small">Tahun Akademik</label>
-                                <select name="tahun_akademik_id" class="form-select form-select-sm">
+                                <select name="tahun_akademik_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="">— Semua Tahun —</option>
                                     @foreach($tahunAkademikList as $ta)
                                         <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
                                             {{ $ta->nama }} {{ $ta->is_aktif ? '(Aktif)' : '' }}
@@ -33,25 +34,16 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold small">Semester</label>
-                                <select name="semester_id" class="form-select form-select-sm">
+                                <select name="semester_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="">— Semua Semester —</option>
                                     @foreach($semesterList as $sem)
                                         <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
                                             {{ $sem->nama }} {{ $sem->is_aktif ? '(Aktif)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                                        <i class="fas fa-filter me-2"></i>Filter
-                                    </button>
-                                    <a href="{{ route('groups.index') }}" class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-undo me-2"></i>Reset
-                                    </a>
-                                </div>
                             </div>
                         </form>
                     </div>

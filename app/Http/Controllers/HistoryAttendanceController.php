@@ -12,16 +12,41 @@ class HistoryAttendanceController extends Controller
     {
         $user = auth()->user();
         
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        // Default ke periode aktif jika tidak ada parameter query sama sekali
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id') && $tahunAktif && $semesterAktif) {
+            $tahun_akademik_id = $tahunAktif->id;
+            $semester_id = $semesterAktif->id;
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id = $request->query('semester_id');
+        }
+
         // Query dasar berdasarkan role user
         if ($user->hasRole('admin')) {
             // Admin melihat semua absensi
-            $query = Absensi::with(['user', 'kelompok'])
+            $query = Absensi::whereHas('user', function($q) use ($tahun_akademik_id, $semester_id) {
+                if ($tahun_akademik_id) {
+                    $q->where('tahun_akademik_id', $tahun_akademik_id);
+                }
+                if ($semester_id) {
+                    $q->where('semester_id', $semester_id);
+                }
+            })->with(['user', 'kelompok'])
                 ->orderBy('created_at', 'desc');
         } elseif ($user->hasRole('dpl')) {
             // DPL melihat absensi mahasiswa bimbingannya
-            $query = Absensi::whereHas('user', function($query) use ($user) {
-                $query->whereHas('kelompok', function($q) use ($user) {
+            $query = Absensi::whereHas('user', function($query) use ($user, $tahun_akademik_id, $semester_id) {
+                $query->whereHas('kelompok', function($q) use ($user, $tahun_akademik_id, $semester_id) {
                     $q->where('dpl_id', $user->id);
+                    if ($tahun_akademik_id) {
+                        $q->where('tahun_akademik_id', $tahun_akademik_id);
+                    }
+                    if ($semester_id) {
+                        $q->where('semester_id', $semester_id);
+                    }
                 });
             })
             ->with(['user', 'kelompok'])
@@ -85,7 +110,20 @@ class HistoryAttendanceController extends Controller
             $jurusanList = User::distinct()->pluck('jurusan')->filter()->values();
         }
 
-        return view('history.attendances.index', compact('attendances', 'statusList', 'jurusanList'));
+        $tahunAkademikList = \App\Models\TahunAkademik::all();
+        $semesterList = \App\Models\Semester::all();
+
+        return view('history.attendances.index', compact(
+            'attendances', 
+            'statusList', 
+            'jurusanList',
+            'tahunAkademikList', 
+            'semesterList', 
+            'tahun_akademik_id', 
+            'semester_id',
+            'tahunAktif',
+            'semesterAktif'
+        ));
     }
 
     public function show(Absensi $attendance)

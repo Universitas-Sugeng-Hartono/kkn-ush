@@ -18,18 +18,25 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $tahunAktif = TahunAkademik::getAktif();
+        // Untuk info header (first active)
+        $tahunAktif    = TahunAkademik::getAktif();
         $semesterAktif = Semester::getAktif();
 
-        $tahun_akademik_id = $request->query('tahun_akademik_id', $tahunAktif?->id);
-        $semester_id = $request->query('semester_id', $semesterAktif?->id);
+        // Default ke periode aktif jika tidak ada parameter query sama sekali
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id') && $tahunAktif && $semesterAktif) {
+            $tahun_akademik_id = $tahunAktif->id;
+            $semester_id = $semesterAktif->id;
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id       = $request->query('semester_id');
+        }
 
         $usersQuery = User::with(['roles', 'kelompok', 'tahunAkademik', 'semester']);
 
         // Filter tampilan user untuk periode akademik yang dipilih.
         // Mahasiswa difilter ketat berdasarkan periode.
         // User non-mahasiswa (Admin/DPL) tetap ditampilkan karena tidak terikat periode.
-        if ($tahun_akademik_id && $semester_id) {
+        if ($tahun_akademik_id || $semester_id) {
             $usersQuery->where(function ($q) use ($tahun_akademik_id, $semester_id) {
                 // Tampilkan non-mahasiswa
                 $q->whereDoesntHave('roles', function($rq) {
@@ -39,17 +46,21 @@ class UserController extends Controller
                 ->orWhere(function ($q2) use ($tahun_akademik_id, $semester_id) {
                     $q2->whereHas('roles', function($rq) {
                             $rq->where('name', 'mahasiswa');
-                        })
-                        ->where('tahun_akademik_id', $tahun_akademik_id)
-                        ->where('semester_id', $semester_id);
+                        });
+                    if ($tahun_akademik_id) {
+                        $q2->where('tahun_akademik_id', $tahun_akademik_id);
+                    }
+                    if ($semester_id) {
+                        $q2->where('semester_id', $semester_id);
+                    }
                 });
             });
         }
 
-        $users = $usersQuery->get();
-        $tahunAkademikList = TahunAkademik::all();
-        $semesterList = Semester::all();
-        
+        $users             = $usersQuery->get();
+        $tahunAkademikList = TahunAkademik::where('is_aktif', true)->orderBy('nama', 'desc')->get();
+        $semesterList      = Semester::where('is_aktif', true)->orderBy('nama', 'asc')->get();
+
         return view('users.index', compact('users', 'tahunAktif', 'semesterAktif', 'tahunAkademikList', 'semesterList', 'tahun_akademik_id', 'semester_id'));
     }
 

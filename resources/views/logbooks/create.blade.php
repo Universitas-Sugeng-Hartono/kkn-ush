@@ -133,6 +133,15 @@
                         </div>
 
                         <div>
+                            <x-input-label for="is_kelompok" value="Tipe Logbook" />
+                            <select id="is_kelompok" name="is_kelompok" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="0">Logbook Individu</option>
+                                <option value="1">Logbook Kelompok (Sharing)</option>
+                            </select>
+                            <x-input-error :messages="$errors->get('is_kelompok')" class="mt-2" />
+                        </div>
+
+                        <div>
                             <x-input-label for="jenis" value="Jenis Kegiatan" />
                             <select id="jenis" name="jenis" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="">Pilih Jenis Kegiatan</option>
@@ -357,6 +366,46 @@
                 
                 attachmentPreview.appendChild(attachmentItem);
             });
+        }
+
+        // Dynamic adjust jenis dropdown options based on is_kelompok select list
+        const isKelompokSelect = document.getElementById('is_kelompok');
+        const jenisSelect = document.getElementById('jenis');
+
+        function adjustJenisOptions() {
+            const isKelompok = isKelompokSelect.value;
+            const options = jenisSelect.options;
+            
+            if (isKelompok === '1') {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === 'individu') {
+                        options[i].style.display = 'none';
+                        options[i].disabled = true;
+                    } else if (options[i].value !== '') {
+                        options[i].style.display = 'block';
+                        options[i].disabled = false;
+                    }
+                }
+                if (jenisSelect.value === 'individu') {
+                    jenisSelect.value = 'desa';
+                }
+            } else {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === 'desa' || options[i].value === 'kecamatan') {
+                        options[i].style.display = 'none';
+                        options[i].disabled = true;
+                    } else if (options[i].value !== '') {
+                        options[i].style.display = 'block';
+                        options[i].disabled = false;
+                    }
+                }
+                jenisSelect.value = 'individu';
+            }
+        }
+
+        if (isKelompokSelect && jenisSelect) {
+            isKelompokSelect.addEventListener('change', adjustJenisOptions);
+            adjustJenisOptions();
         }
 
         form.addEventListener('submit', function(e) {

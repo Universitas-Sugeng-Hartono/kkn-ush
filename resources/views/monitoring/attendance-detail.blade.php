@@ -193,27 +193,72 @@
         <!-- Control Panel -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Kontrol Panel</h5>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold"><i class="fas fa-sliders-h me-2"></i>Filter & Pencarian</h5>
+                        <div class="d-flex align-items-center text-muted small fw-semibold">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                            <span>{{ $startDate->format('d M Y') }} - {{ $endDate->format('d M Y') }}</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control" placeholder="Cari mahasiswa..." id="searchInput">
-                                </div>
+                        <form method="GET" action="{{ route('monitoring.attendance-detail') }}" id="filterForm">
+                            <div class="row g-3 align-items-center">
+                                @if($dplList)
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="dpl_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua DPL Pendamping</option>
+                                            @foreach($dplList as $dplOption)
+                                                <option value="{{ $dplOption->id }}" {{ $dpl_id == $dplOption->id ? 'selected' : '' }}>
+                                                    DPL: {{ $dplOption->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="tahun_akademik_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Tahun Akademik</option>
+                                            @foreach($tahunAkademikList as $ta)
+                                                <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                                    {{ $ta->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" name="semester_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Semester</option>
+                                            @foreach($semesterList as $sem)
+                                                <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                                    {{ $sem->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @else
+                                    <div class="col-md-6">
+                                        <select class="form-select" name="tahun_akademik_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Tahun Akademik</option>
+                                            @foreach($tahunAkademikList as $ta)
+                                                <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                                    {{ $ta->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-select" name="semester_id" onchange="document.getElementById('filterForm').submit()">
+                                            <option value="">Semua Semester</option>
+                                            @foreach($semesterList as $sem)
+                                                <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                                    {{ $sem->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="col-md-6 text-center">
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-calendar-alt me-2"></i>
-                                    <span class="text-muted">04 Aug 2025 - 26 Aug 2025</span>
-                                </div>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -365,6 +410,23 @@
         </div>
     </div>
 
+    @push('styles')
+    <style>
+        .sticky-col {
+            position: sticky !important;
+            background-color: #f8f9fa !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+        td.sticky-col {
+            background-color: #ffffff !important;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            position: relative;
+        }
+    </style>
+    @endpush
+
     @push('scripts')
     <script>
         // Search functionality
@@ -385,6 +447,13 @@
                         row.style.display = 'none';
                     }
                 });
+            });
+
+            // Prevent form submit on Enter press in search input
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         });
     </script>

@@ -5,7 +5,10 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h2 class="fw-bold">Lokasi KKN</h2>
-                        <p class="text-muted">Kelola data lokasi KKN</p>
+                        <p class="text-muted mb-0">Kelola data lokasi KKN</p>
+                        <div class="text-muted small">
+                            Periode aktif: {{ $tahunAktif?->nama ?? '-' }} - {{ $semesterAktif?->nama ?? '-' }}
+                        </div>
                     </div>
                     <div>
                         <a href="{{ route('locations.map') }}" class="btn btn-info text-white me-2">
@@ -16,6 +19,36 @@
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        {{-- Filter Periode --}}
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <form action="{{ route('locations.index') }}" method="GET" class="row g-3 align-items-end" id="filterForm">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Tahun Akademik</label>
+                        <select name="tahun_akademik_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">— Semua Tahun —</option>
+                            @foreach($tahunAkademikList as $ta)
+                            <option value="{{ $ta->id }}" {{ $tahun_akademik_id == $ta->id ? 'selected' : '' }}>
+                                {{ $ta->nama }} {{ $ta->is_aktif ? '(Aktif)' : '' }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Semester</label>
+                        <select name="semester_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">— Semua Semester —</option>
+                            @foreach($semesterList as $sem)
+                            <option value="{{ $sem->id }}" {{ $semester_id == $sem->id ? 'selected' : '' }}>
+                                {{ $sem->nama }} {{ $sem->is_aktif ? '(Aktif)' : '' }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -32,13 +65,25 @@
                                         <th>Kabupaten</th>
                                         <th>Provinsi</th>
                                         <th>Koordinat</th>
-                                        <th>Total Kelompok</th>
-                                        <th>Total Mahasiswa</th>
+                                        @if($tahun_akademik_id || $semester_id)
+                                            <th>Kelompok <small class="text-muted fw-normal">(periode dipilih)</small></th>
+                                            <th>Mahasiswa <small class="text-muted fw-normal">(periode dipilih)</small></th>
+                                        @else
+                                            <th>Total Kelompok</th>
+                                            <th>Total Mahasiswa</th>
+                                        @endif
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php
+                                        $filterAktif = $tahun_akademik_id || $semester_id;
+                                    @endphp
                                     @foreach($locations as $location)
+                                    @php
+                                        $totalKelompok  = $location->kelompok->count();
+                                        $totalMahasiswa = $location->kelompok->sum(fn($k) => $k->mahasiswa->count());
+                                    @endphp
                                     <tr>
                                         <td>{{ $location->nama_desa }}</td>
                                         <td>{{ $location->nama_kecamatan }}</td>
@@ -50,12 +95,23 @@
                                             </span>
                                             <button type="button" 
                                                     class="btn btn-sm btn-info text-white ms-2"
-                                                    onclick="showMap({{ $location->latitude }}, {{ $location->longitude }}, '{{ $location->nama_desa }}')">
-                                                <i class="fas fa-map-marker-alt"></i>
+                                                    onclick="showMap({{ $location->latitude }}, {{ $location->longitude }}, '{{ $location->nama_desa }}')">                                                <i class="fas fa-map-marker-alt"></i>
                                             </button>
                                         </td>
-                                        <td>{{ $location->kelompok->count() }}</td>
-                                        <td>{{ $location->kelompok->sum(function($kelompok) { return $kelompok->mahasiswa->count(); }) }}</td>
+                                        <td>
+                                            @if($totalKelompok > 0)
+                                                <span class="badge bg-success">{{ $totalKelompok }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($totalMahasiswa > 0)
+                                                <span class="badge bg-primary">{{ $totalMahasiswa }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
                                         <td>
                                             <div class="btn-group">
                                                 <a href="{{ route('locations.show', $location) }}" 
@@ -170,4 +226,4 @@
         }
     </script>
     @endpush
-</x-app-layout> 
+</x-app-layout>

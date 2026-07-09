@@ -10,16 +10,26 @@ class TahunAkademikController extends Controller
 {
     public function index()
     {
-        $tahunAkademikList = TahunAkademik::orderBy('nama', 'desc')->get();
-        $semesterList = Semester::orderBy('nama', 'asc')->get();
-        $tahunAktif = TahunAkademik::getAktif();
-        $semesterAktif = Semester::getAktif();
+        $tahunAkademikList  = TahunAkademik::orderBy('nama', 'desc')->get();
+        $semesterList       = Semester::orderBy('nama', 'asc')->get();
+        $tahunAktifList     = TahunAkademik::getAktifList();
+        $semesterAktifList  = Semester::getAktifList();
+
+        // Ambil data angkatan/periode tanggal KKN yang sudah terkonfigurasi
+        $angkatanList = \App\Models\Angkatan::with(['tahunAkademik', 'semester'])->orderBy('id', 'desc')->get();
+
+        // Backward compat untuk view lama yang masih butuh single value
+        $tahunAktif    = $tahunAktifList->first();
+        $semesterAktif = $semesterAktifList->first();
 
         return view('tahun-akademik.index', compact(
             'tahunAkademikList',
             'semesterList',
+            'tahunAktifList',
+            'semesterAktifList',
             'tahunAktif',
-            'semesterAktif'
+            'semesterAktif',
+            'angkatanList'
         ));
     }
 
@@ -153,5 +163,49 @@ class TahunAkademikController extends Controller
             ->with('success', "Semester {$semester->nama} berhasil dinonaktifkan.");
     }
 
-}
+    public function storeOrUpdateAngkatan(Request $request)
+    {
+        $request->validate([
+            'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
+            'semester_id' => 'required|exists:semester,id',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+        ], [
+            'tahun_akademik_id.required' => 'Tahun akademik wajib dipilih.',
+            'semester_id.required' => 'Semester wajib dipilih.',
+            'tanggal_mulai.required' => 'Tanggal mulai wajib diisi.',
+            'tanggal_selesai.required' => 'Tanggal selesai wajib diisi.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama dengan atau setelah tanggal mulai.',
+        ]);
 
+        $ta = TahunAkademik::findOrFail($request->tahun_akademik_id);
+        $sem = Semester::findOrFail($request->semester_id);
+
+        $angkatan = \App\Models\Angkatan::firstOrNew([
+            'tahun_akademik_id' => $ta->id,
+            'semester_id' => $sem->id,
+        ]);
+
+        if (!$angkatan->exists) {
+            $angkatan->nama_angkatan = "KKN " . $ta->nama . " - " . $sem->nama;
+            $angkatan->status = 'aktif';
+        }
+
+        $angkatan->tanggal_mulai = $request->tanggal_mulai;
+        $angkatan->tanggal_selesai = $request->tanggal_selesai;
+        $angkatan->save();
+
+        return redirect()->route('tahun-akademik.index')
+            ->with('success', 'Periode Tanggal KKN berhasil dikonfigurasi.');
+    }
+
+    public function destroyAngkatan(\App\Models\Angkatan $angkatan)
+    {
+        $namaAngkatan = $angkatan->nama_angkatan;
+        $angkatan->delete();
+
+        return redirect()->route('tahun-akademik.index')
+            ->with('success', "Periode Angkatan {$namaAngkatan} berhasil dihapus.");
+    }
+
+}
