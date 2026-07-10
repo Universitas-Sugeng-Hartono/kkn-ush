@@ -37,6 +37,7 @@ class SyncAcademicPeriod extends Command
 
         // 1. Sinkronisasi User (Mahasiswa & DPL)
         $usersUpdated = \App\Models\User::whereNull('tahun_akademik_id')
+            ->orWhere('tahun_akademik_id', '!=', $ta->id)
             ->update([
                 'tahun_akademik_id' => $ta->id,
                 'semester_id' => $sem->id
@@ -45,6 +46,7 @@ class SyncAcademicPeriod extends Command
 
         // 2. Sinkronisasi Kelompok
         $kelompokUpdated = \App\Models\Kelompok::whereNull('tahun_akademik_id')
+            ->orWhere('tahun_akademik_id', '!=', $ta->id)
             ->update([
                 'tahun_akademik_id' => $ta->id,
                 'semester_id' => $sem->id
@@ -53,6 +55,7 @@ class SyncAcademicPeriod extends Command
 
         // 3. Sinkronisasi Lokasi
         $lokasiUpdated = \App\Models\Lokasi::whereNull('tahun_akademik_id')
+            ->orWhere('tahun_akademik_id', '!=', $ta->id)
             ->update([
                 'tahun_akademik_id' => $ta->id,
                 'semester_id' => $sem->id
