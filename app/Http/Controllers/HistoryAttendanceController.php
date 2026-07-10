@@ -16,9 +16,14 @@ class HistoryAttendanceController extends Controller
         $semesterAktif = \App\Models\Semester::getAktif();
 
         // Default ke periode aktif jika tidak ada parameter query sama sekali
-        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id') && $tahunAktif && $semesterAktif) {
-            $tahun_akademik_id = $tahunAktif->id;
-            $semester_id = $semesterAktif->id;
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id')) {
+            if ($tahunAktif && $semesterAktif) {
+                $tahun_akademik_id = $tahunAktif->id;
+                $semester_id = $semesterAktif->id;
+            } else {
+                $tahun_akademik_id = -1;
+                $semester_id = -1;
+            }
         } else {
             $tahun_akademik_id = $request->query('tahun_akademik_id');
             $semester_id = $request->query('semester_id');

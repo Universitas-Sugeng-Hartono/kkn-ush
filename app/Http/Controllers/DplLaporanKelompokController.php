@@ -17,9 +17,19 @@ class DplLaporanKelompokController extends Controller
         $tahunAktif = TahunAkademik::getAktif();
         $semesterAktif = Semester::getAktif();
 
-        // Ambil parameter filter dari request
-        $tahun_akademik_id = $request->query('tahun_akademik_id', $tahunAktif?->id);
-        $semester_id = $request->query('semester_id', $semesterAktif?->id);
+        // Ambil parameter filter dari request, default ke periode aktif
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id')) {
+            if ($tahunAktif && $semesterAktif) {
+                $tahun_akademik_id = $tahunAktif->id;
+                $semester_id = $semesterAktif->id;
+            } else {
+                $tahun_akademik_id = -1;
+                $semester_id = -1;
+            }
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id = $request->query('semester_id');
+        }
         $selected_kelompok_id = $request->query('kelompok_id');
 
         // 1. Ambil list semua kelompok DPL ini pada periode yang dipilih (UNTUK DROPDOWN)
@@ -54,8 +64,8 @@ class DplLaporanKelompokController extends Controller
         $laporan = $laporanQuery->orderBy('created_at', 'desc')->get();
 
         // List untuk filter dropdown periode
-        $tahunAkademikList = TahunAkademik::all();
-        $semesterList = Semester::all();
+        $tahunAkademikList = TahunAkademik::orderBy('nama', 'desc')->get();
+        $semesterList = Semester::orderBy('nama', 'asc')->get();
 
         return view('dpl.laporan-kelompok.index', compact(
             'kelompokList', 

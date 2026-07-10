@@ -18,12 +18,24 @@ class Lokasi extends Model
         'nama_provinsi',
         'latitude',
         'longitude',
-        'deskripsi'
+        'deskripsi',
+        'tahun_akademik_id',
+        'semester_id'
     ];
 
     public function kelompok()
     {
         return $this->hasMany(Kelompok::class);
+    }
+
+    public function tahunAkademik()
+    {
+        return $this->belongsTo(TahunAkademik::class);
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 
     public function getNamaAttribute()

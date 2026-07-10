@@ -23,13 +23,27 @@ class MonitoringController extends Controller
         $user = auth()->user();
         $isAdmin = $user->hasRole('admin');
 
-        $tahun_akademik_id = $request->query('tahun_akademik_id');
-        $semester_id = $request->query('semester_id');
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        // Default ke periode aktif jika tidak ada parameter query
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id')) {
+            if ($tahunAktif && $semesterAktif) {
+                $tahun_akademik_id = $tahunAktif->id;
+                $semester_id = $semesterAktif->id;
+            } else {
+                $tahun_akademik_id = -1;
+                $semester_id = -1;
+            }
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id = $request->query('semester_id');
+        }
         $dpl_id = $request->query('dpl_id');
 
-        // Ambil list tahun akademik & semester aktif (hanya yang aktif untuk dropdown filter)
-        $tahunAkademikList = \App\Models\TahunAkademik::where('is_aktif', true)->orderBy('nama', 'desc')->get();
-        $semesterList = \App\Models\Semester::where('is_aktif', true)->orderBy('nama', 'asc')->get();
+        // Ambil list tahun akademik & semester (semua, bukan hanya aktif)
+        $tahunAkademikList = \App\Models\TahunAkademik::orderBy('nama', 'desc')->get();
+        $semesterList = \App\Models\Semester::orderBy('nama', 'asc')->get();
         
         // Ambil list DPL untuk dropdown filter admin
         $dplList = null;
@@ -112,8 +126,20 @@ class MonitoringController extends Controller
                 $startDate->format('Y-m-d'),
                 $endDate->format('Y-m-d')
             ])
-            ->get()
-            ->groupBy('user_id');
+            ->get();
+
+        // Optimasi: Kelompokkan berdasarkan user_id lalu tanggal
+        $attendancesGrouped = [];
+        foreach ($attendances as $attendance) {
+            $dateStr = is_string($attendance->tanggal) ? substr($attendance->tanggal, 0, 10) : $attendance->tanggal->format('Y-m-d');
+            $attendancesGrouped[$attendance->user_id][$dateStr] = $attendance;
+        }
+
+        // Optimasi: Parse object date hanya sekali
+        $daysData = [];
+        foreach ($days as $day) {
+            $daysData[$day] = Carbon::parse($day);
+        }
 
         // Buat array untuk tracking kehadiran
         $attendanceData = [];
@@ -124,18 +150,10 @@ class MonitoringController extends Controller
             ];
             
             foreach ($days as $day) {
-                $hasAttendance = null;
-                if (isset($attendances[$mahasiswa->id])) {
-                    foreach ($attendances[$mahasiswa->id] as $attendance) {
-                        if (Carbon::parse($attendance->tanggal)->format('Y-m-d') === $day) {
-                            $hasAttendance = $attendance;
-                            break;
-                        }
-                    }
-                }
+                $hasAttendance = $attendancesGrouped[$mahasiswa->id][$day] ?? null;
                 
                 $attendanceData[$mahasiswa->id]['days'][$day] = [
-                    'date' => Carbon::parse($day),
+                    'date' => $daysData[$day],
                     'status' => $hasAttendance ? $hasAttendance->status : null,
                     'attendance' => $hasAttendance
                 ];
@@ -164,14 +182,28 @@ class MonitoringController extends Controller
         $user = auth()->user();
         $isAdmin = $user->hasRole('admin');
 
-        $tahun_akademik_id = $request->query('tahun_akademik_id');
-        $semester_id = $request->query('semester_id');
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        // Default ke periode aktif jika tidak ada parameter query
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id')) {
+            if ($tahunAktif && $semesterAktif) {
+                $tahun_akademik_id = $tahunAktif->id;
+                $semester_id = $semesterAktif->id;
+            } else {
+                $tahun_akademik_id = -1;
+                $semester_id = -1;
+            }
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id = $request->query('semester_id');
+        }
         $dpl_id = $request->query('dpl_id');
         $tipe = $request->query('tipe', 'individu'); // 'individu' atau 'kelompok'
 
-        // Ambil list tahun akademik & semester aktif (hanya yang aktif untuk dropdown filter)
-        $tahunAkademikList = \App\Models\TahunAkademik::where('is_aktif', true)->orderBy('nama', 'desc')->get();
-        $semesterList = \App\Models\Semester::where('is_aktif', true)->orderBy('nama', 'asc')->get();
+        // Ambil list tahun akademik & semester (semua, bukan hanya aktif)
+        $tahunAkademikList = \App\Models\TahunAkademik::orderBy('nama', 'desc')->get();
+        $semesterList = \App\Models\Semester::orderBy('nama', 'asc')->get();
 
         // Ambil list DPL untuk dropdown filter admin
         $dplList = null;
@@ -250,6 +282,7 @@ class MonitoringController extends Controller
         }
 
         // Ambil data logbook berdasarkan tipe (individu atau kelompok)
+        $logbooksGrouped = [];
         if ($tipe === 'kelompok') {
             $kelompokIds = $mahasiswas->pluck('kelompok_id')->unique()->filter();
             $baseQuery = Logbook::whereIn('kelompok_id', $kelompokIds)
@@ -258,6 +291,11 @@ class MonitoringController extends Controller
                     $startDate->format('Y-m-d'),
                     $endDate->format('Y-m-d')
                 ]);
+            $logbooks = (clone $baseQuery)->get();
+            foreach ($logbooks as $logbook) {
+                $dateStr = is_string($logbook->tanggal) ? substr($logbook->tanggal, 0, 10) : $logbook->tanggal->format('Y-m-d');
+                $logbooksGrouped[$logbook->kelompok_id][$dateStr] = $logbook;
+            }
         } else {
             $baseQuery = Logbook::whereIn('user_id', $mahasiswas->pluck('id'))
                 ->where('is_kelompok', false)
@@ -265,6 +303,11 @@ class MonitoringController extends Controller
                     $startDate->format('Y-m-d'),
                     $endDate->format('Y-m-d')
                 ]);
+            $logbooks = (clone $baseQuery)->get();
+            foreach ($logbooks as $logbook) {
+                $dateStr = is_string($logbook->tanggal) ? substr($logbook->tanggal, 0, 10) : $logbook->tanggal->format('Y-m-d');
+                $logbooksGrouped[$logbook->user_id][$dateStr] = $logbook;
+            }
         }
 
         $stats = [
@@ -304,14 +347,28 @@ class MonitoringController extends Controller
         $user = auth()->user();
         $isAdmin = $user->hasRole('admin');
         
-        $tahun_akademik_id = $request->query('tahun_akademik_id');
-        $semester_id = $request->query('semester_id');
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        // Default ke periode aktif jika tidak ada parameter query
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id')) {
+            if ($tahunAktif && $semesterAktif) {
+                $tahun_akademik_id = $tahunAktif->id;
+                $semester_id = $semesterAktif->id;
+            } else {
+                $tahun_akademik_id = -1;
+                $semester_id = -1;
+            }
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id = $request->query('semester_id');
+        }
         $dpl_id = $request->query('dpl_id');
         $tipe = $request->query('tipe', 'individu'); // 'individu' atau 'kelompok'
 
-        // Ambil list tahun akademik & semester aktif (hanya yang aktif untuk dropdown filter)
-        $tahunAkademikList = \App\Models\TahunAkademik::where('is_aktif', true)->orderBy('nama', 'desc')->get();
-        $semesterList = \App\Models\Semester::where('is_aktif', true)->orderBy('nama', 'asc')->get();
+        // Ambil list tahun akademik & semester (semua, bukan hanya aktif)
+        $tahunAkademikList = \App\Models\TahunAkademik::orderBy('nama', 'desc')->get();
+        $semesterList = \App\Models\Semester::orderBy('nama', 'asc')->get();
 
         // Ambil list DPL untuk dropdown filter admin
         $dplList = null;
@@ -382,10 +439,16 @@ class MonitoringController extends Controller
                 $startDate->format('Y-m-d'),
                 $endDate->format('Y-m-d')
             ])
-            ->get()
-            ->groupBy('user_id');
+            ->get();
+
+        $attendancesGrouped = [];
+        foreach ($attendances as $attendance) {
+            $dateStr = is_string($attendance->tanggal) ? substr($attendance->tanggal, 0, 10) : $attendance->tanggal->format('Y-m-d');
+            $attendancesGrouped[$attendance->user_id][$dateStr] = $attendance;
+        }
 
         // Ambil data logbook berdasarkan tipe (individu atau kelompok)
+        $logbooksGrouped = [];
         if ($tipe === 'kelompok') {
             $kelompokIds = $mahasiswas->pluck('kelompok_id')->unique()->filter();
             $logbooks = Logbook::whereIn('kelompok_id', $kelompokIds)
@@ -394,8 +457,11 @@ class MonitoringController extends Controller
                     $startDate->format('Y-m-d'),
                     $endDate->format('Y-m-d')
                 ])
-                ->get()
-                ->groupBy('kelompok_id');
+                ->get();
+            foreach ($logbooks as $logbook) {
+                $dateStr = is_string($logbook->tanggal) ? substr($logbook->tanggal, 0, 10) : $logbook->tanggal->format('Y-m-d');
+                $logbooksGrouped[$logbook->kelompok_id][$dateStr] = $logbook;
+            }
         } else {
             $logbooks = Logbook::whereIn('user_id', $mahasiswas->pluck('id'))
                 ->where('is_kelompok', false)
@@ -403,8 +469,17 @@ class MonitoringController extends Controller
                     $startDate->format('Y-m-d'),
                     $endDate->format('Y-m-d')
                 ])
-                ->get()
-                ->groupBy('user_id');
+                ->get();
+            foreach ($logbooks as $logbook) {
+                $dateStr = is_string($logbook->tanggal) ? substr($logbook->tanggal, 0, 10) : $logbook->tanggal->format('Y-m-d');
+                $logbooksGrouped[$logbook->user_id][$dateStr] = $logbook;
+            }
+        }
+
+        // Optimasi: Parse object date hanya sekali
+        $daysData = [];
+        foreach ($days as $day) {
+            $daysData[$day] = Carbon::parse($day);
         }
 
         // Buat array gabungan
@@ -416,25 +491,21 @@ class MonitoringController extends Controller
             ];
             
             foreach ($days as $day) {
-                $hasAttendance = isset($attendances[$mahasiswa->id]) 
-                    ? $attendances[$mahasiswa->id]->where('tanggal', $day)->first()
-                    : null;
+                $hasAttendance = $attendancesGrouped[$mahasiswa->id][$day] ?? null;
 
                 // Cek logbook sesuai tipe
                 $hasLogbook = null;
                 if ($tipe === 'kelompok') {
                     $kelompokId = $mahasiswa->kelompok_id;
-                    if ($kelompokId && isset($logbooks[$kelompokId])) {
-                        $hasLogbook = $logbooks[$kelompokId]->where('tanggal', $day)->first();
+                    if ($kelompokId) {
+                        $hasLogbook = $logbooksGrouped[$kelompokId][$day] ?? null;
                     }
                 } else {
-                    if (isset($logbooks[$mahasiswa->id])) {
-                        $hasLogbook = $logbooks[$mahasiswa->id]->where('tanggal', $day)->first();
-                    }
+                    $hasLogbook = $logbooksGrouped[$mahasiswa->id][$day] ?? null;
                 }
                 
                 $activityData[$mahasiswa->id]['days'][$day] = [
-                    'date' => Carbon::parse($day),
+                    'date' => $daysData[$day],
                     'attendance' => $hasAttendance,
                     'attendance_status' => $hasAttendance ? $hasAttendance->status : null,
                     'logbook' => $hasLogbook,
