@@ -116,26 +116,38 @@ class DashboardController extends Controller
 
     private function getAdminDashboardData($tahunAktif = null, $semesterAktif = null)
     {
-        $kelompokIds = null;
-        if ($tahunAktif && $semesterAktif) {
+        $hasActivePeriod = $tahunAktif && $semesterAktif;
+        
+        $kelompokIds = [];
+        if ($hasActivePeriod) {
             $kelompokIds = Kelompok::where('tahun_akademik_id', $tahunAktif->id)
                 ->where('semester_id', $semesterAktif->id)
-                ->pluck('id');
+                ->pluck('id')->toArray();
         }
 
         return [
             'total_mahasiswa' => User::role('mahasiswa')
-                ->when($tahunAktif && $semesterAktif, function ($q) use ($tahunAktif, $semesterAktif) {
+                ->when($hasActivePeriod, function ($q) use ($tahunAktif, $semesterAktif) {
                     $q->where('tahun_akademik_id', $tahunAktif->id)->where('semester_id', $semesterAktif->id);
                 })
                 ->count(),
-            'total_dpl' => User::role('dpl')->count(),
-            'total_kelompok' => Kelompok::when($kelompokIds, fn ($q) => $q->whereIn('id', $kelompokIds))->count(),
-            'total_logbook' => Logbook::when($kelompokIds, fn ($q) => $q->whereIn('kelompok_id', $kelompokIds))->count(),
-            'total_absensi' => Absensi::when($kelompokIds, fn ($q) => $q->whereIn('kelompok_id', $kelompokIds))->count(),
-            'pengaduan_baru' => Pengaduan::where('status', 'pending')->count(),
-            'logbook_stats' => $this->getLogbookStats(),
-            'absensi_stats' => $this->getAbsensiStats(),
+            'total_dpl' => User::role('dpl')
+                ->when($hasActivePeriod, function ($q) use ($tahunAktif, $semesterAktif) {
+                    $q->where('tahun_akademik_id', $tahunAktif->id)->where('semester_id', $semesterAktif->id);
+                })
+                ->count(),
+            'total_kelompok' => $hasActivePeriod ? Kelompok::whereIn('id', $kelompokIds)->count() : Kelompok::count(),
+            'total_logbook' => $hasActivePeriod ? Logbook::whereIn('kelompok_id', $kelompokIds)->count() : Logbook::count(),
+            'total_absensi' => $hasActivePeriod ? Absensi::whereIn('kelompok_id', $kelompokIds)->count() : Absensi::count(),
+            'pengaduan_baru' => Pengaduan::where('status', 'pending')
+                ->when($hasActivePeriod, function ($q) use ($tahunAktif, $semesterAktif) {
+                    $q->whereHas('lokasi', function ($q) use ($tahunAktif, $semesterAktif) {
+                        $q->where('tahun_akademik_id', $tahunAktif->id)->where('semester_id', $semesterAktif->id);
+                    });
+                })
+                ->count(),
+            'logbook_stats' => $this->getLogbookStats(null, $hasActivePeriod ? $kelompokIds : null),
+            'absensi_stats' => $this->getAbsensiStats(null, $hasActivePeriod ? $kelompokIds : null),
         ];
     }
 
@@ -530,15 +542,19 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getLogbookStats($user_ids = null)
+    private function getLogbookStats($user_ids = null, $kelompok_ids = null)
     {
         $query = Logbook::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date', 'desc')
             ->limit(7);
 
-        if ($user_ids) {
+        if ($user_ids !== null) {
             $query->whereIn('user_id', $user_ids);
+        }
+
+        if ($kelompok_ids !== null) {
+            $query->whereIn('kelompok_id', $kelompok_ids);
         }
 
         $stats = $query->get();
@@ -551,13 +567,17 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getAbsensiStats($user_ids = null)
+    private function getAbsensiStats($user_ids = null, $kelompok_ids = null)
     {
         $query = Absensi::selectRaw('status, COUNT(*) as count')
             ->groupBy('status');
 
-        if ($user_ids) {
+        if ($user_ids !== null) {
             $query->whereIn('user_id', $user_ids);
+        }
+
+        if ($kelompok_ids !== null) {
+            $query->whereIn('kelompok_id', $kelompok_ids);
         }
 
         $stats = $query->get();
