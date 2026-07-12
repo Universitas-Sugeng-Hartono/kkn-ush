@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
                 'nim' => '20240001',
-                'jurusan' => 'informatika',
+                'jurusan' => 'ilmu komputer',
                 'no_hp' => '087654321098',
                 'alamat' => 'Jl. Mahasiswa No. 1, Surakarta'
             ]

@@ -78,9 +78,12 @@
                                 <select class="form-select @error('jurusan') is-invalid @enderror" 
                                     id="jurusan" name="jurusan">
                                     <option value="">Pilih Jurusan</option>
-                                    <option value="informatika" {{ old('jurusan') == 'informatika' ? 'selected' : '' }}>Informatika</option>
+                                    <option value="ilmu komputer" {{ old('jurusan') == 'ilmu komputer' ? 'selected' : '' }}>Ilmu Komputer</option>
                                     <option value="bisnis digital" {{ old('jurusan') == 'bisnis digital' ? 'selected' : '' }}>Bisnis Digital</option>
                                     <option value="gizi" {{ old('jurusan') == 'gizi' ? 'selected' : '' }}>Gizi</option>
+                                    <option value="manajemen bisnis internasional" {{ old('jurusan') == 'manajemen bisnis internasional' ? 'selected' : '' }}>Manajemen Bisnis Internasional</option>
+                                    <option value="teknologi pangan" {{ old('jurusan') == 'teknologi pangan' ? 'selected' : '' }}>Teknologi Pangan</option>
+                                    <option value="hukum bisnis" {{ old('jurusan') == 'hukum bisnis' ? 'selected' : '' }}>Hukum Bisnis</option>
                                 </select>
                                 @error('jurusan')
                                     <div class="invalid-feedback">{{ $message }}</div>

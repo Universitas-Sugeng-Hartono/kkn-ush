@@ -27,7 +27,7 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'no_hp' => ['nullable', 'string', 'max:20'],
             'alamat' => ['nullable', 'string'],
-            'jurusan' => ['nullable', 'string', 'in:informatika,bisnis digital,gizi'],
+            'jurusan' => ['nullable', 'string', 'in:ilmu komputer,bisnis digital,gizi,manajemen bisnis internasional,teknologi pangan,hukum bisnis'],
             'photo' => ['nullable', 'image', 'max:2048'], // max 2MB
         ];
     }

@@ -288,9 +288,12 @@
                                     <x-input-label for="jurusan" :value="__('Jurusan')" />
                                     <select id="jurusan" name="jurusan" class="form-control @error('jurusan') is-invalid @enderror">
                                         <option value="">Pilih Jurusan</option>
-                                        <option value="informatika" {{ old('jurusan', $user->jurusan) == 'informatika' ? 'selected' : '' }}>Informatika</option>
+                                        <option value="ilmu komputer" {{ old('jurusan', $user->jurusan) == 'ilmu komputer' ? 'selected' : '' }}>Ilmu Komputer</option>
                                         <option value="bisnis digital" {{ old('jurusan', $user->jurusan) == 'bisnis digital' ? 'selected' : '' }}>Bisnis Digital</option>
                                         <option value="gizi" {{ old('jurusan', $user->jurusan) == 'gizi' ? 'selected' : '' }}>Gizi</option>
+                                        <option value="manajemen bisnis internasional" {{ old('jurusan', $user->jurusan) == 'manajemen bisnis internasional' ? 'selected' : '' }}>Manajemen Bisnis Internasional</option>
+                                        <option value="teknologi pangan" {{ old('jurusan', $user->jurusan) == 'teknologi pangan' ? 'selected' : '' }}>Teknologi Pangan</option>
+                                        <option value="hukum bisnis" {{ old('jurusan', $user->jurusan) == 'hukum bisnis' ? 'selected' : '' }}>Hukum Bisnis</option>
                                     </select>
                                     <x-input-error class="mt-2" :messages="$errors->get('jurusan')" />
                                 </div>

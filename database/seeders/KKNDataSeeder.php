@@ -328,36 +328,36 @@ class KKNDataSeeder extends Seeder
             ['nim' => '062103003', 'name' => 'BELLA PUTRI NURADILLA', 'jurusan' => 'gizi'],
 
             // INFORMATIKA Students
-            ['nim' => '062201010', 'name' => 'NADIRA PUTRI SALSABILA', 'jurusan' => 'informatika'],
-            ['nim' => '062201006', 'name' => 'ADILIYA NANDA', 'jurusan' => 'informatika'],
-            ['nim' => '062201011', 'name' => 'YEHEZKIEL DEVARA AGWILANATA', 'jurusan' => 'informatika'],
-            ['nim' => '062201012', 'name' => 'TALITHA ANITA ZAHRA', 'jurusan' => 'informatika'],
-            ['nim' => '062201008', 'name' => 'HESTI NUR FAJAR HAYATI', 'jurusan' => 'informatika'],
-            ['nim' => '062201005', 'name' => 'YOEL EKO CHRISTIAN', 'jurusan' => 'informatika'],
-            ['nim' => '062201019', 'name' => 'JOYA NATHANAEL', 'jurusan' => 'informatika'],
-            ['nim' => '062201003', 'name' => 'MIRANDA IKA VANIA', 'jurusan' => 'informatika'],
-            ['nim' => '062201017', 'name' => 'ARIS KURNIAWAN', 'jurusan' => 'informatika'],
-            ['nim' => '062201027', 'name' => 'NAFISAH RIZQI KHAIRRIYAH', 'jurusan' => 'informatika'],
-            ['nim' => '062201028', 'name' => 'UMI LATHIFAH', 'jurusan' => 'informatika'],
-            ['nim' => '062201009', 'name' => 'AL FAJRI RIDHO FARHIDAYAT', 'jurusan' => 'informatika'],
-            ['nim' => '062201015', 'name' => 'MAULANA ILHAM ALISYAHBANA', 'jurusan' => 'informatika'],
-            ['nim' => '062201024', 'name' => 'FURQON GEORGE BRILLIANT CHOES HERMAWAN', 'jurusan' => 'informatika'],
-            ['nim' => '062201020', 'name' => 'YONATHAN TANJUNG', 'jurusan' => 'informatika'],
-            ['nim' => '062201031', 'name' => 'AISYAH NURIKA PRATIWI', 'jurusan' => 'informatika'],
-            ['nim' => '062201002', 'name' => 'WIBOWO JAMAL NUGROHO', 'jurusan' => 'informatika'],
-            ['nim' => '062201014', 'name' => 'ADITYA BAGUS PERDANA PUTRA', 'jurusan' => 'informatika'],
-            ['nim' => '062201034', 'name' => 'YOSEP PAUZI', 'jurusan' => 'informatika'],
-            ['nim' => '062201007', 'name' => 'MUHAMMAD AFIIF\'UDDIN', 'jurusan' => 'informatika'],
-            ['nim' => '062201021', 'name' => 'JONATHAN HERJUNA PUTRA RIHAN', 'jurusan' => 'informatika'],
-            ['nim' => '062201004', 'name' => 'TEGAR ARYA RAMADANI', 'jurusan' => 'informatika'],
-            ['nim' => '062101001', 'name' => 'OSVALDO FERNANDY WIJAYA', 'jurusan' => 'informatika'],
-            ['nim' => '062101005', 'name' => 'BILAL SETYA PAMBUDI', 'jurusan' => 'informatika'],
-            ['nim' => '062101002', 'name' => 'AHMAD DAVID WAHYUDI', 'jurusan' => 'informatika'],
-            ['nim' => '062101004', 'name' => 'WIDYA KARISMA ARI RAHMAWATI', 'jurusan' => 'informatika'],
-            ['nim' => '062101008', 'name' => 'MUKRAMIN ADIMAS SAHID', 'jurusan' => 'informatika'],
-            ['nim' => '062101012', 'name' => 'FIRMAN WIDODO', 'jurusan' => 'informatika'],
+            ['nim' => '062201010', 'name' => 'NADIRA PUTRI SALSABILA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201006', 'name' => 'ADILIYA NANDA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201011', 'name' => 'YEHEZKIEL DEVARA AGWILANATA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201012', 'name' => 'TALITHA ANITA ZAHRA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201008', 'name' => 'HESTI NUR FAJAR HAYATI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201005', 'name' => 'YOEL EKO CHRISTIAN', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201019', 'name' => 'JOYA NATHANAEL', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201003', 'name' => 'MIRANDA IKA VANIA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201017', 'name' => 'ARIS KURNIAWAN', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201027', 'name' => 'NAFISAH RIZQI KHAIRRIYAH', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201028', 'name' => 'UMI LATHIFAH', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201009', 'name' => 'AL FAJRI RIDHO FARHIDAYAT', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201015', 'name' => 'MAULANA ILHAM ALISYAHBANA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201024', 'name' => 'FURQON GEORGE BRILLIANT CHOES HERMAWAN', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201020', 'name' => 'YONATHAN TANJUNG', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201031', 'name' => 'AISYAH NURIKA PRATIWI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201002', 'name' => 'WIBOWO JAMAL NUGROHO', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201014', 'name' => 'ADITYA BAGUS PERDANA PUTRA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201034', 'name' => 'YOSEP PAUZI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201007', 'name' => 'MUHAMMAD AFIIF\'UDDIN', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201021', 'name' => 'JONATHAN HERJUNA PUTRA RIHAN', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062201004', 'name' => 'TEGAR ARYA RAMADANI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062101001', 'name' => 'OSVALDO FERNANDY WIJAYA', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062101005', 'name' => 'BILAL SETYA PAMBUDI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062101002', 'name' => 'AHMAD DAVID WAHYUDI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062101004', 'name' => 'WIDYA KARISMA ARI RAHMAWATI', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062101008', 'name' => 'MUKRAMIN ADIMAS SAHID', 'jurusan' => 'ilmu komputer'],
+            ['nim' => '062101012', 'name' => 'FIRMAN WIDODO', 'jurusan' => 'ilmu komputer'],
             // Tambahan mahasiswa yang belum ada
-            ['nim' => '062201016', 'name' => 'DHANI HERMANSYAH', 'jurusan' => 'informatika'],
+            ['nim' => '062201016', 'name' => 'DHANI HERMANSYAH', 'jurusan' => 'ilmu komputer'],
         ];
 
         // Create students and assign them to groups based on the mapping from images
@@ -365,7 +365,7 @@ class KKNDataSeeder extends Seeder
             // Determine angkatan based on NIM pattern
             // Students in the image (semester 7) have specific NIMs
             $semester7NIMs = [
-                '062101001', '062101005', '062101002', '062101004', '062101008', '062101012', // Informatika semester 7
+                '062101001', '062101005', '062101002', '062101004', '062101008', '062101012', // Ilmu Komputer semester 7
                 '062103005', '062103010', '062103006', '062103007', '062103001', '062103008', '062103003', // Gizi semester 7
                 '062102006', '062102008', '062102001', '062102007', '062102004' // Bisnis Digital semester 7
             ];
@@ -392,13 +392,13 @@ class KKNDataSeeder extends Seeder
             '062103008' => 1, // ANTONIUS KRISTIAN (S1-Gizi)
             '062203010' => 1, // ISTIQOMAH KHAIRUNNISA (S1-Gizi)
             '062203029' => 1, // NANDINE HANIFA FATIHAH (S1-Gizi)
-            '062201019' => 1, // JOYA NATHANAEL (S1-Informatika)
+            '062201019' => 1, // JOYA NATHANAEL (S1-Ilmu Komputer)
             '062202011' => 1, // FIRDA INTAN SARTIKA (S1-Bisnis Digital)
             '062202073' => 1, // ANUGRA ZIDAN ALFARITSQI (S1-Bisnis Digital)
             '062103010' => 1, // AUSTRIN CANDRAWATY (S1-Gizi)
             '062203021' => 1, // DHEA KRISTINA NINGRUM (S1-Gizi)
-            '062101001' => 1, // OSVALDO FERNANDI WIJAYA (S1-Informatika)
-            '062201003' => 1, // MIRANDA IKA VANIA (S1-Informatika)
+            '062101001' => 1, // OSVALDO FERNANDI WIJAYA (S1-Ilmu Komputer)
+            '062201003' => 1, // MIRANDA IKA VANIA (S1-Ilmu Komputer)
             '062202010' => 1, // PRESCILA BELLA GUNAWAN (S1-Bisnis Digital)
             '062102001' => 1, // LARASWATI ANGGRAINI (S1-Bisnis Digital)
             
@@ -406,42 +406,42 @@ class KKNDataSeeder extends Seeder
             '062103003' => 2, // BELLA PUTRI NURADILLA (S1-Gizi)
             '062203019' => 2, // JESSICA SIH DEBORAH REY (S1-Gizi)
             '062202018' => 2, // JANSEN WANGTANADI (S1-Bisnis Digital)
-            '062201007' => 2, // MUHAMMAD AFIIF'UDDIN (S1-Informatika)
-            '062201031' => 2, // AISYAH NURIKA PRATIWI (S1-Informatika)
+            '062201007' => 2, // MUHAMMAD AFIIF'UDDIN (S1-Ilmu Komputer)
+            '062201031' => 2, // AISYAH NURIKA PRATIWI (S1-Ilmu Komputer)
             '062202035' => 2, // JENDRA MATAHARI (S1-Bisnis Digital)
             '062202022' => 2, // GRADIAN ARI ATOYA (S1-Bisnis Digital)
             '062202045' => 2, // DANIEL DIDIEK SUTIKNO (S1-Bisnis Digital)
             '062103001' => 2, // ANISA TRI ASTUTI (S1-Gizi)
             '062203018' => 2, // BERLIAN FEBY AMTARI (S1-Gizi)
             '062203017' => 2, // BERLIANA NUR HAFIDHOH (S1-Gizi)
-            '062201014' => 2, // ADITYA BAGUS PERDANA PUTRA (S1-Informatika)
-            '062201002' => 2, // WIBOWO JAMAL NUGROHO (S1-Informatika)
+            '062201014' => 2, // ADITYA BAGUS PERDANA PUTRA (S1-Ilmu Komputer)
+            '062201002' => 2, // WIBOWO JAMAL NUGROHO (S1-Ilmu Komputer)
             '062202008' => 2, // ALBERTA SILVIA PAMAELA (S1-Bisnis Digital)
             
             // ===== KELOMPOK 3 - DESA KWARASAN (12 mahasiswa) =====
             '062103005' => 3, // AGUS BAGASKORO (S1-Gizi)
             '062203008' => 3, // VIORESTA STEFFIANDRY DUSI (S1-Gizi)
-            '062201010' => 3, // NADIRA PUTRI SALSABILA (S1-Informatika)
-            '062201028' => 3, // UMI LATHIFAH (S1-Informatika)
+            '062201010' => 3, // NADIRA PUTRI SALSABILA (S1-Ilmu Komputer)
+            '062201028' => 3, // UMI LATHIFAH (S1-Ilmu Komputer)
             '062202020' => 3, // QO'QO' (S1-Bisnis Digital)
             '062103006' => 3, // SALMA FAHIRA FATHIN (S1-Gizi)
             '062203020' => 3, // TIARA SYIFA LAKSMI (S1-Gizi)
             '062202049' => 3, // BUDI UTOMO (S1-Bisnis Digital)
-            '062201016' => 3, // DHANI HERMANSYAH (S1-Informatika)
-            '062201008' => 3, // HESTI NUR FAJAR HAYATI (S1-Informatika)
+            '062201016' => 3, // DHANI HERMANSYAH (S1-Ilmu Komputer)
+            '062201008' => 3, // HESTI NUR FAJAR HAYATI (S1-Ilmu Komputer)
             '062202002' => 3, // CRISTIN ERVIA YUNAERY (S1-Bisnis Digital)
             '062202006' => 3, // FATHAN BAGAS WICAKSONO (S1-Bisnis Digital)
             
             // ===== KELOMPOK 4 - DESA GEDANGAN (13 mahasiswa) =====
             '062103007' => 4, // FRISKA OKTAVIANI (S1-Gizi)
             '062203022' => 4, // FAIZAH REZA HAPSARI (S1-Gizi)
-            '062201011' => 4, // YEHEZKIEL DEVARA AGWILANATA (S1-Informatika)
-            '062201004' => 4, // TEGAR ARYA RAMADANI (S1-Informatika)
+            '062201011' => 4, // YEHEZKIEL DEVARA AGWILANATA (S1-Ilmu Komputer)
+            '062201004' => 4, // TEGAR ARYA RAMADANI (S1-Ilmu Komputer)
             '062202009' => 4, // ARIELA PUTRI ANDINI (S1-Bisnis Digital)
             '062203013' => 4, // NUGRAHANING WIDI RAHMANDA PANGESTI (S1-Gizi)
             '062203012' => 4, // GRACE OLIVIA EVANGELINA WATTIMURY (S1-Gizi)
-            '062201012' => 4, // TALITHA ANITA ZAHRA (S1-Informatika)
-            '062201005' => 4, // YOEL EKO CHRISTIAN (S1-Informatika)
+            '062201012' => 4, // TALITHA ANITA ZAHRA (S1-Ilmu Komputer)
+            '062201005' => 4, // YOEL EKO CHRISTIAN (S1-Ilmu Komputer)
             '062202012' => 4, // RAFLI YUNAN SURYA TAMA (S1-Bisnis Digital)
             '062202063' => 4, // ENI LIDIAWATI (S1-Bisnis Digital)
             '062202015' => 4, // MOCH NAZILA RIFAN FALAHI (S1-Bisnis Digital)
@@ -449,32 +449,32 @@ class KKNDataSeeder extends Seeder
             
             // ===== KELOMPOK 5 - DESA LANGENHARJO (13 mahasiswa) =====
             '062203031' => 5, // ADRIEL ELSAFAN KOTTA (S1-Gizi)
-            '062201017' => 5, // ARIS KURNIAWAN (S1-Informatika)
-            '062201020' => 5, // YONATHAN TANJUNG (S1-Informatika)
-            '062201024' => 5, // FURQON GEORGE BRILLIANT CHOES HERMAWAN (S1-Informatika)
+            '062201017' => 5, // ARIS KURNIAWAN (S1-Ilmu Komputer)
+            '062201020' => 5, // YONATHAN TANJUNG (S1-Ilmu Komputer)
+            '062201024' => 5, // FURQON GEORGE BRILLIANT CHOES HERMAWAN (S1-Ilmu Komputer)
             '062202005' => 5, // ELISABETH YOHANITA DILLA PUSPITA (S1-Bisnis Digital)
             '062202007' => 5, // LUSINTA EKA SAPUTRI (S1-Bisnis Digital)
             '062203007' => 5, // APRILIA NUR WIJAYANTI (S1-Gizi)
             '062203030' => 5, // CINDIA ISKAR AYU PRAMESTI (S1-Gizi)
             '062203011' => 5, // ZHAIROH HILWA AZIZAH (S1-Gizi)
-            '062101005' => 5, // BILAL SETYA PAMBUDI (S1-Informatika)
-            '062201021' => 5, // JONATHAN HERJUNA PUTRA RIHAN (S1-Informatika)
-            '062101012' => 5, // FIRMAN WIDODO (S1-Informatika)
+            '062101005' => 5, // BILAL SETYA PAMBUDI (S1-Ilmu Komputer)
+            '062201021' => 5, // JONATHAN HERJUNA PUTRA RIHAN (S1-Ilmu Komputer)
+            '062101012' => 5, // FIRMAN WIDODO (S1-Ilmu Komputer)
             '062202016' => 5, // MATTHEW ADRIAN HAMANTO (S1-Bisnis Digital)
             '062202023' => 5, // NANDA KIRANA LESTARI (S1-Bisnis Digital)
             
             // ===== KELOMPOK 6 - DESA PONDOK (13 mahasiswa) =====
             '062203005' => 6, // NADIA CANTIKA ANGGRIADIPTA (S1-Gizi)
             '062203027' => 6, // INESA JENITA PUTRI (S1-Gizi)
-            '062201015' => 6, // MAULANA ILHAM ALISYAHBANA (S1-Informatika)
-            '062101008' => 6, // MUKRAMIN ADIMAS SAHID (S1-Informatika)
+            '062201015' => 6, // MAULANA ILHAM ALISYAHBANA (S1-Ilmu Komputer)
+            '062101008' => 6, // MUKRAMIN ADIMAS SAHID (S1-Ilmu Komputer)
             '062202038' => 6, // MEGA CRISTY CAHYANI (S1-Bisnis Digital)
             '062202004' => 6, // FELITA MAHARANI HARTONO (S1-Bisnis Digital)
             '062102004' => 6, // GLADIOLA BUDI ASMARA (S1-Bisnis Digital)
             '062203002' => 6, // LEFIYANA (S1-Gizi)
             '062203004' => 6, // MUHAMMAD ROSYID RIDHO (S1-Gizi)
-            '062201027' => 6, // NAFISAH RIZQI KHAIRRIYAH (S1-Informatika)
-            '062201034' => 6, // YOSEP PAUZI (S1-Informatika)
+            '062201027' => 6, // NAFISAH RIZQI KHAIRRIYAH (S1-Ilmu Komputer)
+            '062201034' => 6, // YOSEP PAUZI (S1-Ilmu Komputer)
             '062102006' => 6, // RIZKI FAJAR KURNIAWAN (S1-Bisnis Digital)
             '062102007' => 6, // MUHAMMAD ALDO BRYAN RAMADAN (S1-Bisnis Digital)
             
@@ -482,13 +482,13 @@ class KKNDataSeeder extends Seeder
             '062102008' => 7, // RESTY YOLANDA EKA PRASETIANI (S1-Bisnis Digital)
             '062203014' => 7, // ISYFA'SYIFA UZZAHRO (S1-Gizi)
             '062203041' => 7, // ENGGITA DESTA MAHARANI (S1-Gizi)
-            '062201009' => 7, // AL FAJRI RIDHO FARHIDAYAT (S1-Informatika)
-            '062101004' => 7, // WIDYA KARISMA ARI RAHMAWATI (S1-Informatika)
+            '062201009' => 7, // AL FAJRI RIDHO FARHIDAYAT (S1-Ilmu Komputer)
+            '062101004' => 7, // WIDYA KARISMA ARI RAHMAWATI (S1-Ilmu Komputer)
             '062202014' => 7, // DHAVINA YOGA PUTRI (S1-Bisnis Digital)
             '062203016' => 7, // MAESTI PUTRI KRESTEVI RIANI (S1-Gizi)
             '062203028' => 7, // NABILAH ASY SYIFA (S1-Gizi)
-            '062101002' => 7, // AHMAD DAVID WAHYUDI (S1-Informatika)
-            '062201006' => 7, // ADILIYA NANDA (S1-Informatika)
+            '062101002' => 7, // AHMAD DAVID WAHYUDI (S1-Ilmu Komputer)
+            '062201006' => 7, // ADILIYA NANDA (S1-Ilmu Komputer)
             '062202021' => 7, // APRILDO TRI ANGGA PUTRA (S1-Bisnis Digital)
         ];
 

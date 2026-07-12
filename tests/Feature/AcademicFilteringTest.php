@@ -151,7 +151,7 @@ class AcademicFilteringTest extends TestCase
             'email' => $student->email,
             'role' => 'mahasiswa',
             'nim' => '123456789',
-            'jurusan' => 'informatika',
+            'jurusan' => 'ilmu komputer',
             'kelompok_id' => $group->id,
         ]);
 

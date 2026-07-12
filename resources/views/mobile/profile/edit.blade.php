@@ -91,9 +91,12 @@
                 <label for="jurusan">Jurusan</label>
                 <select id="jurusan" name="jurusan" class="form-control">
                     <option value="">Pilih Jurusan</option>
-                    <option value="informatika" {{ old('jurusan', Auth::user()->jurusan) == 'informatika' ? 'selected' : '' }}>Informatika</option>
+                    <option value="ilmu komputer" {{ old('jurusan', Auth::user()->jurusan) == 'ilmu komputer' ? 'selected' : '' }}>Ilmu Komputer</option>
                     <option value="bisnis digital" {{ old('jurusan', Auth::user()->jurusan) == 'bisnis digital' ? 'selected' : '' }}>Bisnis Digital</option>
                     <option value="gizi" {{ old('jurusan', Auth::user()->jurusan) == 'gizi' ? 'selected' : '' }}>Gizi</option>
+                    <option value="manajemen bisnis internasional" {{ old('jurusan', Auth::user()->jurusan) == 'manajemen bisnis internasional' ? 'selected' : '' }}>Manajemen Bisnis Internasional</option>
+                    <option value="teknologi pangan" {{ old('jurusan', Auth::user()->jurusan) == 'teknologi pangan' ? 'selected' : '' }}>Teknologi Pangan</option>
+                    <option value="hukum bisnis" {{ old('jurusan', Auth::user()->jurusan) == 'hukum bisnis' ? 'selected' : '' }}>Hukum Bisnis</option>
                 </select>
                 @error('jurusan')
                     <span class="error-message">{{ $message }}</span>

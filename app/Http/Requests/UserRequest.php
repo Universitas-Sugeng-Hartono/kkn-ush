@@ -35,7 +35,7 @@ class UserRequest extends FormRequest
         // NIM dan Jurusan hanya wajib untuk mahasiswa
         if ($this->input('role') === 'mahasiswa') {
             $rules['nim'] = ['required', 'string', 'max:20', Rule::unique('users')->ignore($this->user)];
-            $rules['jurusan'] = ['required', 'string', 'in:informatika,bisnis digital,gizi'];
+            $rules['jurusan'] = ['required', 'string', 'in:ilmu komputer,bisnis digital,gizi,manajemen bisnis internasional,teknologi pangan,hukum bisnis'];
             $rules['nip'] = ['nullable', 'string', 'max:20'];
         }
 
