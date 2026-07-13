@@ -247,7 +247,7 @@
 
                 <!-- Logbook List Card -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             @if($tipe === 'kelompok')
                                 <i class="fas fa-users me-2 text-success"></i>Riwayat Logbook Kelompok
@@ -255,6 +255,9 @@
                                 <i class="fas fa-user me-2 text-primary"></i>Riwayat Logbook Individu
                             @endif
                         </h5>
+                        <a href="{{ route('logbooks.export-pdf-all', ['tipe' => $tipe]) }}" class="btn btn-sm btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Export Semua PDF
+                        </a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

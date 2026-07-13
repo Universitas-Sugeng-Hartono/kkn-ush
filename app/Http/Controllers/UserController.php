@@ -96,21 +96,19 @@ class UserController extends Controller
             'semester_id' => null,
         ];
 
-        if ($request->role === 'mahasiswa') {
-            if ($request->filled('kelompok_id')) {
-                $kelompok = Kelompok::find($request->kelompok_id);
-                if ($kelompok) {
-                    $periode['tahun_akademik_id'] = $kelompok->tahun_akademik_id;
-                    $periode['semester_id'] = $kelompok->semester_id;
-                }
+        if ($request->filled('kelompok_id')) {
+            $kelompok = Kelompok::find($request->kelompok_id);
+            if ($kelompok) {
+                $periode['tahun_akademik_id'] = $kelompok->tahun_akademik_id;
+                $periode['semester_id'] = $kelompok->semester_id;
             }
+        }
 
-            if (!$periode['tahun_akademik_id'] && $tahunAktif) {
-                $periode['tahun_akademik_id'] = $tahunAktif->id;
-            }
-            if (!$periode['semester_id'] && $semesterAktif) {
-                $periode['semester_id'] = $semesterAktif->id;
-            }
+        if (!$periode['tahun_akademik_id'] && $tahunAktif) {
+            $periode['tahun_akademik_id'] = $tahunAktif->id;
+        }
+        if (!$periode['semester_id'] && $semesterAktif) {
+            $periode['semester_id'] = $semesterAktif->id;
         }
 
         $user = User::create([
@@ -171,26 +169,27 @@ class UserController extends Controller
             'semester_id' => $user->semester_id,
         ];
 
+        // Untuk mahasiswa, reset dulu agar mengikuti kelompok jika ada, atau periode aktif jika null
         if ($request->role === 'mahasiswa') {
             $periode = [
                 'tahun_akademik_id' => null,
                 'semester_id' => null,
             ];
+        }
 
-            if ($request->filled('kelompok_id')) {
-                $kelompok = Kelompok::find($request->kelompok_id);
-                if ($kelompok) {
-                    $periode['tahun_akademik_id'] = $kelompok->tahun_akademik_id;
-                    $periode['semester_id'] = $kelompok->semester_id;
-                }
+        if ($request->filled('kelompok_id')) {
+            $kelompok = Kelompok::find($request->kelompok_id);
+            if ($kelompok) {
+                $periode['tahun_akademik_id'] = $kelompok->tahun_akademik_id;
+                $periode['semester_id'] = $kelompok->semester_id;
             }
+        }
 
-            if (!$periode['tahun_akademik_id'] && $tahunAktif) {
-                $periode['tahun_akademik_id'] = $tahunAktif->id;
-            }
-            if (!$periode['semester_id'] && $semesterAktif) {
-                $periode['semester_id'] = $semesterAktif->id;
-            }
+        if (!$periode['tahun_akademik_id'] && $tahunAktif) {
+            $periode['tahun_akademik_id'] = $tahunAktif->id;
+        }
+        if (!$periode['semester_id'] && $semesterAktif) {
+            $periode['semester_id'] = $semesterAktif->id;
         }
 
         $user->update([
@@ -263,5 +262,46 @@ class UserController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new MahasiswaTemplateExport(), 'template_import_mahasiswa.xlsx');
+    }
+
+    public function resetPassword(User $user)
+    {
+        $identifier = $user->nim ?? $user->nip;
+        if (!$identifier) {
+            return redirect()->back()->with('error', 'User tidak memiliki NIM atau NIP untuk direset passwordnya.');
+        }
+
+        $user->update([
+            'password' => Hash::make($identifier)
+        ]);
+
+        return redirect()->back()->with('success', 'Password berhasil direset menjadi NIM/NIP (' . $identifier . ').');
+    }
+
+    public function bulkResetPassword(Request $request)
+    {
+        $userIds = json_decode($request->user_ids, true);
+        if (!$userIds || !is_array($userIds)) {
+            return redirect()->back()->with('error', 'Tidak ada user yang dipilih.');
+        }
+
+        $users = User::whereIn('id', $userIds)->get();
+        $count = 0;
+
+        foreach ($users as $user) {
+            $identifier = $user->nim ?? $user->nip;
+            if ($identifier) {
+                $user->update([
+                    'password' => Hash::make($identifier)
+                ]);
+                $count++;
+            }
+        }
+
+        if ($count == 0) {
+            return redirect()->back()->with('error', 'Gagal mereset. User yang dipilih mungkin tidak memiliki NIM/NIP.');
+        }
+
+        return redirect()->back()->with('success', $count . ' password user berhasil direset menjadi NIM/NIP.');
     }
 }

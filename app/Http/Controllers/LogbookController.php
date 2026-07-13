@@ -6,6 +6,7 @@ use App\Models\Logbook;
 use App\Models\LogbookPhoto;
 use App\Models\User;
 use App\Services\NotificationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -596,5 +597,78 @@ class LogbookController extends Controller
 
         return redirect()->route('logbooks.pending')
             ->with('success', 'Semua logbook pending berhasil ditolak.');
+    }
+
+    public function exportPdf(Logbook $logbook)
+    {
+        $user = auth()->user();
+        
+        // Authorization: Admin can view all, DPL can view their students, Mahasiswa can view their own
+        if ($user->hasRole('mahasiswa') && $logbook->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        } elseif ($user->hasRole('dpl')) {
+            $isBimbingan = User::whereHas('kelompok', function($q) use ($user) {
+                $q->where('dpl_id', $user->id);
+            })->where('id', $logbook->user_id)->exists();
+            
+            if (!$isBimbingan) {
+                abort(403, 'Unauthorized');
+            }
+        }
+
+        $logbook->load(['user', 'kelompok', 'photos']);
+        
+        // Load image base64 for logo
+        $logoPath = public_path('images/ush.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        }
+
+        $pdf = Pdf::loadView('logbooks.pdf', compact('logbook', 'logoBase64'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Logbook_' . $logbook->judul . '.pdf');
+    }
+
+    public function exportPdfAll(Request $request)
+    {
+        $user = auth()->user();
+        $tipe = $request->query('tipe', 'individu');
+
+        if ($tipe === 'kelompok') {
+            $query = function($q) use ($user) {
+                $q->where('kelompok_id', $user->kelompok_id)
+                  ->where('is_kelompok', true);
+            };
+        } else {
+            $query = function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->where('is_kelompok', false);
+            };
+        }
+
+        $logbooks = Logbook::where($query)
+            ->with(['user', 'kelompok', 'photos'])
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        if ($logbooks->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada data logbook untuk di-export.');
+        }
+
+        $logoPath = public_path('images/ush.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        }
+
+        $pdf = Pdf::loadView('logbooks.pdf_all', compact('logbooks', 'logoBase64', 'tipe'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'Semua_Logbook_' . ucfirst($tipe) . '_' . $user->name . '.pdf';
+        return $pdf->stream($filename);
     }
 } 

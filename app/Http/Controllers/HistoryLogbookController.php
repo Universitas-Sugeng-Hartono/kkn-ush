@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Logbook;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class HistoryLogbookController extends Controller
@@ -115,5 +116,84 @@ class HistoryLogbookController extends Controller
         $logbook->load(['user', 'kelompok', 'photos']);
         
         return view('history.logbooks.show', compact('logbook'));
+    }
+
+    public function exportPdfAll(Request $request)
+    {
+        $user = auth()->user();
+        
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+
+        if (!$request->has('tahun_akademik_id') && !$request->has('semester_id')) {
+            $tahun_akademik_id = $tahunAktif ? $tahunAktif->id : -1;
+            $semester_id = $semesterAktif ? $semesterAktif->id : -1;
+        } else {
+            $tahun_akademik_id = $request->query('tahun_akademik_id');
+            $semester_id = $request->query('semester_id');
+        }
+        
+        $query = Logbook::whereHas('user', function($query) use ($user, $tahun_akademik_id, $semester_id) {
+            $query->whereHas('kelompok', function($q) use ($user, $tahun_akademik_id, $semester_id) {
+                $q->where('dpl_id', $user->id);
+                if ($tahun_akademik_id) {
+                    $q->where('tahun_akademik_id', $tahun_akademik_id);
+                }
+                if ($semester_id) {
+                    $q->where('semester_id', $semester_id);
+                }
+            });
+        })
+        ->with(['user', 'kelompok', 'photos'])
+        ->orderBy('created_at', 'desc');
+
+        if ($request->filled('jenis')) {
+            $query->where('jenis', $request->jenis);
+        }
+
+        if ($request->filled('nama')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->nama . '%');
+            });
+        }
+
+        if ($request->filled('jurusan')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('jurusan', $request->jurusan);
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('tanggal_mulai')) {
+            $query->where('tanggal', '>=', $request->tanggal_mulai);
+        }
+
+        if ($request->filled('tanggal_akhir')) {
+            $query->where('tanggal', '<=', $request->tanggal_akhir);
+        }
+
+        $logbooks = $query->get();
+
+        if ($logbooks->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada data logbook untuk di-export.');
+        }
+
+        $logoPath = public_path('images/ush.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        }
+
+        $tipe = 'semua_bimbingan';
+
+        $pdf = Pdf::loadView('logbooks.pdf_all', compact('logbooks', 'logoBase64', 'tipe'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'Semua_Logbook_Bimbingan_DPL_' . $user->name . '.pdf';
+        return $pdf->stream($filename);
     }
 } 

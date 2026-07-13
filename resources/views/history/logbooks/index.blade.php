@@ -189,6 +189,9 @@
                         <p class="text-muted">Riwayat logbook mahasiswa bimbingan</p>
                     </div>
                     <div>
+                        <a href="{{ route('history.logbooks.export-pdf-all', request()->query()) }}" class="btn btn-danger me-2" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Export Semua PDF
+                        </a>
                         <a href="{{ route('dashboard') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Kembali ke Dashboard
                         </a>

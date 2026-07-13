@@ -69,6 +69,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::post('users/import', [UserController::class, 'import'])->name('users.import');
         Route::get('users/template', [UserController::class, 'downloadTemplate'])->name('users.template');
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('users/bulk-reset-password', [UserController::class, 'bulkResetPassword'])->name('users.bulk-reset-password');
         Route::resource('users', UserController::class);
         Route::get('pengaturan/akademik', [TahunAkademikController::class, 'index'])->name('tahun-akademik.index');
         Route::post('pengaturan/tahun-akademik', [TahunAkademikController::class, 'store'])->name('tahun-akademik.store');
@@ -139,6 +141,7 @@ Route::middleware('auth')->group(function () {
         
         // History Logbook dan Absensi
         Route::get('/history/logbooks', [App\Http\Controllers\HistoryLogbookController::class, 'index'])->name('history.logbooks.index');
+        Route::get('/history/logbooks/export-pdf-all', [App\Http\Controllers\HistoryLogbookController::class, 'exportPdfAll'])->name('history.logbooks.export-pdf-all');
         Route::get('/history/logbooks/{logbook}', [App\Http\Controllers\HistoryLogbookController::class, 'show'])->name('history.logbooks.show');
     });
 
@@ -156,6 +159,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/dpl/monitoring/data', [GroupController::class, 'getMonitoringData'])->name('groups.monitoring.data');
 
         Route::get('/dpl/laporan-kelompok', [DplLaporanKelompokController::class, 'index'])->name('dpl.laporan-kelompok.index');
+    });
+
+    // Shared Routes (Admin, DPL & Mahasiswa)
+    Route::middleware('role:admin|dpl|mahasiswa')->group(function () {
+        // History Logbook dan Absensi
+        Route::get('/history/attendances', [App\Http\Controllers\HistoryAttendanceController::class, 'index'])->name('history.attendances.index');
+        Route::get('/history/attendances/{attendance}', [App\Http\Controllers\HistoryAttendanceController::class, 'show'])->name('history.attendances.show');
+
+        // Export PDF Logbook
+        Route::get('/logbooks/export-pdf-all', [LogbookController::class, 'exportPdfAll'])->name('logbooks.export-pdf-all');
+        Route::get('/logbooks/{logbook}/export-pdf', [LogbookController::class, 'exportPdf'])->name('logbooks.export-pdf');
     });
 
     // Mahasiswa Routes
@@ -205,14 +219,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/attendance/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
         Route::get('/attendance/{attendance}/validate', [AttendanceController::class, 'validateAttendance'])->name('attendance.validate');
     });
-    
-    // Shared Routes (Admin, DPL & Mahasiswa)
-    Route::middleware('role:admin|dpl|mahasiswa')->group(function () {
-        // History Logbook dan Absensi
-        Route::get('/history/attendances', [App\Http\Controllers\HistoryAttendanceController::class, 'index'])->name('history.attendances.index');
-        Route::get('/history/attendances/{attendance}', [App\Http\Controllers\HistoryAttendanceController::class, 'show'])->name('history.attendances.show');
-    });
-
     // DPL Only Routes
     Route::middleware('role:dpl')->group(function () {
         Route::put('/attendance/{attendance}/reject', [AttendanceController::class, 'rejectAttendance'])->name('attendance.reject');

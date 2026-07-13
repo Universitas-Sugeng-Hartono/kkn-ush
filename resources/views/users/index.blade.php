@@ -8,6 +8,13 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
+                <form action="{{ route('users.bulk-reset-password') }}" method="POST" id="bulk-reset-form" style="display: none;">
+                    @csrf
+                    <input type="hidden" name="user_ids" id="bulk-user-ids">
+                </form>
+                <button type="button" class="btn btn-warning text-dark" onclick="confirmBulkReset()" id="btn-bulk-reset" style="display: none;">
+                    <i class="fas fa-key me-2"></i>Reset Terpilih
+                </button>
                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
                     <i class="fas fa-file-excel me-2"></i>Import Excel
                 </button>
@@ -52,6 +59,9 @@
                     <table class="table table-striped datatable">
                         <thead>
                             <tr>
+                                <th style="width: 1%;" class="text-center">
+                                    <input class="form-check-input" type="checkbox" id="check-all">
+                                </th>
                                 <th>No</th>
                                 <th>Nama</th>
                                 <th>Email</th>
@@ -68,6 +78,9 @@
                         <tbody>
                             @foreach($users as $user)
                             <tr>
+                                <td class="text-center">
+                                    <input class="form-check-input user-checkbox" type="checkbox" value="{{ $user->id }}">
+                                </td>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -112,6 +125,19 @@
                                             title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        <form action="{{ route('users.reset-password', $user) }}"
+                                            method="POST"
+                                            class="d-inline"
+                                            id="reset-form-{{ $user->id }}">
+                                            @csrf
+                                            <button type="button"
+                                                class="btn btn-sm btn-secondary"
+                                                data-bs-toggle="tooltip"
+                                                title="Reset Password"
+                                                onclick="confirmReset('{{ $user->id }}', '{{ addslashes($user->name) }}')">
+                                                <i class="fas fa-key"></i>
+                                            </button>
+                                        </form>
                                         <form action="{{ route('users.destroy', $user) }}"
                                             method="POST"
                                             class="d-inline"
@@ -215,16 +241,96 @@
 
     @push('scripts')
     <script>
+        var table;
         $(document).ready(function() {
-            $('.datatable').DataTable({
+            table = $('.datatable').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json',
                 },
                 order: [
-                    [0, 'asc']
+                    [1, 'asc']
                 ],
+                columnDefs: [
+                    { orderable: false, targets: 0 }
+                ]
+            });
+
+            // Handle check-all on current page
+            $('#check-all').on('change', function() {
+                var isChecked = $(this).prop('checked');
+                $('.user-checkbox').prop('checked', isChecked);
+                toggleBulkButton();
+            });
+
+            // Handle individual checkbox changes
+            $(document).on('change', '.user-checkbox', function() {
+                toggleBulkButton();
+                // Check if all checkboxes on current page are checked
+                var allChecked = $('.user-checkbox').length === $('.user-checkbox:checked').length;
+                $('#check-all').prop('checked', allChecked);
+            });
+
+            // Uncheck "check-all" when changing page
+            table.on('draw', function() {
+                $('#check-all').prop('checked', false);
+                toggleBulkButton(); // Also update button state
             });
         });
+
+        function toggleBulkButton() {
+            // Kita bisa mengambil semua checkbox yang di centang dari instance datatable
+            // namun agar lebih aman (menghindari user lupa kalau di page lain ada yang dicentang),
+            // kita gunakan API table.$ untuk mendapatkan semua yang dicentang di seluruh halaman:
+            var checkedCount = table.$('.user-checkbox:checked').length;
+            if (checkedCount > 0) {
+                $('#btn-bulk-reset').show();
+            } else {
+                $('#btn-bulk-reset').hide();
+            }
+        }
+
+        function confirmBulkReset() {
+            var checked = table.$('.user-checkbox:checked');
+            if (checked.length === 0) return;
+
+            var userIds = [];
+            checked.each(function() {
+                userIds.push($(this).val());
+            });
+
+            Swal.fire({
+                title: 'Reset Password Massal?',
+                html: `Apakah Anda yakin ingin mereset password <strong>${checked.length}</strong> user yang dipilih menjadi NIM/NIP mereka?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-key me-2"></i>Ya, Reset Semua',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#bulk-user-ids').val(JSON.stringify(userIds));
+                    $('#bulk-reset-form').submit();
+                }
+            });
+        }
+
+        function confirmReset(userId, userName) {
+            Swal.fire({
+                title: 'Reset Password?',
+                html: `Apakah Anda yakin ingin mereset password user <strong>${userName}</strong> menjadi NIM/NIP-nya?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-key me-2"></i>Ya, Reset',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('reset-form-' + userId).submit();
+                }
+            });
+        }
     </script>
     @endpush
 </x-app-layout>

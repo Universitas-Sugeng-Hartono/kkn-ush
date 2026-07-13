@@ -183,6 +183,9 @@
                         </p>
                     </div>
                     <div class="d-flex gap-2">
+                        <a href="{{ route('logbooks.export-pdf', $logbook) }}" class="btn btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Export PDF
+                        </a>
                         <a href="{{ route('logbooks.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
