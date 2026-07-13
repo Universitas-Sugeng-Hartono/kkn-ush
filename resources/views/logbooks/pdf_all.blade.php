@@ -129,10 +129,14 @@
         .photo-item {
             display: inline-block;
             margin: 5px;
-            max-width: 45%;
+            width: 45%;
+            text-align: center;
+            vertical-align: top;
         }
         .photo-item img {
-            width: 100%;
+            max-width: 100%;
+            max-height: 250px;
+            width: auto;
             height: auto;
             border: 1px solid #ddd;
         }
