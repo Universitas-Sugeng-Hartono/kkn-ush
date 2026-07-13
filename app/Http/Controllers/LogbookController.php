@@ -603,9 +603,14 @@ class LogbookController extends Controller
     {
         $user = auth()->user();
         
-        // Authorization: Admin can view all, DPL can view their students, Mahasiswa can view their own
-        if ($user->hasRole('mahasiswa') && $logbook->user_id !== $user->id) {
-            abort(403, 'Unauthorized');
+        // Authorization: Admin can view all, DPL can view their students, Mahasiswa can view their own or their group's
+        if ($user->hasRole('mahasiswa')) {
+            $isOwnLogbook = $logbook->user_id == $user->id;
+            $isSameKelompok = $logbook->is_kelompok && $user->kelompok_id && $user->kelompok_id == $logbook->kelompok_id;
+            
+            if (!$isOwnLogbook && !$isSameKelompok) {
+                abort(403, 'Unauthorized - Not your logbook');
+            }
         } elseif ($user->hasRole('dpl')) {
             $isBimbingan = User::whereHas('kelompok', function($q) use ($user) {
                 $q->where('dpl_id', $user->id);
