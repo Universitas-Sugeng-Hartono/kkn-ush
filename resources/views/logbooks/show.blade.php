@@ -186,13 +186,24 @@
                         <a href="{{ route('logbooks.export-pdf', $logbook) }}" class="btn btn-danger" target="_blank">
                             <i class="fas fa-file-pdf me-2"></i>Export PDF
                         </a>
-                        <a href="{{ route('logbooks.index') }}" class="btn btn-outline-secondary">
+                        @php
+                            $backUrl = route('logbooks.index');
+                            if (auth()->user()->hasRole('admin')) {
+                                $backUrl = route('monitoring.logbook-detail');
+                            }
+                        @endphp
+                        <a href="{{ $backUrl }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
                         @can('update', $logbook)
                             <a href="{{ route('logbooks.edit', $logbook) }}" class="btn btn-warning">
                                 <i class="fas fa-edit me-2"></i>Edit
                             </a>
+                        @endcan
+                        @can('delete', $logbook)
+                            <button type="button" class="btn btn-danger" onclick="deleteLogbookShow({{ $logbook->id }})">
+                                <i class="fas fa-trash me-2"></i>Hapus
+                            </button>
                         @endcan
                         @can('submit', $logbook)
                             @if($logbook->status === 'draft')
@@ -441,6 +452,37 @@
     @endpush
 
     @push('scripts')
+    <script>
+        function viewAttachment(url) {
+            window.open(url, '_blank');
+        }
+
+        function deleteLogbookShow(id) {
+            if (confirm('Yakin ingin menghapus logbook ini? Tindakan ini tidak dapat dibatalkan.')) {
+                fetch(`/logbooks/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        window.close(); // Attempt to close tab if opened via target="_blank"
+                        window.location.href = '/dashboard'; // Fallback
+                    } else {
+                        alert('Gagal menghapus logbook: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus logbook');
+                });
+            }
+        }
+    </script>
     <script>
         function deleteAttachment(logbookId, index) {
             if (confirm('Apakah Anda yakin ingin menghapus file ini?')) {

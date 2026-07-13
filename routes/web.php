@@ -212,9 +212,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/logbooks/{logbook}/attachments', [LogbookController::class, 'deleteAttachment'])->name('logbooks.attachments.delete');
     });
 
-    // Shared Routes (DPL & Mahasiswa)
-    Route::middleware('role:dpl|mahasiswa')->group(function () {
+    // Shared Routes (Admin, DPL & Mahasiswa)
+    Route::middleware('role:admin|dpl|mahasiswa')->group(function () {
         Route::get('/logbooks/{logbook}', [LogbookController::class, 'show'])->name('logbooks.show');
+        Route::delete('/logbooks/{logbook}', [LogbookController::class, 'destroy'])->name('logbooks.destroy');
         Route::get('/logbooks/{logbook}/validate', [LogbookController::class, 'validate'])->name('logbooks.validate');
         Route::get('/attendance/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
         Route::get('/attendance/{attendance}/validate', [AttendanceController::class, 'validateAttendance'])->name('attendance.validate');

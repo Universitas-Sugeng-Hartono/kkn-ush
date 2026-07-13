@@ -29,6 +29,9 @@ class LogbookPolicy
 
     public function delete(User $user, Logbook $logbook): bool
     {
+        if ($user->hasRole('admin')) {
+            return true;
+        }
         $isAuthorized = $user->id === $logbook->user_id || 
                        ($logbook->is_kelompok && $user->kelompok_id && $user->kelompok_id === $logbook->kelompok_id);
         return $isAuthorized && $logbook->status === 'draft';
