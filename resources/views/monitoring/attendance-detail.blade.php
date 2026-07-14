@@ -332,7 +332,7 @@
                                                 <div class="text-sm">
                                                     <div class="text-success fw-bold">✓ {{ $validatedCount }}/{{ count($days) }}</div>
                                                     @if($pendingCount > 0)
-                                                        <div class="text-warning">⏳ {{ $pendingCount }}</div>
+                                                        <div class="text-warning"><i class="fas fa-clock"></i> {{ $pendingCount }}</div>
                                                     @endif
                                                     <div class="text-muted">{{ $attendanceRate }}%</div>
                                                 </div>
@@ -351,7 +351,7 @@
                                                             $title = 'Hadir (Validated)';
                                                         } elseif($attendance->status === 'pending') {
                                                             $bgColor = 'bg-warning';
-                                                            $symbol = '⏳';
+                                                            $symbol = '!';
                                                             $title = 'Pending Approval';
                                                         } else {
                                                             $bgColor = 'bg-secondary';

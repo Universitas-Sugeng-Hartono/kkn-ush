@@ -407,10 +407,10 @@
                                         <div class="space-y-1">
                                             <div class="text-xs text-green-600 font-semibold">✓ {{ $bothCount }}/{{ count($days) }}</div>
                                             @if($attendanceOnlyCount > 0)
-                                                <div class="text-xs text-blue-600">👤 {{ $attendanceOnlyCount }}</div>
+                                                <div class="text-xs text-blue-600"><i class="fas fa-user"></i> {{ $attendanceOnlyCount }}</div>
                                             @endif
                                             @if($logbookOnlyCount > 0)
-                                                <div class="text-xs text-yellow-600">📝 {{ $logbookOnlyCount }}</div>
+                                                <div class="text-xs text-yellow-600"><i class="fas fa-book"></i> {{ $logbookOnlyCount }}</div>
                                             @endif
                                             <div class="text-xs text-gray-500">{{ $activityRate }}%</div>
                                         </div>
@@ -434,11 +434,11 @@
                                                     $title = 'Hadir & Logbook Pending';
                                                 } elseif(($attendance->status === 'pending') && $logbook->status === 'approved') {
                                                     $bgColor = 'bg-warning';
-                                                    $symbol = '⏳';
+                                                    $symbol = '!';
                                                     $title = 'Absen Pending & Logbook Disetujui';
                                                 } elseif(($attendance->status === 'pending') && ($logbook->status === 'submitted' || $logbook->status === 'pending')) {
                                                     $bgColor = 'bg-warning';
-                                                    $symbol = '⏳';
+                                                    $symbol = '!';
                                                     $title = 'Absen & Logbook Pending';
                                                 } else {
                                                     $bgColor = 'bg-secondary';
@@ -452,7 +452,7 @@
                                                     $title = 'Hadir (Tidak Ada Logbook)';
                                                 } elseif($attendance->status === 'pending') {
                                                     $bgColor = 'bg-warning';
-                                                    $symbol = '⏳';
+                                                    $symbol = '!';
                                                     $title = 'Absen Pending (Tidak Ada Logbook)';
                                                 } else {
                                                     $bgColor = 'bg-secondary';
@@ -466,7 +466,7 @@
                                                     $title = 'Tidak Hadir (Logbook Disetujui)';
                                                 } elseif($logbook->status === 'submitted' || $logbook->status === 'pending') {
                                                     $bgColor = 'bg-warning';
-                                                    $symbol = '⏳';
+                                                    $symbol = '!';
                                                     $title = 'Tidak Hadir (Logbook Pending)';
                                                 } else {
                                                     $bgColor = 'bg-secondary';

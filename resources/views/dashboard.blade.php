@@ -980,13 +980,13 @@
 
                 if (deviceInfo.isMobile) {
                     deviceType = 'Mobile Device';
-                    deviceIcon = '📱';
+                    deviceIcon = '<i class="fas fa-mobile-alt"></i>';
                 } else if (deviceInfo.isTablet) {
                     deviceType = 'Tablet Device';
-                    deviceIcon = '📱';
+                    deviceIcon = '<i class="fas fa-tablet-alt"></i>';
                 } else {
                     deviceType = 'Desktop Device';
-                    deviceIcon = '💻';
+                    deviceIcon = '<i class="fas fa-laptop"></i>';
                 }
 
                 indicator.innerHTML = `

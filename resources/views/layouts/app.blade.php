@@ -508,7 +508,7 @@
                             <li class="nav-item d-flex align-items-center me-3">
                                 <span class="badge bg-success py-2 px-3">
                                     <i class="fas fa-calendar-alt me-1"></i>
-                                    {{ $tahunAktifLayout->nama }} — {{ $semesterAktifLayout->nama }}
+                                    {{ $tahunAktifLayout->nama }} - {{ $semesterAktifLayout->nama }}
                                 </span>
                             </li>
                             @endif
