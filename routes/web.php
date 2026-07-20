@@ -181,7 +181,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/attendance/check-today', [AttendanceController::class, 'checkTodayAttendance'])->name('attendance.check-today');
         Route::get('/laporan-kelompok', [LaporanKelompokController::class, 'index'])->name('laporan-kelompok.index');
         Route::post('/laporan-kelompok', [LaporanKelompokController::class, 'store'])->name('laporan-kelompok.store');
-        Route::get('/laporan-kelompok/{laporanKelompok}/download', [LaporanKelompokController::class, 'download'])->name('laporan-kelompok.download');
         Route::delete('/laporan-kelompok/{laporanKelompok}', [LaporanKelompokController::class, 'destroy'])->name('laporan-kelompok.destroy');
         Route::get('/notifications', [StudentNotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{id}/mark-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
@@ -220,6 +219,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/logbooks/{logbook}/validate', [LogbookController::class, 'validate'])->name('logbooks.validate');
         Route::get('/attendance/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
         Route::get('/attendance/{attendance}/validate', [AttendanceController::class, 'validateAttendance'])->name('attendance.validate');
+        Route::get('/laporan-kelompok/{laporanKelompok}/download', [LaporanKelompokController::class, 'download'])->name('laporan-kelompok.download');
     });
     // DPL Only Routes
     Route::middleware('role:dpl')->group(function () {

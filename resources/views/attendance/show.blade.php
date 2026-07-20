@@ -161,15 +161,23 @@
                         <p class="text-muted">Informasi lengkap absensi {{ $attendance->user->name }}</p>
                     </div>
                     <div>
-                        @if(auth()->user()->hasRole('dpl'))
-                            <a href="{{ route('attendance.pending') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Kembali ke Pending
-                            </a>
-                        @else
-                            <a href="{{ route('attendance.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Kembali ke Absensi
-                            </a>
-                        @endif
+                        @php
+                            $backUrl = url()->previous();
+                            if ($backUrl === url()->current()) {
+                                if (auth()->user()->hasRole('mahasiswa')) {
+                                    $backUrl = route('attendance.index');
+                                } elseif (auth()->user()->hasRole('dpl')) {
+                                    $backUrl = route('attendance.pending');
+                                } elseif (auth()->user()->hasRole('admin')) {
+                                    $backUrl = route('monitoring.attendance-detail');
+                                } else {
+                                    $backUrl = route('dashboard');
+                                }
+                            }
+                        @endphp
+                        <a href="{{ $backUrl }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Kembali
+                        </a>
                     </div>
                 </div>
             </div>

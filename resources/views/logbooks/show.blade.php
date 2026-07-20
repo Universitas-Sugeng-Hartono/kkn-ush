@@ -187,9 +187,17 @@
                             <i class="fas fa-file-pdf me-2"></i>Export PDF
                         </a>
                         @php
-                            $backUrl = route('logbooks.index');
-                            if (auth()->user()->hasRole('admin')) {
-                                $backUrl = route('monitoring.logbook-detail');
+                            $backUrl = url()->previous();
+                            if ($backUrl === url()->current()) {
+                                if (auth()->user()->hasRole('mahasiswa')) {
+                                    $backUrl = route('logbooks.index');
+                                } elseif (auth()->user()->hasRole('dpl')) {
+                                    $backUrl = route('logbooks.pending');
+                                } elseif (auth()->user()->hasRole('admin')) {
+                                    $backUrl = route('monitoring.logbook-detail');
+                                } else {
+                                    $backUrl = route('dashboard');
+                                }
                             }
                         @endphp
                         <a href="{{ $backUrl }}" class="btn btn-outline-secondary">
