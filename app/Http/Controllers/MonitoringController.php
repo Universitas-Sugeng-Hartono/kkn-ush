@@ -68,10 +68,20 @@ class MonitoringController extends Controller
             }
         });
 
-        $mahasiswas = $mahasiswaQuery->orderBy('name')->get();
+        $search = $request->query('search');
+        $perPage = $request->query('per_page', 10);
+
+        if ($search) {
+            $mahasiswaQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('nim', 'like', '%' . $search . '%');
+            });
+        }
+
+        $mahasiswas = $mahasiswaQuery->orderBy('name')->paginate($perPage)->withQueryString();
 
         // Fallback: jika tidak ada kelompok, filter langsung dari kolom user
-        if ($mahasiswas->isEmpty()) {
+        if ($mahasiswas->isEmpty() && !$search) {
             $fallbackQuery = User::role('mahasiswa');
             if ($tahun_akademik_id) {
                 $fallbackQuery->where('tahun_akademik_id', $tahun_akademik_id);
@@ -79,7 +89,13 @@ class MonitoringController extends Controller
             if ($semester_id) {
                 $fallbackQuery->where('semester_id', $semester_id);
             }
-            $mahasiswas = $fallbackQuery->orderBy('name')->get();
+            if ($search) {
+                $fallbackQuery->where(function($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('nim', 'like', '%' . $search . '%');
+                });
+            }
+            $mahasiswas = $fallbackQuery->orderBy('name')->paginate($perPage)->withQueryString();
         }
 
         // Cari angkatan berdasarkan filter tahun akademik & semester
@@ -170,7 +186,8 @@ class MonitoringController extends Controller
             'startDate',
             'endDate',
             'dplList',
-            'dpl_id'
+            'dpl_id',
+            'mahasiswas'
         ));
     }
 
@@ -319,10 +336,29 @@ class MonitoringController extends Controller
             'hari_kkn' => $startDate->diffInDays($endDate) + 1
         ];
 
+        $search = $request->query('search');
+        $perPage = $request->query('per_page', 15);
+
+        if ($search) {
+            $baseQuery->where(function($q) use ($search, $tipe) {
+                if ($tipe === 'kelompok') {
+                    $q->whereHas('kelompok', function($kq) use ($search) {
+                        $kq->where('nama', 'like', '%' . $search . '%');
+                    });
+                } else {
+                    $q->whereHas('user', function($uq) use ($search) {
+                        $uq->where('name', 'like', '%' . $search . '%')
+                          ->orWhere('nim', 'like', '%' . $search . '%');
+                    });
+                }
+            });
+        }
+
         $logbooks = (clone $baseQuery)
             ->with(['user', 'kelompok', 'photos'])
             ->orderBy('tanggal', 'desc')
-            ->paginate(15);
+            ->paginate($perPage)
+            ->withQueryString();
 
         return view('monitoring.logbook-detail', compact(
             'logbooks',
@@ -525,7 +561,8 @@ class MonitoringController extends Controller
             'endDate',
             'dplList',
             'dpl_id',
-            'tipe'
+            'tipe',
+            'mahasiswas'
         ));
     }
 }

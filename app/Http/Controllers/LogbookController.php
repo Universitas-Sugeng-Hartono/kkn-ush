@@ -503,7 +503,7 @@ class LogbookController extends Controller
             });
         }
 
-        $logbooks = $query->orderBy('created_at', 'desc')->paginate(10);
+        $logbooks = $query->orderBy('created_at', 'desc')->get();
 
         // Data untuk filter dropdown
         $jenisKegiatan = ['individu' => 'Individu', 'desa' => 'Desa', 'kecamatan' => 'Kecamatan'];

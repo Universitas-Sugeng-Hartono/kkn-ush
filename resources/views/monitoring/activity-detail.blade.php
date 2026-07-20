@@ -326,6 +326,28 @@
                         </a>
                     </div>
                 </div>
+                <div class="px-4 py-3 border-bottom bg-light bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2 text-muted small">Tampilkan</span>
+                            <select form="filterForm" name="per_page" class="form-select form-select-sm w-auto" onchange="document.getElementById('filterForm').submit()">
+                                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                            </select>
+                            <span class="ms-2 text-muted small">entri</span>
+                        </div>
+                        <div>
+                            <div class="input-group input-group-sm" style="width: 250px;">
+                                <input type="text" form="filterForm" name="search" class="form-control" placeholder="Cari nama/NIM..." value="{{ request('search') }}">
+                                <button form="filterForm" class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-container">
                     <table class="min-w-full">
                         <!-- Header dengan tanggal lengkap -->
@@ -505,6 +527,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="px-4 py-3 bg-white border-top">
+                    {{ $mahasiswas->links() }}
                 </div>
             </div>
 

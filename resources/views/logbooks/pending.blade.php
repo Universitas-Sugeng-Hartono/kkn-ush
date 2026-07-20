@@ -304,7 +304,7 @@
                         @endif
                         @if($logbooks->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle">
+                                <table class="table table-hover align-middle datatable w-100">
                                     <thead>
                                         <tr>
                                             <th>Mahasiswa</th>
@@ -389,7 +389,7 @@
                                 </table>
                             </div>
                             <div class="mt-3">
-                                {{ $logbooks->appends(request()->query())->links() }}
+                                <!-- DataTables handles pagination -->
                             </div>
                         @else
                             <div class="text-center py-5">

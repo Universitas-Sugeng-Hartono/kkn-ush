@@ -381,7 +381,7 @@ class AttendanceController extends Controller
         ->where('status', 'pending')
         ->with(['user', 'kelompok'])
         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->get();
 
         return view('attendance.pending', compact('attendances'));
     }

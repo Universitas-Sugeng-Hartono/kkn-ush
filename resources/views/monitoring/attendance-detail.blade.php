@@ -275,8 +275,28 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <h6 class="text-muted mb-0">Periode Kehadiran KKN ({{ count($days) }} Hari)</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-2 text-muted small">Tampilkan</span>
+                                <select form="filterForm" name="per_page" class="form-select form-select-sm w-auto" onchange="document.getElementById('filterForm').submit()">
+                                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                </select>
+                                <span class="ms-2 text-muted small">entri</span>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0 text-center">Periode Kehadiran KKN ({{ count($days) }} Hari)</h6>
+                            </div>
+                            <div>
+                                <div class="input-group input-group-sm" style="width: 250px;">
+                                    <input type="text" form="filterForm" name="search" class="form-control" placeholder="Cari nama/NIM..." value="{{ request('search') }}">
+                                    <button form="filterForm" class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -403,6 +423,9 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="mt-3">
+                            {{ $mahasiswas->links() }}
                         </div>
                     </div>
                 </div>
