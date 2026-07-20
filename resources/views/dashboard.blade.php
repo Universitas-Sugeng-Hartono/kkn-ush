@@ -365,26 +365,31 @@
                     <div class="card-body">
                         @if($data['recent_logbooks']->count() > 0)
                         @foreach($data['recent_logbooks'] as $logbook)
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h6 class="mb-1">{{ $logbook->user->name }}</h6>
-                                @if($logbook->user->nim)
-                                <small class="text-muted">NIM: {{ $logbook->user->nim }}</small><br>
-                                @if($logbook->user->jurusan)
-                                <small class="text-muted">Jurusan: {{ ucfirst($logbook->user->jurusan) }}</small><br>
-                                @endif
-                                @endif
-                                <small class="text-muted">{{ $logbook->judul }}</small><br>
-                                <small class="text-muted">{{ $logbook->kelompok->nama }}</small>
+                        <a href="{{ route('logbooks.show', $logbook->id) }}" class="text-decoration-none text-dark d-block mb-3 p-2 rounded" style="transition: background-color 0.2s;" onmouseover="this.classList.add('bg-light')" onmouseout="this.classList.remove('bg-light')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ $logbook->user->name }}</h6>
+                                    @if($logbook->user->nim)
+                                    <small class="text-muted">NIM: {{ $logbook->user->nim }}</small><br>
+                                    @if($logbook->user->jurusan)
+                                    <small class="text-muted">Jurusan: {{ ucfirst($logbook->user->jurusan) }}</small><br>
+                                    @endif
+                                    @endif
+                                    <small class="text-muted">{{ $logbook->judul }}</small><br>
+                                    <small class="text-muted">{{ $logbook->kelompok->nama }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ $logbook->status === 'submitted' ? 'warning' : ($logbook->status === 'approved' ? 'success' : 'secondary') }}">
+                                        {{ ucfirst($logbook->status) }}
+                                    </span><br>
+                                    <small class="text-muted">{{ $logbook->created_at->diffForHumans() }}</small>
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <span class="badge bg-{{ $logbook->status === 'submitted' ? 'warning' : ($logbook->status === 'approved' ? 'success' : 'secondary') }}">
-                                    {{ ucfirst($logbook->status) }}
-                                </span><br>
-                                <small class="text-muted">{{ $logbook->created_at->diffForHumans() }}</small>
-                            </div>
-                        </div>
+                        </a>
                         @endforeach
+                        <div class="text-center mt-3">
+                            <a href="{{ route('monitoring.logbook-detail') }}" class="btn btn-sm btn-outline-primary">Lihat Semua Logbook</a>
+                        </div>
                         @else
                         <p class="text-muted">Belum ada logbook terbaru</p>
                         @endif
@@ -399,26 +404,31 @@
                     <div class="card-body">
                         @if($data['recent_absensi']->count() > 0)
                         @foreach($data['recent_absensi'] as $absensi)
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h6 class="mb-1">{{ $absensi->user->name }}</h6>
-                                @if($absensi->user->nim)
-                                <small class="text-muted">NIM: {{ $absensi->user->nim }}</small><br>
-                                @if($absensi->user->jurusan)
-                                <small class="text-muted">Jurusan: {{ ucfirst($absensi->user->jurusan) }}</small><br>
-                                @endif
-                                @endif
-                                <small class="text-muted">{{ $absensi->tanggal->format('d/m/Y') }}</small><br>
-                                <small class="text-muted">{{ $absensi->kelompok->nama }}</small>
+                        <a href="{{ route('attendance.show', $absensi->id) }}" class="text-decoration-none text-dark d-block mb-3 p-2 rounded" style="transition: background-color 0.2s;" onmouseover="this.classList.add('bg-light')" onmouseout="this.classList.remove('bg-light')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ $absensi->user->name }}</h6>
+                                    @if($absensi->user->nim)
+                                    <small class="text-muted">NIM: {{ $absensi->user->nim }}</small><br>
+                                    @if($absensi->user->jurusan)
+                                    <small class="text-muted">Jurusan: {{ ucfirst($absensi->user->jurusan) }}</small><br>
+                                    @endif
+                                    @endif
+                                    <small class="text-muted">{{ $absensi->tanggal->format('d/m/Y') }}</small><br>
+                                    <small class="text-muted">{{ $absensi->kelompok->nama }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ $absensi->status === 'hadir' ? 'success' : ($absensi->status === 'izin' ? 'warning' : 'danger') }}">
+                                        {{ ucfirst($absensi->status) }}
+                                    </span><br>
+                                    <small class="text-muted">{{ $absensi->created_at->diffForHumans() }}</small>
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <span class="badge bg-{{ $absensi->status === 'hadir' ? 'success' : ($absensi->status === 'izin' ? 'warning' : 'danger') }}">
-                                    {{ ucfirst($absensi->status) }}
-                                </span><br>
-                                <small class="text-muted">{{ $absensi->created_at->diffForHumans() }}</small>
-                            </div>
-                        </div>
+                        </a>
                         @endforeach
+                        <div class="text-center mt-3">
+                            <a href="{{ route('monitoring.attendance-detail') }}" class="btn btn-sm btn-outline-primary">Lihat Semua Absensi</a>
+                        </div>
                         @else
                         <p class="text-muted">Belum ada absensi terbaru</p>
                         @endif

@@ -46,12 +46,20 @@ class LogbookController extends Controller
             };
         }
 
+        $rawStats = Logbook::where($myActivitiesQuery)
+            ->selectRaw('count(*) as total')
+            ->selectRaw("count(case when status = 'draft' then 1 end) as draft")
+            ->selectRaw("count(case when status = 'submitted' then 1 end) as submitted")
+            ->selectRaw("count(case when status = 'approved' then 1 end) as approved")
+            ->selectRaw("count(case when status = 'rejected' then 1 end) as rejected")
+            ->first();
+
         $stats = [
-            'total' => Logbook::where($myActivitiesQuery)->count(),
-            'draft' => Logbook::where($myActivitiesQuery)->where('status', 'draft')->count(),
-            'submitted' => Logbook::where($myActivitiesQuery)->where('status', 'submitted')->count(),
-            'approved' => Logbook::where($myActivitiesQuery)->where('status', 'approved')->count(),
-            'rejected' => Logbook::where($myActivitiesQuery)->where('status', 'rejected')->count(),
+            'total' => $rawStats->total ?? 0,
+            'draft' => $rawStats->draft ?? 0,
+            'submitted' => $rawStats->submitted ?? 0,
+            'approved' => $rawStats->approved ?? 0,
+            'rejected' => $rawStats->rejected ?? 0,
         ];
 
         // Data untuk kalender
@@ -154,10 +162,17 @@ class LogbookController extends Controller
     {
         // Validasi kelompok terlebih dahulu
         if (!auth()->user()->kelompok_id) {
-            return response()->json([
-                'message' => 'Anda belum terdaftar dalam kelompok manapun. Silakan hubungi admin untuk ditambahkan ke dalam kelompok.',
-                'status' => 'error'
-            ], 422);
+            $msg = 'Anda belum terdaftar dalam kelompok manapun. Silakan hubungi admin untuk ditambahkan ke dalam kelompok.';
+            if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
+            return redirect()->back()->with('error', $msg);
+        }
+
+        // Validasi rentang tanggal KKN Aktif
+        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')->first();
+        if (!$angkatanAktif || !now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai)) {
+            $msg = 'Anda hanya dapat mengirim logbook saat masa KKN sedang berjalan sesuai jadwal dari Universitas Sugeng Hartono.';
+            if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
+            return redirect()->back()->with('error', $msg);
         }
 
         $validated = $request->validate([

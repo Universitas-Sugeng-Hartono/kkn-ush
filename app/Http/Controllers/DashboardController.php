@@ -153,52 +153,74 @@ class DashboardController extends Controller
 
     private function getDplDashboardData($user, $tahunAktif = null, $semesterAktif = null)
     {
-
-        // Ambil kelompok yang dibimbing oleh dosen ini
+        // Ambil kelompok yang dibimbing oleh dosen ini dan hitung langsung di database
         $groups = Kelompok::where('dpl_id', $user->id)
             ->when($tahunAktif && $semesterAktif, function($q) use ($tahunAktif, $semesterAktif) {
                 return $q->where('tahun_akademik_id', $tahunAktif->id)
                     ->where('semester_id', $semesterAktif->id);
             })
-            ->with(['mahasiswa', 'logbooks', 'absensi'])
+            ->withCount([
+                'mahasiswa', 
+                'logbooks',
+                'logbooks as logbooks_pending_count' => function ($query) {
+                    $query->where('status', 'submitted');
+                },
+                'absensi',
+                'absensi as absensi_pending_count' => function ($query) {
+                    $query->where('status', 'pending');
+                }
+            ])
             ->get();
         
-        // Hitung statistik
-        $totalMahasiswa = $groups->sum(function($group) { return $group->mahasiswa->count(); });
-        $totalLogbook = $groups->sum(function($group) { return $group->logbooks->count(); });
-        $logbookPending = $groups->sum(function($group) { 
-            return $group->logbooks->where('status', 'submitted')->count(); 
-        });
-        $totalAbsensi = $groups->sum(function($group) { return $group->absensi->count(); });
-        $absensiPending = $groups->sum(function($group) { 
-            return $group->absensi->where('status', 'pending')->count(); 
-        });
+        $groupIds = $groups->pluck('id');
+
+        // Hitung statistik dari hasil aggregate
+        $totalMahasiswa = $groups->sum('mahasiswa_count');
+        $totalLogbook = $groups->sum('logbooks_count');
+        $logbookPending = $groups->sum('logbooks_pending_count');
+        $totalAbsensi = $groups->sum('absensi_count');
+        $absensiPending = $groups->sum('absensi_pending_count');
 
         // Logbook yang perlu direview hari ini
-        $logbookToday = Logbook::whereIn('kelompok_id', $groups->pluck('id'))
+        $logbookToday = Logbook::whereIn('kelompok_id', $groupIds)
             ->where('status', 'submitted')
             ->whereDate('created_at', today())
             ->count();
 
         // Absensi yang perlu divalidasi hari ini
-        $absensiToday = Absensi::whereIn('kelompok_id', $groups->pluck('id'))
+        $absensiToday = Absensi::whereIn('kelompok_id', $groupIds)
             ->where('status', 'pending')
             ->whereDate('created_at', today())
             ->count();
 
-        // Mahasiswa yang belum submit logbook hari ini
-        $mahasiswaNoLogbook = $groups->sum(function($group) {
-            return $group->mahasiswa->filter(function($mhs) {
-                return !$mhs->logbooks()->whereDate('created_at', today())->exists();
-            })->count();
-        });
+        // Pengecekan status KKN berjalan
+        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')
+            ->where('tahun_akademik_id', $tahunAktif?->id)
+            ->where('semester_id', $semesterAktif?->id)
+            ->first();
+            
+        $isKknBerjalan = $angkatanAktif && now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai);
 
-        // Mahasiswa yang belum absen hari ini
-        $mahasiswaNoAbsensi = $groups->sum(function($group) {
-            return $group->mahasiswa->filter(function($mhs) {
-                return !$mhs->absensi()->whereDate('created_at', today())->exists();
-            })->count();
-        });
+        $mahasiswaNoLogbook = 0;
+        $mahasiswaNoAbsensi = 0;
+
+        if ($isKknBerjalan) {
+            // Mahasiswa yang belum submit logbook hari ini (1 single query)
+            $mahasiswaNoLogbook = User::role('mahasiswa')
+                ->whereIn('kelompok_id', $groupIds)
+                ->whereDoesntHave('logbooks', function($query) {
+                    $query->whereDate('created_at', today());
+                })
+                ->count();
+
+            // Mahasiswa yang belum absen hari ini (1 single query)
+            $mahasiswaNoAbsensi = User::role('mahasiswa')
+                ->whereIn('kelompok_id', $groupIds)
+                ->whereDoesntHave('absensi', function($query) {
+                    $query->whereDate('created_at', today());
+                })
+                ->count();
+        }
 
         return [
             'total_mahasiswa' => $totalMahasiswa,
@@ -212,59 +234,82 @@ class DashboardController extends Controller
             'mahasiswa_no_logbook' => $mahasiswaNoLogbook,
             'mahasiswa_no_absensi' => $mahasiswaNoAbsensi,
             'groups' => $groups,
-            'recent_logbooks' => Logbook::whereIn('kelompok_id', $groups->pluck('id'))
+            'recent_logbooks' => Logbook::whereIn('kelompok_id', $groupIds)
                 ->with(['user', 'kelompok'])
                 ->latest()
                 ->take(5)
                 ->get(),
-            'recent_absensi' => Absensi::whereIn('kelompok_id', $groups->pluck('id'))
+            'recent_absensi' => Absensi::whereIn('kelompok_id', $groupIds)
                 ->with(['user', 'kelompok'])
                 ->latest()
                 ->take(5)
                 ->get(),
-            'logbook_stats' => $this->getDplLogbookStats($groups),
-            'absensi_stats' => $this->getDplAbsensiStats($groups),
+            'logbook_stats' => $this->getDplLogbookStats($groupIds, $angkatanAktif),
+            'absensi_stats' => $this->getDplAbsensiStats($groupIds, $angkatanAktif),
         ];
     }
 
-    private function getDplLogbookStats($groups)
+    private function getDplLogbookStats($groupIds, $angkatanAktif = null)
     {
-        $logbooks = Logbook::whereIn('kelompok_id', $groups->pluck('id'))
-            ->whereBetween('created_at', [now()->subDays(30), now()])
-            ->get();
+        $startDate = now()->subDays(30)->startOfDay();
+        $endDate = now()->endOfDay();
+
+        if ($angkatanAktif && $angkatanAktif->tanggal_mulai && $angkatanAktif->tanggal_selesai) {
+            $startDate = \Carbon\Carbon::parse($angkatanAktif->tanggal_mulai)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($angkatanAktif->tanggal_selesai)->endOfDay();
+            
+            // Batasi maksimal 90 hari agar grafik tidak terlalu padat jika terjadi kesalahan input admin
+            if ($startDate->diffInDays($endDate) > 90) {
+                $endDate = $startDate->copy()->addDays(90);
+            }
+        }
+
+        $statsData = Logbook::whereIn('kelompok_id', $groupIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
 
         $stats = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $count = $logbooks->filter(function($logbook) use ($date) {
-                return $logbook->created_at->format('Y-m-d') === $date;
-            })->count();
-            
+        $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
+        foreach ($period as $date) {
+            $dateString = $date->format('Y-m-d');
             $stats[] = [
-                'date' => $date,
-                'count' => $count
+                'date' => $dateString,
+                'count' => $statsData[$dateString] ?? 0
             ];
         }
 
         return $stats;
     }
 
-    private function getDplAbsensiStats($groups)
+    private function getDplAbsensiStats($groupIds, $angkatanAktif = null)
     {
-        $absensi = Absensi::whereIn('kelompok_id', $groups->pluck('id'))
-            ->whereBetween('created_at', [now()->subDays(30), now()])
-            ->get();
+        $startDate = now()->subDays(30)->startOfDay();
+        $endDate = now()->endOfDay();
+
+        if ($angkatanAktif && $angkatanAktif->tanggal_mulai && $angkatanAktif->tanggal_selesai) {
+            $startDate = \Carbon\Carbon::parse($angkatanAktif->tanggal_mulai)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($angkatanAktif->tanggal_selesai)->endOfDay();
+            
+            if ($startDate->diffInDays($endDate) > 90) {
+                $endDate = $startDate->copy()->addDays(90);
+            }
+        }
+
+        $statsData = Absensi::whereIn('kelompok_id', $groupIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
 
         $stats = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $count = $absensi->filter(function($attendance) use ($date) {
-                return $attendance->created_at->format('Y-m-d') === $date;
-            })->count();
-            
+        $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
+        foreach ($period as $date) {
+            $dateString = $date->format('Y-m-d');
             $stats[] = [
-                'date' => $date,
-                'count' => $count
+                'date' => $dateString,
+                'count' => $statsData[$dateString] ?? 0
             ];
         }
 
@@ -292,6 +337,8 @@ class DashboardController extends Controller
         
         $notifications = [];
 
+        $readNotifications = session()->get('dpl_read_notifications', []);
+
         // Logbook yang perlu direview
         $pendingLogbooks = Logbook::whereIn('kelompok_id', $groups)
             ->where('status', 'submitted')
@@ -301,10 +348,14 @@ class DashboardController extends Controller
             ->get();
 
         foreach ($pendingLogbooks as $logbook) {
+            $id = 'logbook_pending_' . $logbook->id;
             $notifications[] = [
+                'id' => $id,
                 'type' => 'logbook_pending',
                 'title' => 'Logbook Perlu Direview',
                 'message' => "Logbook dari {$logbook->user->name} ({$logbook->kelompok->nama}) perlu direview",
+                'url' => route('logbooks.pending'),
+                'is_read' => in_array($id, $readNotifications),
                 'data' => [
                     'logbook_id' => $logbook->id,
                     'user_name' => $logbook->user->name,
@@ -324,10 +375,14 @@ class DashboardController extends Controller
             ->get();
 
         foreach ($pendingAbsensi as $absensi) {
+            $id = 'absensi_pending_' . $absensi->id;
             $notifications[] = [
+                'id' => $id,
                 'type' => 'absensi_pending',
                 'title' => 'Absensi Perlu Divalidasi',
                 'message' => "Absensi dari {$absensi->user->name} ({$absensi->kelompok->nama}) perlu divalidasi",
+                'url' => route('attendance.pending'),
+                'is_read' => in_array($id, $readNotifications),
                 'data' => [
                     'absensi_id' => $absensi->id,
                     'user_name' => $absensi->user->name,
@@ -340,48 +395,48 @@ class DashboardController extends Controller
         }
 
         // Mahasiswa yang belum submit logbook hari ini
-        $mahasiswaNoLogbook = User::role('mahasiswa')
+        $mahasiswaNoLogbookCount = User::role('mahasiswa')
             ->whereIn('kelompok_id', $groups)
             ->whereDoesntHave('logbooks', function($query) {
                 $query->whereDate('created_at', today());
             })
-            ->with('kelompok')
-            ->get();
+            ->count();
 
-        foreach ($mahasiswaNoLogbook as $mhs) {
+        if ($mahasiswaNoLogbookCount > 0) {
+            $id = 'no_logbook_today_' . today()->format('Ymd');
             $notifications[] = [
+                'id' => $id,
                 'type' => 'no_logbook_today',
-                'title' => 'Mahasiswa Belum Submit Logbook',
-                'message' => "{$mhs->name} ({$mhs->kelompok->nama}) belum submit logbook hari ini",
+                'title' => 'Peringatan Logbook Harian',
+                'message' => "Terdapat {$mahasiswaNoLogbookCount} mahasiswa yang belum submit logbook hari ini.",
+                'url' => route('monitoring.logbook-detail'),
+                'is_read' => in_array($id, $readNotifications),
                 'data' => [
-                    'user_id' => $mhs->id,
-                    'user_name' => $mhs->name,
-                    'group_name' => $mhs->kelompok->nama,
-                    'nim' => $mhs->nim
+                    'count' => $mahasiswaNoLogbookCount
                 ],
                 'created_at' => now()
             ];
         }
 
         // Mahasiswa yang belum absen hari ini
-        $mahasiswaNoAbsensi = User::role('mahasiswa')
+        $mahasiswaNoAbsensiCount = User::role('mahasiswa')
             ->whereIn('kelompok_id', $groups)
             ->whereDoesntHave('absensi', function($query) {
                 $query->whereDate('created_at', today());
             })
-            ->with('kelompok')
-            ->get();
+            ->count();
 
-        foreach ($mahasiswaNoAbsensi as $mhs) {
+        if ($mahasiswaNoAbsensiCount > 0) {
+            $id = 'no_absensi_today_' . today()->format('Ymd');
             $notifications[] = [
+                'id' => $id,
                 'type' => 'no_absensi_today',
-                'title' => 'Mahasiswa Belum Absen',
-                'message' => "{$mhs->name} ({$mhs->kelompok->nama}) belum melakukan absensi hari ini",
+                'title' => 'Peringatan Absensi Harian',
+                'message' => "Terdapat {$mahasiswaNoAbsensiCount} mahasiswa yang belum melakukan absensi hari ini.",
+                'url' => route('monitoring.attendance-detail'),
+                'is_read' => in_array($id, $readNotifications),
                 'data' => [
-                    'user_id' => $mhs->id,
-                    'user_name' => $mhs->name,
-                    'group_name' => $mhs->kelompok->nama,
-                    'nim' => $mhs->nim
+                    'count' => $mahasiswaNoAbsensiCount
                 ],
                 'created_at' => now()
             ];
@@ -416,87 +471,97 @@ class DashboardController extends Controller
         
         $alerts = [];
 
-        // Logbook yang pending lebih dari 3 hari
-        $oldPendingLogbooks = Logbook::whereIn('kelompok_id', $groups)
-            ->where('status', 'submitted')
-            ->where('created_at', '<', now()->subDays(3))
-            ->count();
+        // Pengecekan status KKN berjalan untuk memunculkan peringatan
+        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')
+            ->where('tahun_akademik_id', $tahunAktif?->id)
+            ->where('semester_id', $semesterAktif?->id)
+            ->first();
+            
+        $isKknBerjalan = $angkatanAktif && now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai);
 
-        if ($oldPendingLogbooks > 0) {
-            $alerts[] = [
-                'type' => 'warning',
-                'title' => 'Logbook Pending Lama',
-                'message' => "Ada {$oldPendingLogbooks} logbook yang pending lebih dari 3 hari",
-                'action' => 'review_logbooks'
-            ];
-        }
+        $threeDaysAgo = now()->subDays(3)->format('Y-m-d');
 
-        // Absensi yang pending lebih dari 1 hari
-        $oldPendingAbsensi = Absensi::whereIn('kelompok_id', $groups)
-            ->where('status', 'pending')
-            ->where('created_at', '<', now()->subDay())
-            ->count();
+        if ($isKknBerjalan) {
+            // Logbook yang pending lebih dari 3 hari
+            $oldPendingLogbooks = Logbook::whereIn('kelompok_id', $groups)
+                ->where('status', 'submitted')
+                ->where('created_at', '<', now()->subDays(3))
+                ->count();
 
-        if ($oldPendingAbsensi > 0) {
-            $alerts[] = [
-                'type' => 'warning',
-                'title' => 'Absensi Pending Lama',
-                'message' => "Ada {$oldPendingAbsensi} absensi yang pending lebih dari 1 hari",
-                'action' => 'validate_absensi'
-            ];
-        }
+            if ($oldPendingLogbooks > 0) {
+                $alerts[] = [
+                    'type' => 'warning',
+                    'title' => 'Logbook Pending Lama',
+                    'message' => "Ada {$oldPendingLogbooks} logbook yang pending lebih dari 3 hari",
+                    'action' => 'review_logbooks'
+                ];
+            }
 
-        $startDate = '2025-08-04';
-        $endDate = '2025-08-26';
-        if ($tahunAktif && $semesterAktif) {
-            $angkatan = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
-                ->where('semester_id', $semesterAktif->id)
-                ->first();
-            if ($angkatan && $angkatan->tanggal_mulai && $angkatan->tanggal_selesai) {
-                $startDate = $angkatan->tanggal_mulai->format('Y-m-d');
-                $endDate = $angkatan->tanggal_selesai->format('Y-m-d');
+            // Absensi yang pending lebih dari 1 hari
+            $oldPendingAbsensi = Absensi::whereIn('kelompok_id', $groups)
+                ->where('status', 'pending')
+                ->where('created_at', '<', now()->subDay())
+                ->count();
+
+            if ($oldPendingAbsensi > 0) {
+                $alerts[] = [
+                    'type' => 'warning',
+                    'title' => 'Absensi Pending Lama',
+                    'message' => "Ada {$oldPendingAbsensi} absensi yang pending lebih dari 1 hari",
+                    'action' => 'validate_absensi'
+                ];
+            }
+            // Mahasiswa yang tidak aktif (tidak ada logbook dalam 3 hari terakhir)
+            $inactiveMahasiswaLogbook = User::role('mahasiswa')
+                ->whereIn('kelompok_id', $groups)
+                ->whereDoesntHave('logbooks', function($query) use ($threeDaysAgo) {
+                    $query->where('tanggal', '>=', $threeDaysAgo);
+                })
+                ->count();
+
+            if ($inactiveMahasiswaLogbook > 0) {
+                $alerts[] = [
+                    'type' => 'danger',
+                    'title' => 'Peringatan Ketidakaktifan',
+                    'message' => "Ada {$inactiveMahasiswaLogbook} mahasiswa yang tidak submit logbook dalam 3 hari terakhir",
+                    'action' => 'check_inactive_students',
+                    'url' => route('monitoring.logbook-detail')
+                ];
+            }
+
+            // Mahasiswa yang tidak aktif (tidak ada absensi dalam 3 hari terakhir)
+            $inactiveMahasiswaAbsensi = User::role('mahasiswa')
+                ->whereIn('kelompok_id', $groups)
+                ->whereDoesntHave('absensi', function($query) use ($threeDaysAgo) {
+                    $query->where('tanggal', '>=', $threeDaysAgo);
+                })
+                ->count();
+
+            if ($inactiveMahasiswaAbsensi > 0) {
+                $alerts[] = [
+                    'type' => 'danger',
+                    'title' => 'Peringatan Ketidakaktifan',
+                    'message' => "Ada {$inactiveMahasiswaAbsensi} mahasiswa yang tidak absen dalam 3 hari terakhir",
+                    'action' => 'check_inactive_attendance',
+                    'url' => route('monitoring.attendance-detail')
+                ];
             }
         }
 
-        // Mahasiswa yang tidak aktif (tidak ada logbook dalam periode KKN)
-        $inactiveMahasiswaLogbook = User::role('mahasiswa')
-            ->whereIn('kelompok_id', $groups)
-            ->whereDoesntHave('logbooks', function($query) use ($startDate, $endDate) {
-                $query->where('tanggal', '>=', $startDate)
-                      ->where('tanggal', '<=', $endDate);
-            })
-            ->count();
-
-        if ($inactiveMahasiswaLogbook > 0) {
-            $alerts[] = [
-                'type' => 'danger',
-                'title' => 'Mahasiswa Tidak Aktif',
-                'message' => "Ada {$inactiveMahasiswaLogbook} mahasiswa yang tidak submit logbook dalam periode KKN",
-                'action' => 'check_inactive_students',
-                'url' => route('monitoring.logbook-detail')
-            ];
-        }
-
-        // Mahasiswa yang tidak aktif (tidak ada absensi dalam periode KKN)
-        $inactiveMahasiswaAbsensi = User::role('mahasiswa')
-            ->whereIn('kelompok_id', $groups)
-            ->whereDoesntHave('absensi', function($query) use ($startDate, $endDate) {
-                $query->where('tanggal', '>=', $startDate)
-                      ->where('tanggal', '<=', $endDate);
-            })
-            ->count();
-
-        if ($inactiveMahasiswaAbsensi > 0) {
-            $alerts[] = [
-                'type' => 'danger',
-                'title' => 'Mahasiswa Tidak Aktif',
-                'message' => "Ada {$inactiveMahasiswaAbsensi} mahasiswa yang tidak absen dalam periode KKN",
-                'action' => 'check_inactive_attendance',
-                'url' => route('monitoring.attendance-detail')
-            ];
-        }
-
         return response()->json($alerts);
+    }
+
+    public function markNotificationAsRead(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id) {
+            $readNotifications = session()->get('dpl_read_notifications', []);
+            if (!in_array($id, $readNotifications)) {
+                $readNotifications[] = $id;
+                session()->put('dpl_read_notifications', $readNotifications);
+            }
+        }
+        return response()->json(['success' => true]);
     }
 
     private function getMahasiswaDashboardData($user)

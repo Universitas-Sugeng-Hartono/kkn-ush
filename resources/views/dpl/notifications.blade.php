@@ -162,41 +162,47 @@
         <div class="card">
             <div class="card-body">
                 @if(count($notifications) > 0)
-                    <div class="list-group list-group-flush">
-                        @foreach($notifications as $notification)
-                            @php
-                                switch($notification['type']) {
-                                    case 'logbook_pending':
-                                        $icon = 'book'; $color = 'warning'; break;
-                                    case 'absensi_pending':
-                                        $icon = 'calendar-check'; $color = 'info'; break;
-                                    case 'no_logbook_today':
-                                        $icon = 'exclamation-triangle'; $color = 'danger'; break;
-                                    case 'no_absensi_today':
-                                        $icon = 'exclamation-triangle'; $color = 'danger'; break;
-                                    default:
-                                        $icon = 'info-circle'; $color = 'primary'; break;
-                                }
-                            @endphp
-                            <div class="list-group-item d-flex align-items-start p-3">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
-                                         style="width: 40px; height: 40px; background-color: #007bff;">
-                                        <i class="fas fa-{{ $icon }} text-white"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1 fw-bold text-{{ $color }}">
-                                                {{ $notification['title'] }}
-                                            </h6>
-                                            <p class="mb-1 text-muted">{{ $notification['message'] }}</p>
-                                            <small class="text-muted">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover datatable w-100">
+                            <thead>
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th width="20%">Kategori</th>
+                                    <th width="45%">Pesan Notifikasi</th>
+                                    <th width="15%">Waktu</th>
+                                    <th width="15%">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($notifications as $index => $notification)
+                                    @php
+                                        switch($notification['type']) {
+                                            case 'logbook_pending':
+                                                $icon = 'book'; $color = 'warning'; break;
+                                            case 'absensi_pending':
+                                                $icon = 'calendar-check'; $color = 'info'; break;
+                                            case 'no_logbook_today':
+                                                $icon = 'book-dead'; $color = 'danger'; break;
+                                            case 'no_absensi_today':
+                                                $icon = 'user-clock'; $color = 'warning'; break;
+                                            default:
+                                                $icon = 'info-circle'; $color = 'primary'; break;
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ $color }} bg-opacity-10 text-{{ $color }} px-2 py-1 rounded">
+                                                <i class="fas fa-{{ $icon }} me-1"></i> {{ $notification['title'] }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $notification['message'] }}</td>
+                                        <td>
+                                            <small class="text-muted" data-order="{{ $notification['created_at']->timestamp }}">
                                                 {{ $notification['created_at']->diffForHumans() }}
                                             </small>
-                                        </div>
-                                        <div>
+                                        </td>
+                                        <td>
                                             @if($notification['type'] == 'logbook_pending')
                                                 <a href="{{ route('logbooks.pending') }}" class="btn btn-sm btn-warning">
                                                     <i class="fas fa-eye"></i> Review
@@ -207,18 +213,18 @@
                                                 </a>
                                             @elseif($notification['type'] == 'no_logbook_today')
                                                 <a href="{{ route('students.show', $notification['data']['user_id']) }}" class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-user"></i> Detail Mahasiswa
+                                                    <i class="fas fa-user"></i> Detail
                                                 </a>
                                             @elseif($notification['type'] == 'no_absensi_today')
                                                 <a href="{{ route('students.show', $notification['data']['user_id']) }}" class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-user"></i> Detail Mahasiswa
+                                                    <i class="fas fa-user"></i> Detail
                                                 </a>
                                             @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <div class="text-center py-5">
@@ -270,4 +276,22 @@
         </div>
         @endif
     </div>
+
+    @push('scripts')
+    <script>
+        $(document).ready(function() {
+            $('.datatable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json',
+                },
+                order: [
+                    [3, 'desc'] // Urutkan berdasarkan waktu secara default
+                ],
+                columnDefs: [
+                    { orderable: false, targets: 4 } // Aksi tidak perlu bisa diurutkan
+                ]
+            });
+        });
+    </script>
+    @endpush
 </x-app-layout> 

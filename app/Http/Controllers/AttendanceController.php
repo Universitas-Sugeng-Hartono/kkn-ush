@@ -29,6 +29,7 @@ class AttendanceController extends Controller
         // Data untuk kalender
         $events = $attendances->map(function($attendance) {
             return [
+                'id' => $attendance->id,
                 'title' => 'Absen',
                 'start' => $attendance->tanggal->format('Y-m-d'),
                 'backgroundColor' => $this->getStatusColor($attendance->status),
@@ -142,10 +143,17 @@ class AttendanceController extends Controller
 
         // Validasi kelompok
         if (!$user->kelompok_id) {
-            return response()->json([
-                'message' => 'Anda belum terdaftar dalam kelompok manapun. Silakan hubungi admin.',
-                'status' => 'error'
-            ], 422);
+            $msg = 'Anda belum terdaftar dalam kelompok manapun. Silakan hubungi admin.';
+            if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
+            return redirect()->back()->with('error', $msg);
+        }
+
+        // Validasi rentang tanggal KKN Aktif
+        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')->first();
+        if (!$angkatanAktif || !now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai)) {
+            $msg = 'Anda hanya dapat mengisi absensi saat masa KKN sedang berjalan sesuai jadwal dari Universitas Sugeng Hartono.';
+            if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
+            return redirect()->back()->with('error', $msg);
         }
 
         // Validasi input

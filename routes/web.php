@@ -138,6 +138,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dpl/notifications', [DashboardController::class, 'getNotifications'])->name('dpl.notifications.get');
         Route::get('/alerts', [DashboardController::class, 'getAlerts'])->name('alerts.get');
         Route::get('/dpl/notifications-page', [DplNotificationController::class, 'index'])->name('dpl.notifications.index');
+        Route::post('/dpl/notifications/read', [DashboardController::class, 'markNotificationAsRead'])->name('dpl.notifications.mark-read');
         
         // History Logbook dan Absensi
         Route::get('/history/logbooks', [App\Http\Controllers\HistoryLogbookController::class, 'index'])->name('history.logbooks.index');

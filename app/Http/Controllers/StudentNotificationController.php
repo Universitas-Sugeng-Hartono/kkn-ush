@@ -51,12 +51,31 @@ class StudentNotificationController extends Controller
 
     public function getNotifications()
     {
-        $notifications = auth()->user()->notifications()
-            ->where('is_read', false)
+        $allNotifications = auth()->user()->notifications()
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
+            
+        $unreadCount = auth()->user()->notifications()->where('is_read', false)->count();
 
-        return response()->json($notifications);
+        $notifications = $allNotifications->map(function ($notif) {
+            $url = '#';
+            if (str_contains($notif->type, 'logbook')) {
+                $url = route('logbooks.index');
+            } elseif (str_contains($notif->type, 'attendance')) {
+                $url = route('attendance.index');
+            }
+            
+            $notifArray = $notif->toArray();
+            $notifArray['url'] = $url;
+            return $notifArray;
+        });
+
+        \Illuminate\Support\Facades\Log::info('DEBUG_NOTIF: ' . json_encode($notifications));
+
+        return response()->json([
+            'notifications' => collect($notifications)->values()->all(),
+            'unread_count' => $unreadCount
+        ]);
     }
 }

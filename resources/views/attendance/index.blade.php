@@ -641,6 +641,35 @@
                     today: 'Hari Ini'
                 },
                 events: @json($events),
+                dateClick: function(info) {
+                    const date = info.date;
+                    const today = new Date();
+                    
+                    date.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (date.getTime() === today.getTime()) {
+                        const hasMasuk = {{ $hasMasuk ? 'true' : 'false' }};
+                        const hasKeluar = {{ $hasKeluar ? 'true' : 'false' }};
+                        
+                        if (!hasMasuk) {
+                            takeAttendance('masuk');
+                        } else if (!hasKeluar) {
+                            takeAttendance('keluar');
+                        } else {
+                            Swal.fire('Info', 'Anda sudah menyelesaikan absensi untuk hari ini.', 'info');
+                        }
+                    } else if (date < today) {
+                        Swal.fire('Perhatian', 'Tidak dapat melakukan absensi untuk hari yang sudah lewat.', 'warning');
+                    } else {
+                        Swal.fire('Perhatian', 'Tidak dapat melakukan absensi untuk hari yang belum tiba.', 'warning');
+                    }
+                },
+                eventClick: function(info) {
+                    if (info.event.id) {
+                        showDetail(info.event.id);
+                    }
+                },
                 dayCellDidMount: function(info) {
                     // Tandai hari yang sudah/belum absen
                     const event = info.el;

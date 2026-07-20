@@ -832,7 +832,10 @@
             function loadStudentNotifications() {
                 fetch('{{ route('notifications.get') }}')
                     .then(response => response.json())
-                    .then(notifications => {
+                    .then(data => {
+                        const notifications = data.notifications || data;
+                        const unreadCount = data.unread_count !== undefined ? data.unread_count : notifications.length;
+                        
                         const container = document.getElementById('student-notifications-list');
                         const badge = document.getElementById('student-notification-badge');
                         if (!container || !badge) return;
@@ -844,27 +847,62 @@
                             notifications.forEach(notification => {
                                 const icon = getStudentNotificationIcon(notification.type);
                                 const color = getStudentNotificationColor(notification.type);
+                                const bgClass = notification.is_read ? '' : 'bg-light';
+                                const fwClass = notification.is_read ? '' : 'fw-bold';
+                                const isRead = notification.is_read;
                                 const notificationHtml = `
-                                        <li class="px-3 py-2">
-                                            <div class="d-flex">
-                                                <div class="flex-shrink-0">
+                                        <li class="px-3 py-2 border-bottom ${bgClass}" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.classList.add('bg-light')" onmouseout="if(!${isRead}) { this.classList.add('bg-light'); } else { this.classList.remove('bg-light'); }" onclick="markStudentNotificationAsRead('${notification.id}', '${notification.url || '#'}')">
+                                            <div class="d-flex text-dark">
+                                                <div class="flex-shrink-0 mt-1">
                                                     <i class="fas fa-${icon} text-${color}"></i>
                                                 </div>
                                                 <div class="flex-grow-1 ms-3">
-                                                    <div class="fw-bold small">${notification.title}</div>
+                                                    <div class="${fwClass} small">${notification.title}</div>
                                                     <div class="small text-muted">${notification.message}</div>
-                                                    <div class="small text-muted">${new Date(notification.created_at).toLocaleString('id-ID')}</div>
+                                                    <div class="small text-muted mt-1" style="font-size: 0.75rem;"><i class="far fa-clock me-1"></i>${new Date(notification.created_at).toLocaleString('id-ID')}</div>
                                                 </div>
                                             </div>
                                         </li>
                                     `;
                                 container.innerHTML += notificationHtml;
                             });
-                            badge.textContent = notifications.length;
-                            badge.style.display = 'block';
+                            
+                            if (unreadCount > 0) {
+                                badge.textContent = unreadCount;
+                                badge.style.display = 'block';
+                            } else {
+                                badge.style.display = 'none';
+                            }
                         }
                     });
             }
+
+            window.markStudentNotificationAsRead = function(id, url) {
+                if (!id || id === 'undefined') {
+                    if (url && url !== '#') window.location.href = url;
+                    return;
+                }
+                
+                fetch(`/notifications/${id}/mark-read`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                }).then(() => {
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    } else {
+                        loadStudentNotifications();
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    }
+                });
+            };
 
             function getStudentNotificationIcon(type) {
                 switch (type) {
@@ -902,34 +940,68 @@
                         const badge = document.getElementById('notification-badge');
                         if (!container || !badge) return;
                         if (notifications.length === 0) {
-                            container.innerHTML = '<li class="px-3 py-2 text-muted">Tidak ada notifikasi baru</li>';
+                            container.innerHTML = '<li class="px-3 py-2 text-muted text-center"><i class="fas fa-bell-slash mb-2 d-block text-muted" style="font-size: 24px;"></i>Tidak ada notifikasi baru</li>';
                             badge.style.display = 'none';
                         } else {
                             container.innerHTML = '';
                             notifications.forEach(notification => {
                                 const icon = getNotificationIcon(notification.type);
                                 const color = getNotificationColor(notification.type);
+                                const isRead = notification.is_read;
+                                const bgClass = isRead ? '' : 'bg-light';
+                                const fwClass = isRead ? '' : 'fw-bold';
+                                
                                 const notificationHtml = `
-                                        <li class="px-3 py-2">
+                                        <li class="px-3 py-2 ${bgClass} border-bottom" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.classList.add('bg-light')" onmouseout="if(!${isRead}) { this.classList.add('bg-light'); } else { this.classList.remove('bg-light'); }" onclick="markDplNotificationRead('${notification.id}', '${notification.url || '#'}')">
                                             <div class="d-flex">
-                                                <div class="flex-shrink-0">
+                                                <div class="flex-shrink-0 mt-1">
                                                     <i class="fas fa-${icon} text-${color}"></i>
                                                 </div>
                                                 <div class="flex-grow-1 ms-3">
-                                                    <div class="fw-bold small">${notification.title}</div>
+                                                    <div class="${fwClass} small text-dark">${notification.title}</div>
                                                     <div class="small text-muted">${notification.message}</div>
-                                                    <div class="small text-muted">${new Date(notification.created_at).toLocaleString('id-ID')}</div>
+                                                    <div class="small text-muted mt-1"><i class="far fa-clock me-1"></i>${new Date(notification.created_at).toLocaleString('id-ID')}</div>
                                                 </div>
                                             </div>
                                         </li>
                                     `;
                                 container.innerHTML += notificationHtml;
                             });
-                            badge.textContent = notifications.length;
-                            badge.style.display = 'block';
+                            
+                            const unreadCount = notifications.filter(n => !n.is_read).length;
+                            if (unreadCount > 0) {
+                                badge.textContent = unreadCount;
+                                badge.style.display = 'block';
+                            } else {
+                                badge.style.display = 'none';
+                            }
                         }
                     });
             }
+
+            window.markDplNotificationRead = function(id, url) {
+                if (!id || id === 'undefined') {
+                    if (url && url !== '#') window.location.href = url;
+                    return;
+                }
+                
+                fetch('{{ route('dpl.notifications.mark-read') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ id: id })
+                }).then(() => {
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    } else {
+                        loadNotifications();
+                    }
+                }).catch(() => {
+                    if (url && url !== '#') window.location.href = url;
+                });
+            };
 
             function getNotificationIcon(type) {
                 switch (type) {
