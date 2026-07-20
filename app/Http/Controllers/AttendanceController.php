@@ -350,7 +350,11 @@ class AttendanceController extends Controller
     public function destroy(Absensi $attendance)
     {
         if ($attendance->foto_kegiatan) {
-            Storage::delete('public/' . $attendance->foto_kegiatan);
+            Storage::disk('public')->delete($attendance->foto_kegiatan);
+        }
+        
+        if ($attendance->foto_keluar) {
+            Storage::disk('public')->delete($attendance->foto_keluar);
         }
 
         $attendance->delete();

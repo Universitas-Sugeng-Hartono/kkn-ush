@@ -18,7 +18,7 @@ class StudentNotificationController extends Controller
         $isMobile = session('is_mobile_device', false);
         
         if ($isMobile && auth()->user()->hasRole('mahasiswa')) {
-            return view('mobile.notifications.index', compact('notifications'));
+            return redirect()->route('mobile.notifications');
         }
 
         return view('students.notifications', compact('notifications'));

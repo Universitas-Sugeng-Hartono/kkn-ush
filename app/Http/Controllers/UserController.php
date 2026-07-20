@@ -227,9 +227,41 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Bersihkan seluruh file fisik yang terkait dengan user untuk mencegah storage leak
+        if ($user->foto_profil) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($user->foto_profil);
+        }
+        if ($user->photo) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($user->photo);
+        }
+
+        // Hapus foto/attachment logbook
+        $logbooks = \App\Models\Logbook::where('user_id', $user->id)->get();
+        foreach ($logbooks as $logbook) {
+            foreach ($logbook->photos as $photo) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($photo->path);
+            }
+            if ($logbook->attachments) {
+                foreach ($logbook->attachments as $attachment) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment['path']);
+                }
+            }
+        }
+
+        // Hapus foto absensi
+        $attendances = \App\Models\Absensi::where('user_id', $user->id)->get();
+        foreach ($attendances as $attendance) {
+            if ($attendance->foto_kegiatan) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($attendance->foto_kegiatan);
+            }
+            if ($attendance->foto_keluar) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($attendance->foto_keluar);
+            }
+        }
+
         $user->delete();
         return redirect()->route('users.index')
-            ->with('success', 'User berhasil dihapus.');
+            ->with('success', 'User berhasil dihapus beserta seluruh file datanya.');
     }
 
     public function import(Request $request)
