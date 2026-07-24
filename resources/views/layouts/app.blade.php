@@ -1028,6 +1028,66 @@
             @endif
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Override native form onsubmit with confirm()
+            document.querySelectorAll('form[onsubmit*="return confirm"]').forEach(form => {
+                const match = form.getAttribute('onsubmit').match(/return confirm\(['"`](.*?)['"`]\)/);
+                if (match) {
+                    const message = match[1];
+                    form.removeAttribute('onsubmit');
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Konfirmasi',
+                            text: message,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Ya',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    });
+                }
+            });
+
+            // Override native onclick with confirm()
+            document.querySelectorAll('[onclick*="return confirm"]').forEach(element => {
+                const match = element.getAttribute('onclick').match(/return confirm\(['"`](.*?)['"`]\)/);
+                if (match) {
+                    const message = match[1];
+                    element.removeAttribute('onclick');
+                    element.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Konfirmasi',
+                            text: message,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Ya',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                if (element.tagName === 'A') {
+                                    window.location.href = element.href;
+                                } else if (element.type === 'submit') {
+                                    element.closest('form').submit();
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+    <x-firebase-init />
     @stack('scripts')
 </body>
 

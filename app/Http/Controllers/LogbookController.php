@@ -168,7 +168,14 @@ class LogbookController extends Controller
         }
 
         // Validasi rentang tanggal KKN Aktif
-        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')->first();
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+        $angkatanAktif = null;
+        if ($tahunAktif && $semesterAktif) {
+            $angkatanAktif = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
+                ->where('semester_id', $semesterAktif->id)
+                ->first();
+        }
         if (!$angkatanAktif || !now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai)) {
             $msg = 'Anda hanya dapat mengirim logbook saat masa KKN sedang berjalan sesuai jadwal dari Universitas Sugeng Hartono.';
             if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
@@ -230,6 +237,10 @@ class LogbookController extends Controller
             }
             
             $logbook->update(['attachments' => $attachments]);
+        }
+
+        if ($validated['status'] === 'submitted') {
+            NotificationService::logbookSubmitted($logbook);
         }
 
         // Check if redirect to mobile
@@ -342,6 +353,10 @@ class LogbookController extends Controller
             $logbook->update(['attachments' => array_merge($existingAttachments, $newAttachments)]);
         }
 
+        if ($validated['status'] === 'submitted' && $logbook->getOriginal('status') !== 'submitted') {
+            NotificationService::logbookSubmitted($logbook);
+        }
+
         // Check if redirect to mobile
         if ($request->has('redirect_to') && $request->redirect_to === 'mobile') {
             return redirect()->route('mobile.logbooks.show', $logbook)
@@ -440,6 +455,8 @@ class LogbookController extends Controller
         // $this->authorize('submit', $logbook);
 
         $logbook->update(['status' => 'submitted']);
+
+        NotificationService::logbookSubmitted($logbook);
 
         return redirect()->route('logbooks.index')
             ->with('success', 'Logbook berhasil disubmit untuk review.');

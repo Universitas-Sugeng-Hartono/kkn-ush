@@ -21,6 +21,7 @@ use App\Http\Controllers\MobileController;
 use App\Http\Controllers\LaporanKelompokController;
 use App\Http\Controllers\DplLaporanKelompokController;
 use App\Http\Controllers\TahunAkademikController;
+use App\Http\Controllers\FcmTokenController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
@@ -45,6 +46,7 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
+    Route::post('/fcm-token', [FcmTokenController::class, 'store'])->name('fcm-token.store');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Device detection routes

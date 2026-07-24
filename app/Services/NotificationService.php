@@ -7,18 +7,74 @@ use App\Models\User;
 use App\Models\Logbook;
 use App\Models\Absensi;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FcmNotification;
 
 class NotificationService
 {
     public static function createNotification($userId, $type, $title, $message, $data = null)
     {
-        return Notification::create([
+        $notification = Notification::create([
             'user_id' => $userId,
             'type' => $type,
             'title' => $title,
             'message' => $message,
             'data' => $data
         ]);
+
+        self::sendPushNotification($userId, $title, $message, $data);
+
+        return $notification;
+    }
+
+    protected static function sendPushNotification($userId, $title, $body, $data = [])
+    {
+        try {
+            $user = User::with('fcmTokens')->find($userId);
+            if (!$user || $user->fcmTokens->isEmpty()) {
+                Log::info("FCM Push: No tokens found for user {$userId}");
+                return;
+            }
+
+            $messaging = app('firebase.messaging');
+
+            $tokens = $user->fcmTokens->pluck('token')->toArray();
+            Log::info("FCM Push: Sending to tokens: ", $tokens);
+            
+            $message = CloudMessage::new()
+                ->withNotification(FcmNotification::create($title, $body))
+                ->withData($data ?? []);
+
+            $report = $messaging->sendMulticast($message, $tokens);
+            Log::info("FCM Push Report: Successes: {$report->successes()->count()}, Failures: {$report->failures()->count()}");
+            
+            if ($report->hasFailures()) {
+                foreach ($report->failures()->getItems() as $failure) {
+                    Log::error('FCM Push Failure: ' . $failure->error()->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('FCM Push Notification Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        }
+    }
+
+    public static function logbookSubmitted(Logbook $logbook)
+    {
+        $dpl_id = $logbook->user->kelompok->dpl_id ?? null;
+        if (!$dpl_id) return null;
+
+        return self::createNotification(
+            $dpl_id,
+            'logbook_submitted',
+            'Logbook Baru',
+            "Mahasiswa {$logbook->user->name} telah men-submit logbook baru untuk tanggal {$logbook->tanggal->format('d/m/Y')}.",
+            [
+                'logbook_id' => $logbook->id,
+                'tanggal' => $logbook->tanggal->format('d/m/Y'),
+                'mahasiswa' => $logbook->user->name
+            ]
+        );
     }
 
     public static function logbookApproved(Logbook $logbook)
@@ -62,6 +118,24 @@ class NotificationService
             [
                 'attendance_id' => $absensi->id,
                 'tanggal' => $absensi->tanggal->format('d/m/Y')
+            ]
+        );
+    }
+
+    public static function attendanceSubmitted(Absensi $absensi)
+    {
+        $dpl_id = $absensi->user->kelompok->dpl_id ?? null;
+        if (!$dpl_id) return null;
+
+        return self::createNotification(
+            $dpl_id,
+            'attendance_submitted',
+            'Absensi Baru',
+            "Mahasiswa {$absensi->user->name} telah melakukan absensi untuk tanggal {$absensi->tanggal->format('d/m/Y')}.",
+            [
+                'attendance_id' => $absensi->id,
+                'tanggal' => $absensi->tanggal->format('d/m/Y'),
+                'mahasiswa' => $absensi->user->name
             ]
         );
     }

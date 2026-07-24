@@ -194,10 +194,12 @@ class DashboardController extends Controller
             ->count();
 
         // Pengecekan status KKN berjalan
-        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')
-            ->where('tahun_akademik_id', $tahunAktif?->id)
-            ->where('semester_id', $semesterAktif?->id)
-            ->first();
+        $angkatanAktif = null;
+        if ($tahunAktif && $semesterAktif) {
+            $angkatanAktif = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
+                ->where('semester_id', $semesterAktif->id)
+                ->first();
+        }
             
         $isKknBerjalan = $angkatanAktif && now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai);
 
@@ -472,10 +474,12 @@ class DashboardController extends Controller
         $alerts = [];
 
         // Pengecekan status KKN berjalan untuk memunculkan peringatan
-        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')
-            ->where('tahun_akademik_id', $tahunAktif?->id)
-            ->where('semester_id', $semesterAktif?->id)
-            ->first();
+        $angkatanAktif = null;
+        if ($tahunAktif && $semesterAktif) {
+            $angkatanAktif = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
+                ->where('semester_id', $semesterAktif->id)
+                ->first();
+        }
             
         $isKknBerjalan = $angkatanAktif && now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai);
 

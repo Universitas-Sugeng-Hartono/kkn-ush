@@ -149,7 +149,14 @@ class AttendanceController extends Controller
         }
 
         // Validasi rentang tanggal KKN Aktif
-        $angkatanAktif = \App\Models\Angkatan::where('status', 'aktif')->first();
+        $tahunAktif = \App\Models\TahunAkademik::getAktif();
+        $semesterAktif = \App\Models\Semester::getAktif();
+        $angkatanAktif = null;
+        if ($tahunAktif && $semesterAktif) {
+            $angkatanAktif = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
+                ->where('semester_id', $semesterAktif->id)
+                ->first();
+        }
         if (!$angkatanAktif || !now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai)) {
             $msg = 'Anda hanya dapat mengisi absensi saat masa KKN sedang berjalan sesuai jadwal dari Universitas Sugeng Hartono.';
             if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
@@ -264,6 +271,9 @@ class AttendanceController extends Controller
                 $absensi = $existingAttendance;
                 $message = 'Absensi keluar berhasil disimpan';
             }
+
+            // Kirim notifikasi ke DPL
+            NotificationService::attendanceSubmitted($absensi);
 
             return response()->json([
                 'message' => $message,

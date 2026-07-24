@@ -125,6 +125,9 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($user->photo);
         }
 
+        // Hapus FCM Tokens
+        $user->fcmTokens()->delete();
+
         Auth::logout();
 
         $user->delete();

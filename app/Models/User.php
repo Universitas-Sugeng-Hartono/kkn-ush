@@ -118,4 +118,9 @@ class User extends Authenticatable
     {
         return $this->notifications()->where('is_read', false);
     }
+
+    public function fcmTokens()
+    {
+        return $this->hasMany(FcmToken::class);
+    }
 }
