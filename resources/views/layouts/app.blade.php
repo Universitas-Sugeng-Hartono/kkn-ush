@@ -528,7 +528,7 @@
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <div id="notifications-list">
+                                    <div id="notifications-list" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
                                         <li class="px-3 py-2 text-muted">Memuat notifikasi...</li>
                                     </div>
                                     <li>
@@ -553,7 +553,7 @@
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <div id="student-notifications-list">
+                                    <div id="student-notifications-list" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
                                         <li class="px-3 py-2 text-muted">Memuat notifikasi...</li>
                                     </div>
                                     <li>

@@ -36,48 +36,53 @@
                                 }
                             }).catch((err) => {
                                 console.error('Error retrieving token: ', err);
-                                if (window.Swal) Swal.fire('FCM Error', 'Gagal mendapatkan token: ' + err.message, 'error');
                             });
                         } else {
-                            if (window.Swal) Swal.fire('Izin Ditolak', 'Harap klik ikon gembok di sebelah URL (kiri atas), lalu izinkan Notifikasi.', 'warning');
+                            // User blocked the prompt native. Don't show annoying popup, just log.
+                            console.log('User denied native notification prompt.');
                         }
                     });
                 };
 
                 if (Notification.permission === 'granted') {
+                    // Already granted, silently get token
                     requestAndGetToken();
                 } else if (Notification.permission === 'default') {
-                    // Ask via Swal to guarantee a user gesture for Safari/Chrome
-                    if (window.Swal) {
-                        Swal.fire({
-                            title: 'Aktifkan Notifikasi?',
-                            text: 'Sistem membutuhkan akses notifikasi untuk fitur real-time.',
-                            icon: 'info',
-                            showCancelButton: true,
-                            confirmButtonText: 'Ya, Izinkan',
-                            cancelButtonText: 'Nanti'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                requestAndGetToken();
-                            }
-                        });
-                    } else {
-                        requestAndGetToken();
+                    // Only ask once per session or device using localStorage
+                    const hasPrompted = localStorage.getItem('has_prompted_push');
+                    if (!hasPrompted) {
+                        let notifHtml = '<div class="text-start" style="font-size: 15px;"><p>Aktifkan notifikasi untuk mendapatkan pemberitahuan penting secara instan dari sistem.</p></div>';
+                        
+                        @role('mahasiswa')
+                        notifHtml = '<div class="text-start" style="font-size: 15px;"><p>Aktifkan notifikasi untuk mendapatkan update <i>real-time</i>:</p><ul class="text-muted"><li>Pemberitahuan saat Logbook atau Absensi Anda disetujui/ditolak.</li><li>Mengetahui saat ada pengumuman penting.</li></ul></div>';
+                        @endrole
+                        
+                        @role('dpl')
+                        notifHtml = '<div class="text-start" style="font-size: 15px;"><p>Aktifkan notifikasi untuk kemudahan pemantauan <i>real-time</i>:</p><ul class="text-muted"><li>Langsung tahu saat mahasiswa mengirimkan Logbook baru.</li><li>Pemberitahuan instan saat mahasiswa melakukan Absensi.</li></ul></div>';
+                        @endrole
+
+                        if (window.Swal) {
+                            Swal.fire({
+                                title: 'Izinkan Notifikasi?',
+                                html: notifHtml,
+                                icon: 'info',
+                                showCancelButton: true,
+                                confirmButtonText: 'Ya, Izinkan',
+                                cancelButtonText: 'Nanti'
+                            }).then((result) => {
+                                localStorage.setItem('has_prompted_push', 'true');
+                                if (result.isConfirmed) {
+                                    requestAndGetToken();
+                                }
+                            });
+                        } else {
+                            localStorage.setItem('has_prompted_push', 'true');
+                            requestAndGetToken();
+                        }
                     }
                 } else {
+                    // Permission denied previously. Do not nag the user.
                     console.log('Notification permission has been denied previously.');
-                    // Optional: show a small non-intrusive toast instead of a blocking alert
-                    if (window.Swal) {
-                        Swal.fire({
-                            title: 'Notifikasi Diblokir',
-                            text: 'Fitur real-time tidak aktif. Klik ikon gembok di URL untuk mengizinkan.',
-                            icon: 'warning',
-                            toast: true,
-                            position: 'bottom-end',
-                            showConfirmButton: false,
-                            timer: 5000
-                        });
-                    }
                 }
 
             }).catch(function(err) {

@@ -13,9 +13,10 @@ class FcmTokenController extends Controller
         ]);
 
         if (auth()->check()) {
-            auth()->user()->fcmTokens()->firstOrCreate([
-                'token' => $request->token
-            ]);
+            \App\Models\FcmToken::updateOrCreate(
+                ['token' => $request->token],
+                ['user_id' => auth()->id()]
+            );
 
             return response()->json(['message' => 'Token successfully stored.']);
         }

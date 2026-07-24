@@ -75,10 +75,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        // Hapus token FCM pengguna sebelum logout untuk mencegah notifikasi nyasar
-        if (Auth::check()) {
-            Auth::user()->fcmTokens()->delete();
-        }
+        // Sesuai request klien: Jangan hapus token FCM saat logout agar
+        // pengguna tetap bisa menerima notifikasi push di background (HP/Laptop)
+        // Token akan otomatis tertimpa (re-assigned) saat user lain login di perangkat ini.
+        // if (Auth::check()) {
+        //     Auth::user()->fcmTokens()->delete();
+        // }
 
         Auth::guard('web')->logout();
 
