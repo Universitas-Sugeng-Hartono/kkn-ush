@@ -312,7 +312,7 @@ class UserController extends Controller
 
     public function bulkResetPassword(Request $request)
     {
-        $userIds = json_decode($request->user_ids, true);
+        $userIds = is_string($request->user_ids) ? json_decode($request->user_ids, true) : (is_array($request->user_ids) ? $request->user_ids : []);
         if (!$userIds || !is_array($userIds)) {
             return redirect()->back()->with('error', 'Tidak ada user yang dipilih.');
         }

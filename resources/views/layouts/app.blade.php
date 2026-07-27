@@ -420,6 +420,12 @@
                         <span>Monitoring Logbook</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('dpl.broadcast.index') }}" class="{{ request()->routeIs('dpl.broadcast.*') ? 'active' : '' }}">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        <span>Broadcast Pengumuman</span>
+                    </a>
+                </li>
                 @endrole
 
                 @role('admin')
@@ -489,6 +495,12 @@
                         <span>Monitoring Logbook</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.broadcast.index') }}" class="{{ request()->routeIs('admin.broadcast.*') ? 'active' : '' }}">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        <span>Broadcast Pengumuman</span>
+                    </a>
+                </li>
                 @endrole
             </ul>
         </nav>
@@ -538,7 +550,7 @@
                                 </ul>
                             </li>
                             @endrole
-                            @role('mahasiswa')
+                            @if(auth()->user() && !auth()->user()->hasRole('dpl'))
                             <li class="nav-item dropdown me-3">
                                 <a class="nav-link position-relative" href="#" id="studentNotificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-bell"></i>
@@ -562,7 +574,7 @@
                                     <li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">Lihat Semua</a></li>
                                 </ul>
                             </li>
-                            @endrole
+                            @endif
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     {{ Auth::user()->name }}
@@ -827,8 +839,8 @@
                 });
             @endif
 
-            // Notifikasi Mahasiswa
-            @if(auth()->user() && auth()->user()->hasRole('mahasiswa'))
+            // Notifikasi Mahasiswa / Admin
+            @if(auth()->user() && !auth()->user()->hasRole('dpl'))
             function loadStudentNotifications() {
                 fetch('{{ route('notifications.get') }}')
                     .then(response => response.json())
@@ -911,6 +923,8 @@
                     case 'attendance_approved': return 'check-circle';
                     case 'attendance_rejected': return 'times-circle';
                     case 'late_attendance': return 'exclamation-triangle';
+                    case 'broadcast':
+                    case 'dpl_broadcast': return 'bullhorn';
                     default: return 'bell';
                 }
             }
@@ -922,6 +936,8 @@
                     case 'attendance_approved': return 'success';
                     case 'attendance_rejected': return 'danger';
                     case 'late_attendance': return 'warning';
+                    case 'broadcast':
+                    case 'dpl_broadcast': return 'primary';
                     default: return 'primary';
                 }
             }
@@ -1009,6 +1025,8 @@
                     case 'absensi_pending': return 'calendar-check';
                     case 'no_logbook_today': return 'exclamation-circle';
                     case 'no_absensi_today': return 'exclamation-triangle';
+                    case 'broadcast':
+                    case 'dpl_broadcast': return 'bullhorn';
                     default: return 'bell';
                 }
             }
@@ -1019,6 +1037,8 @@
                     case 'absensi_pending': return 'info';
                     case 'no_logbook_today': return 'danger';
                     case 'no_absensi_today': return 'warning';
+                    case 'broadcast':
+                    case 'dpl_broadcast': return 'primary';
                     default: return 'secondary';
                 }
             }

@@ -9,6 +9,8 @@ use App\Models\Kelompok;
 use App\Models\Pengaduan;
 use App\Models\Semester;
 use App\Models\TahunAkademik;
+use App\Models\Notification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,11 +33,15 @@ class DashboardController extends Controller
         } elseif ($user->hasRole('mahasiswa')) {
             $data = $this->getMahasiswaDashboardData($user);
             
-            // Cek apakah user memaksa mode desktop
-            $forceDesktop = $request->query('mode') === 'desktop';
-            
+            // Cek apakah user memaksa mode desktop/mobile melalui URL
+            if ($request->query('mode') === 'desktop') {
+                session(['device_override' => 'desktop', 'is_mobile_device' => false]);
+            } elseif ($request->query('mode') === 'mobile') {
+                session(['device_override' => 'mobile', 'is_mobile_device' => true]);
+            }
+
             // Deteksi device untuk mahasiswa
-            $isMobile = session('is_mobile_device', false) && !$forceDesktop;
+            $isMobile = session('is_mobile_device', false);
             
             // Jika belum ada deteksi device, coba deteksi dari User-Agent
             if (!$isMobile && !session('device_info')) {
@@ -444,6 +450,26 @@ class DashboardController extends Controller
             ];
         }
 
+        // Notifikasi dari Database (seperti Broadcast Pengumuman)
+        $dbNotifications = $user->notifications()->latest()->take(10)->get();
+        foreach ($dbNotifications as $notif) {
+            $dataObj = !empty($notif->data) ? (is_string($notif->data) ? json_decode($notif->data, true) : $notif->data) : [];
+            $url = !empty($dataObj['action_url']) ? $dataObj['action_url'] : route('dpl.notifications.index');
+            $notifications[] = [
+                'id' => 'db_' . $notif->id,
+                'type' => $notif->type,
+                'title' => $notif->title,
+                'message' => $notif->message,
+                'url' => $url,
+                'is_read' => $notif->is_read,
+                'data' => $notif->data,
+                'created_at' => $notif->created_at,
+                'urgency' => $dataObj['urgency'] ?? 'normal',
+                'category' => $dataObj['category'] ?? '',
+                'banner_image' => $dataObj['banner_image'] ?? null,
+            ];
+        }
+
         // Urutkan berdasarkan waktu terbaru
         usort($notifications, function($a, $b) {
             return $b['created_at']->timestamp - $a['created_at']->timestamp;
@@ -559,12 +585,25 @@ class DashboardController extends Controller
     {
         $id = $request->input('id');
         if ($id) {
-            $readNotifications = session()->get('dpl_read_notifications', []);
-            if (!in_array($id, $readNotifications)) {
-                $readNotifications[] = $id;
-                session()->put('dpl_read_notifications', $readNotifications);
+            if (str_starts_with($id, 'db_')) {
+                $dbId = substr($id, 3);
+                Notification::where('id', $dbId)
+                    ->where('user_id', auth()->id())
+                    ->update(['is_read' => true, 'read_at' => now()]);
+            } else {
+                $readNotifications = session()->get('dpl_read_notifications', []);
+                if (!in_array($id, $readNotifications)) {
+                    $readNotifications[] = $id;
+                    session()->put('dpl_read_notifications', $readNotifications);
+                }
             }
         }
+        return response()->json(['success' => true]);
+    }
+
+    public function markAllDplNotificationsAsRead(Request $request)
+    {
+        NotificationService::markAllAsRead(auth()->id());
         return response()->json(['success' => true]);
     }
 

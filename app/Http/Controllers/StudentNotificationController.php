@@ -21,6 +21,10 @@ class StudentNotificationController extends Controller
             return redirect()->route('mobile.notifications');
         }
 
+        if (auth()->user()->hasRole('dpl')) {
+            return redirect()->route('dpl.notifications.index');
+        }
+
         return view('students.notifications', compact('notifications'));
     }
 
@@ -60,14 +64,24 @@ class StudentNotificationController extends Controller
 
         $notifications = $allNotifications->map(function ($notif) {
             $url = '#';
+            $dataObj = !empty($notif->data) ? (is_string($notif->data) ? json_decode($notif->data, true) : $notif->data) : [];
             if (str_contains($notif->type, 'logbook')) {
                 $url = route('logbooks.index');
-            } elseif (str_contains($notif->type, 'attendance')) {
+            } elseif (str_contains($notif->type, 'attendance') || str_contains($notif->type, 'absensi')) {
                 $url = route('attendance.index');
+            } elseif (str_contains($notif->type, 'broadcast')) {
+                if (!empty($dataObj['action_url'])) {
+                    $url = $dataObj['action_url'];
+                } else {
+                    $url = route('notifications.index');
+                }
             }
             
             $notifArray = $notif->toArray();
             $notifArray['url'] = $url;
+            $notifArray['urgency'] = $dataObj['urgency'] ?? 'normal';
+            $notifArray['category'] = $dataObj['category'] ?? '';
+            $notifArray['banner_image'] = $dataObj['banner_image'] ?? null;
             return $notifArray;
         });
 

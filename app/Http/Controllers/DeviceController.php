@@ -60,6 +60,7 @@ class DeviceController extends Controller
      */
     public function forceMobile()
     {
+        Session::put('device_override', 'mobile');
         Session::put('is_mobile_device', true);
         Session::put('device_info', [
             'is_mobile' => true,
@@ -82,6 +83,7 @@ class DeviceController extends Controller
      */
     public function forceDesktop()
     {
+        Session::put('device_override', 'desktop');
         Session::put('is_mobile_device', false);
         Session::put('device_info', [
             'is_mobile' => false,
@@ -104,6 +106,7 @@ class DeviceController extends Controller
      */
     public function reset()
     {
+        Session::forget('device_override');
         Session::forget('device_info');
         Session::forget('is_mobile_device');
 

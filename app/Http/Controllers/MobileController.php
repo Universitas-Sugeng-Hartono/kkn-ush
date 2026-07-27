@@ -8,6 +8,7 @@ use App\Models\Logbook;
 use App\Models\Absensi;
 use App\Models\Notification;
 use App\Models\LaporanKelompok;
+use App\Services\NotificationService;
 
 class MobileController extends Controller
 {
@@ -252,7 +253,7 @@ class MobileController extends Controller
 
     public function markAllNotificationsAsRead()
     {
-        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
+        NotificationService::markAllAsRead(Auth::id());
         
         return response()->json(['success' => true]);
     }

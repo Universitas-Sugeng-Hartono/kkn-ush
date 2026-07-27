@@ -22,6 +22,7 @@ use App\Http\Controllers\LaporanKelompokController;
 use App\Http\Controllers\DplLaporanKelompokController;
 use App\Http\Controllers\TahunAkademikController;
 use App\Http\Controllers\FcmTokenController;
+use App\Http\Controllers\BroadcastController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
@@ -106,6 +107,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/pengaduan/{pengaduan}/process', [PengaduanController::class, 'process'])->name('pengaduan.process');
         Route::delete('/pengaduan/{pengaduan}', [PengaduanController::class, 'destroy'])->name('pengaduan.destroy');
         Route::resource('galeri', GaleriController::class);
+
+        // Admin Broadcast Pengumuman
+        Route::get('/admin/broadcast', [BroadcastController::class, 'adminIndex'])->name('admin.broadcast.index');
+        Route::post('/admin/broadcast', [BroadcastController::class, 'adminStore'])->name('admin.broadcast.store');
+        Route::put('/admin/broadcast/{id}', [BroadcastController::class, 'adminUpdate'])->name('admin.broadcast.update');
+        Route::delete('/admin/broadcast/{id}', [BroadcastController::class, 'adminDestroy'])->name('admin.broadcast.destroy');
     });
 
     // DPL Routes
@@ -141,11 +148,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/alerts', [DashboardController::class, 'getAlerts'])->name('alerts.get');
         Route::get('/dpl/notifications-page', [DplNotificationController::class, 'index'])->name('dpl.notifications.index');
         Route::post('/dpl/notifications/read', [DashboardController::class, 'markNotificationAsRead'])->name('dpl.notifications.mark-read');
+        Route::post('/dpl/notifications/mark-all-read', [DashboardController::class, 'markAllDplNotificationsAsRead'])->name('dpl.notifications.mark-all-read');
         
         // History Logbook dan Absensi
         Route::get('/history/logbooks', [App\Http\Controllers\HistoryLogbookController::class, 'index'])->name('history.logbooks.index');
         Route::get('/history/logbooks/export-pdf-all', [App\Http\Controllers\HistoryLogbookController::class, 'exportPdfAll'])->name('history.logbooks.export-pdf-all');
         Route::get('/history/logbooks/{logbook}', [App\Http\Controllers\HistoryLogbookController::class, 'show'])->name('history.logbooks.show');
+
+        // DPL Broadcast Pengumuman
+        Route::get('/dpl/broadcast', [BroadcastController::class, 'dplIndex'])->name('dpl.broadcast.index');
+        Route::post('/dpl/broadcast', [BroadcastController::class, 'dplStore'])->name('dpl.broadcast.store');
+        Route::put('/dpl/broadcast/{id}', [BroadcastController::class, 'dplUpdate'])->name('dpl.broadcast.update');
+        Route::delete('/dpl/broadcast/{id}', [BroadcastController::class, 'dplDestroy'])->name('dpl.broadcast.destroy');
     });
 
     // Monitoring Detail Aktivitas Mahasiswa (DPL & Admin)
@@ -173,6 +187,13 @@ Route::middleware('auth')->group(function () {
         // Export PDF Logbook
         Route::get('/logbooks/export-pdf-all', [LogbookController::class, 'exportPdfAll'])->name('logbooks.export-pdf-all');
         Route::get('/logbooks/{logbook}/export-pdf', [LogbookController::class, 'exportPdf'])->name('logbooks.export-pdf');
+
+        // Notifications (Admin, DPL & Mahasiswa)
+        Route::get('/notifications', [StudentNotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{id}/mark-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+        Route::post('/notifications/mark-all-read', [StudentNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::get('/notifications/unread-count', [StudentNotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+        Route::get('/notifications/get', [StudentNotificationController::class, 'getNotifications'])->name('notifications.get');
     });
 
     // Mahasiswa Routes
@@ -184,11 +205,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan-kelompok', [LaporanKelompokController::class, 'index'])->name('laporan-kelompok.index');
         Route::post('/laporan-kelompok', [LaporanKelompokController::class, 'store'])->name('laporan-kelompok.store');
         Route::delete('/laporan-kelompok/{laporanKelompok}', [LaporanKelompokController::class, 'destroy'])->name('laporan-kelompok.destroy');
-        Route::get('/notifications', [StudentNotificationController::class, 'index'])->name('notifications.index');
-        Route::post('/notifications/{id}/mark-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
-        Route::post('/notifications/mark-all-read', [StudentNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-        Route::get('/notifications/unread-count', [StudentNotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-        Route::get('/notifications/get', [StudentNotificationController::class, 'getNotifications'])->name('notifications.get');
         
         // Mobile Routes
         Route::prefix('mobile')->group(function () {
@@ -222,10 +238,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/attendance/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
         Route::get('/attendance/{attendance}/validate', [AttendanceController::class, 'validateAttendance'])->name('attendance.validate');
         Route::get('/laporan-kelompok/{laporanKelompok}/download', [LaporanKelompokController::class, 'download'])->name('laporan-kelompok.download');
-    });
-    // DPL Only Routes
-    Route::middleware('role:dpl')->group(function () {
-        Route::put('/attendance/{attendance}/reject', [AttendanceController::class, 'rejectAttendance'])->name('attendance.reject');
     });
 
 });

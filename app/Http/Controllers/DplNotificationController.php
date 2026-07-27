@@ -114,6 +114,20 @@ class DplNotificationController extends Controller
             ];
         }
 
+        // Notifikasi dari Database (seperti Broadcast dari Admin)
+        $dbNotifications = $user->notifications()->latest()->take(20)->get();
+        foreach ($dbNotifications as $notif) {
+            $notifications[] = [
+                'id' => 'db_' . $notif->id,
+                'type' => $notif->type,
+                'title' => $notif->title,
+                'message' => $notif->message,
+                'data' => $notif->data,
+                'is_read' => $notif->is_read,
+                'created_at' => $notif->created_at
+            ];
+        }
+
         // Urutkan berdasarkan waktu terbaru
         usort($notifications, function($a, $b) {
             return $b['created_at']->timestamp - $a['created_at']->timestamp;
@@ -129,6 +143,8 @@ class DplNotificationController extends Controller
             case 'absensi_pending': return 'calendar-check';
             case 'no_logbook_today': return 'exclamation-triangle';
             case 'no_absensi_today': return 'exclamation-triangle';
+            case 'broadcast':
+            case 'dpl_broadcast': return 'bullhorn';
             default: return 'info-circle';
         }
     }
@@ -140,6 +156,8 @@ class DplNotificationController extends Controller
             case 'absensi_pending': return 'info';
             case 'no_logbook_today': return 'danger';
             case 'no_absensi_today': return 'danger';
+            case 'broadcast':
+            case 'dpl_broadcast': return 'primary';
             default: return 'primary';
         }
     }

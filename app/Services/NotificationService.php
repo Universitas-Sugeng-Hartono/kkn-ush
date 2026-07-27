@@ -6,10 +6,13 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Models\Logbook;
 use App\Models\Absensi;
+use App\Models\FcmToken;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FcmNotification;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\WebPushConfig;
 
 class NotificationService
 {
@@ -28,6 +31,23 @@ class NotificationService
         return $notification;
     }
 
+    protected static function sanitizeDataPayload($data)
+    {
+        $sanitized = [];
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $key => $val) {
+                if (is_null($val)) {
+                    $sanitized[(string) $key] = '';
+                } elseif (is_scalar($val)) {
+                    $sanitized[(string) $key] = (string) $val;
+                } else {
+                    $sanitized[(string) $key] = json_encode($val);
+                }
+            }
+        }
+        return $sanitized;
+    }
+
     protected static function sendPushNotification($userId, $title, $body, $data = [])
     {
         try {
@@ -44,7 +64,7 @@ class NotificationService
             
             $message = CloudMessage::new()
                 ->withNotification(FcmNotification::create($title, $body))
-                ->withData($data ?? []);
+                ->withData(self::sanitizeDataPayload($data ?? []));
 
             $report = $messaging->sendMulticast($message, $tokens);
             Log::info("FCM Push Report: Successes: {$report->successes()->count()}, Failures: {$report->failures()->count()}");
@@ -217,5 +237,63 @@ class NotificationService
                 'is_read' => true,
                 'read_at' => now()
             ]);
+    }
+
+    public static function sendBroadcastPush(array $userIds, $title, $body, $data = [], $extras = [])
+    {
+        try {
+            $tokens = FcmToken::whereIn('user_id', $userIds)
+                ->pluck('token')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            if (empty($tokens)) {
+                Log::info("FCM Broadcast: No tokens found for target users.");
+                return;
+            }
+
+            $messaging = app('firebase.messaging');
+            Log::info("FCM Broadcast: Sending to " . count($tokens) . " tokens.");
+
+            // Siapkan properti gambar pada notifikasi jika ada banner_image
+            $notification = !empty($extras['banner_image'])
+                ? FcmNotification::create($title, $body, $extras['banner_image'])
+                : FcmNotification::create($title, $body);
+
+            // Kirim dalam chunk maksimal 500 token sesuai limit Firebase sendMulticast
+            foreach (array_chunk($tokens, 500) as $tokenChunk) {
+                $message = CloudMessage::new()
+                    ->withNotification($notification)
+                    ->withData(self::sanitizeDataPayload($data ?? []));
+
+                // Set High Priority untuk pesan darurat
+                if (!empty($extras['urgency']) && $extras['urgency'] === 'urgent') {
+                    $message = $message->withAndroidConfig(AndroidConfig::fromArray([
+                        'priority' => 'high',
+                        'notification' => [
+                            'sound' => 'default',
+                            'default_sound' => true,
+                            'default_vibrate_timings' => true,
+                        ],
+                    ]))->withWebPushConfig(WebPushConfig::fromArray([
+                        'headers' => [
+                            'Urgency' => 'high',
+                        ],
+                    ]));
+                }
+
+                $report = $messaging->sendMulticast($message, $tokenChunk);
+                Log::info("FCM Broadcast Chunk Report: Successes: {$report->successes()->count()}, Failures: {$report->failures()->count()}");
+
+                if ($report->hasFailures()) {
+                    foreach ($report->failures()->getItems() as $failure) {
+                        Log::error('FCM Broadcast Push Failure: ' . $failure->error()->getMessage());
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('FCM Broadcast Push Notification Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        }
     }
 } 

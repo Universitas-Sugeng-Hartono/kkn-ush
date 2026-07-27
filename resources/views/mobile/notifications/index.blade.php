@@ -53,14 +53,33 @@
         
         <div class="notifications-list">
             @forelse($notifications as $notification)
-                <div class="notification-item {{ $notification->read_at ? 'read' : 'unread' }}" 
-                     onclick="markAsRead({{ $notification->id }}, this)">
+                @php
+                    $dataObj = !empty($notification->data) ? (is_string($notification->data) ? json_decode($notification->data, true) : $notification->data) : [];
+                    $urgency = $dataObj['urgency'] ?? 'normal';
+                    $category = $dataObj['category'] ?? '';
+                    $bannerImg = $dataObj['banner_image'] ?? null;
+                    $actionUrl = $dataObj['action_url'] ?? null;
+                @endphp
+                <div class="notification-item {{ ($notification->is_read || $notification->read_at) ? 'read' : 'unread' }}" 
+                     data-id="{{ $notification->id }}"
+                     data-title="{{ $notification->data['title'] ?? ($notification->title ?? 'Notification') }}"
+                     data-message="{{ $notification->data['message'] ?? ($notification->message ?? '-') }}"
+                     data-category="{{ $category }}"
+                     data-urgency="{{ $urgency }}"
+                     data-banner="{{ $bannerImg ?? '' }}"
+                     data-url="{{ $actionUrl ?? '' }}"
+                     data-time="{{ $notification->created_at->diffForHumans() }}"
+                     data-is-read="{{ ($notification->is_read || $notification->read_at) ? '1' : '0' }}"
+                     style="cursor: pointer;"
+                     onclick="showMobileNotifDetail(this)">
                     <div class="notification-icon">
-                        @php $type = $notification->data['type'] ?? ''; @endphp
-                        @if($type === 'logbook')
+                        @php $type = $notification->type ?? ($notification->data['type'] ?? ''); @endphp
+                        @if(str_contains($type, 'logbook'))
                             <i class="fas fa-book"></i>
-                        @elseif($type === 'attendance')
+                        @elseif(str_contains($type, 'attendance') || str_contains($type, 'absensi'))
                             <i class="fas fa-calendar-check"></i>
+                        @elseif(str_contains($type, 'broadcast') || str_contains($type, 'pengumuman'))
+                            <i class="fas fa-bullhorn" style="color: #2563eb;"></i>
                         @elseif($type === 'system')
                             <i class="fas fa-info-circle"></i>
                         @else
@@ -68,12 +87,32 @@
                         @endif
                     </div>
                     <div class="notification-content">
-                        <div class="notification-title">{{ $notification->data['title'] ?? 'Notification' }}</div>
-                        <div class="notification-message">{{ $notification->data['message'] ?? '-' }}</div>
+                        <div class="notification-title d-flex align-items-center gap-1 flex-wrap">
+                            @if($urgency === 'urgent')
+                                <span class="badge bg-danger text-white me-1" style="font-size: 0.65rem;"><i class="fas fa-exclamation-circle me-1"></i>Darurat</span>
+                            @elseif($urgency === 'important')
+                                <span class="badge bg-warning text-dark me-1" style="font-size: 0.65rem;"><i class="fas fa-exclamation-triangle me-1"></i>Penting</span>
+                            @endif
+                            @if($category)
+                                <span class="badge bg-secondary text-white me-1" style="font-size: 0.65rem;">[{{ $category }}]</span>
+                            @endif
+                            {{ $notification->data['title'] ?? ($notification->title ?? 'Notification') }}
+                        </div>
+                        <div class="notification-message" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $notification->data['message'] ?? ($notification->message ?? '-') }}</div>
+                        @if($bannerImg)
+                            <div class="my-2">
+                                <img src="{{ $bannerImg }}" alt="Banner" style="max-height: 80px; width: 100%; object-fit: cover; border-radius: 8px;">
+                            </div>
+                        @endif
+                        @if($actionUrl)
+                            <div class="mb-1">
+                                <a href="{{ $actionUrl }}" target="_blank" class="badge bg-primary text-white text-decoration-none" onclick="event.stopPropagation();"><i class="fas fa-external-link-alt me-1"></i> Buka Link Tujuan</a>
+                            </div>
+                        @endif
                         <div class="notification-time">{{ $notification->created_at->diffForHumans() }}</div>
                     </div>
                     <div class="notification-status">
-                        @if(!$notification->read_at)
+                        @if(!($notification->is_read || $notification->read_at))
                             <div class="unread-indicator"></div>
                         @endif
                         <div class="notification-arrow">
@@ -112,6 +151,45 @@
             </div>
         </div>
         @endif
+    </div>
+
+    <!-- Modal Detail Notifikasi Mobile -->
+    <div class="modal fade" id="mobileNotifModal" tabindex="-1" aria-labelledby="mobileNotifModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="margin: 1rem;">
+            <div class="modal-content rounded-4 border-0 shadow" style="overflow: hidden;">
+                <div class="modal-header bg-light border-bottom px-4 py-3">
+                    <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0" id="mobileNotifModalLabel">
+                        <i class="fas fa-bullhorn text-primary"></i> Detail Pengumuman
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <span id="mob_modal_urgency" class="badge bg-secondary"></span>
+                        <span id="mob_modal_category" class="badge bg-light text-dark border"></span>
+                        <span id="mob_modal_time" class="badge bg-light text-muted border"></span>
+                    </div>
+                    <h5 id="mob_modal_title" class="fw-bold text-dark mb-3"></h5>
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div id="mob_modal_message" class="text-dark" style="white-space: pre-wrap; font-size: 0.9rem; line-height: 1.5;"></div>
+                    </div>
+                    <div id="mob_modal_banner_box" class="mb-3 text-center" style="display: none;">
+                        <small class="text-muted d-block mb-2 text-start fw-bold" style="font-size: 0.75rem;">Gambar Lampiran:</small>
+                        <a id="mob_modal_banner_link" href="#" target="_blank">
+                            <img id="mob_modal_banner_img" src="" alt="Banner Notifikasi" class="img-fluid rounded-3 border shadow-sm" style="max-height: 250px; width: 100%; object-fit: contain;">
+                        </a>
+                    </div>
+                    <div id="mob_modal_url_box" class="mb-0 text-center" style="display: none;">
+                        <a id="mob_modal_url_link" href="#" target="_blank" class="btn btn-primary btn-sm rounded-pill px-4 py-2 w-100 d-flex align-items-center justify-content-center gap-2 fw-bold">
+                            <i class="fas fa-external-link-alt"></i> Buka Tautan Tujuan
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top p-3">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4 w-100 fw-bold" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
@@ -410,6 +488,60 @@
 
 @push('scripts')
 <script>
+function showMobileNotifDetail(card) {
+    document.getElementById('mob_modal_title').textContent = card.dataset.title;
+    document.getElementById('mob_modal_message').textContent = card.dataset.message;
+    
+    const urgencyEl = document.getElementById('mob_modal_urgency');
+    if (card.dataset.urgency === 'urgent') {
+        urgencyEl.className = 'badge bg-danger';
+        urgencyEl.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Darurat';
+    } else if (card.dataset.urgency === 'important') {
+        urgencyEl.className = 'badge bg-warning text-dark';
+        urgencyEl.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Penting';
+    } else {
+        urgencyEl.className = 'badge bg-info';
+        urgencyEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>Normal';
+    }
+
+    const catEl = document.getElementById('mob_modal_category');
+    if (card.dataset.category && card.dataset.category !== '') {
+        catEl.textContent = card.dataset.category;
+        catEl.style.display = 'inline-block';
+    } else {
+        catEl.style.display = 'none';
+    }
+
+    document.getElementById('mob_modal_time').innerHTML = '<i class="fas fa-clock me-1"></i> ' + card.dataset.time;
+
+    const bannerBox = document.getElementById('mob_modal_banner_box');
+    const bannerImg = document.getElementById('mob_modal_banner_img');
+    const bannerLink = document.getElementById('mob_modal_banner_link');
+    if (card.dataset.banner && card.dataset.banner !== '') {
+        bannerImg.src = card.dataset.banner;
+        bannerLink.href = card.dataset.banner;
+        bannerBox.style.display = 'block';
+    } else {
+        bannerBox.style.display = 'none';
+    }
+
+    const urlBox = document.getElementById('mob_modal_url_box');
+    const urlLink = document.getElementById('mob_modal_url_link');
+    if (card.dataset.url && card.dataset.url !== '') {
+        urlLink.href = card.dataset.url;
+        urlBox.style.display = 'block';
+    } else {
+        urlBox.style.display = 'none';
+    }
+
+    new bootstrap.Modal(document.getElementById('mobileNotifModal')).show();
+
+    if (card.dataset.isRead === '0') {
+        markAsRead(card.dataset.id, card);
+        card.dataset.isRead = '1';
+    }
+}
+
 function markAsRead(notificationId, element) {
     fetch(`/notifications/${notificationId}/mark-read`, {
         method: 'POST',

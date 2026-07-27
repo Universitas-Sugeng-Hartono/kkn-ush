@@ -428,18 +428,6 @@ class AttendanceController extends Controller
             ->with('success', 'Absensi berhasil ditolak.');
     }
 
-    public function rejectAttendance(Absensi $attendance)
-    {
-        if (!auth()->user()->hasRole('dpl')) {
-            abort(403);
-        }
-
-        $attendance->update(['status' => 'rejected']);
-
-        return redirect()->route('attendance.pending')
-            ->with('success', 'Absensi berhasil ditolak');
-    }
-
     public function approveAll()
     {
         $tahunAktif = \App\Models\TahunAkademik::getAktif();

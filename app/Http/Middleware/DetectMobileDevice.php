@@ -15,11 +15,19 @@ class DetectMobileDevice
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $userAgent = $request->header('User-Agent');
-        $isMobile = $this->isMobileDevice($userAgent);
-        
-        // Simpan informasi device ke session
-        session(['is_mobile_device' => $isMobile]);
+        if ($request->query('mode') === 'desktop') {
+            session(['device_override' => 'desktop', 'is_mobile_device' => false]);
+        } elseif ($request->query('mode') === 'mobile') {
+            session(['device_override' => 'mobile', 'is_mobile_device' => true]);
+        } elseif (session('device_override') === 'desktop') {
+            session(['is_mobile_device' => false]);
+        } elseif (session('device_override') === 'mobile') {
+            session(['is_mobile_device' => true]);
+        } else {
+            $userAgent = $request->header('User-Agent');
+            $isMobile = $this->isMobileDevice($userAgent);
+            session(['is_mobile_device' => $isMobile]);
+        }
         
         return $next($request);
     }
