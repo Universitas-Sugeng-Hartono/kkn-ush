@@ -228,8 +228,12 @@
                                         <td>{{ $attendance->longitude ?: '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Alamat</td>
+                                        <td class="fw-bold">Alamat Check-in</td>
                                         <td>{{ $attendance->latitude && $attendance->longitude ? $attendance->latitude . ', ' . $attendance->longitude : '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Alamat Check-out</td>
+                                        <td>{{ $attendance->latitude_keluar && $attendance->longitude_keluar ? $attendance->latitude_keluar . ', ' . $attendance->longitude_keluar : '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Dibuat Pada</td>
@@ -259,6 +263,24 @@
                     </div>
                 @endif
 
+                <!-- Lokasi Check-out -->
+                @if($attendance->latitude_keluar && $attendance->longitude_keluar)
+                    <div class="card mb-4">
+                        <div class="card-header" style="background-color: #f2b70d;">
+                            <h5 class="card-title mb-0" style="color: #0B1F3A;">
+                                <i class="fas fa-map-marker-alt me-2"></i>Lokasi Check-out
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Koordinat Keluar</label>
+                                <p class="form-control-plaintext">{{ $attendance->latitude_keluar && $attendance->longitude_keluar ? $attendance->latitude_keluar . ', ' . $attendance->longitude_keluar : 'Koordinat tidak tersedia' }}</p>
+                            </div>
+                            <div id="map-keluar" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Foto Bukti -->
                 @if($attendance->foto_kegiatan)
                     <div class="card mb-4">
@@ -272,6 +294,23 @@
                                  class="img-fluid rounded" alt="Foto Bukti"
                                  style="max-height: 400px; cursor: pointer;"
                                  onclick="openImageModal('{{ asset('storage/' . $attendance->foto_kegiatan) }}')">
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Foto Bukti Keluar -->
+                @if($attendance->foto_keluar)
+                    <div class="card mb-4">
+                        <div class="card-header" style="background-color: #f2b70d;">
+                            <h5 class="card-title mb-0" style="color: #0B1F3A;">
+                                <i class="fas fa-camera me-2"></i>Foto Bukti Keluar
+                            </h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="{{ asset('storage/' . $attendance->foto_keluar) }}" 
+                                 class="img-fluid rounded" alt="Foto Bukti Keluar"
+                                 style="max-height: 400px; cursor: pointer;"
+                                 onclick="openImageModal('{{ asset('storage/' . $attendance->foto_keluar) }}')">
                         </div>
                     </div>
                 @endif
@@ -301,19 +340,30 @@
             new bootstrap.Modal(document.getElementById('imageModal')).show();
         }
 
-        @if($attendance->latitude && $attendance->longitude)
-        // Initialize map
+        // Initialize maps if coordinates exist
         document.addEventListener('DOMContentLoaded', function() {
-            var map = L.map('map').setView([{{ $attendance->latitude }}, {{ $attendance->longitude }}], 15);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-            
-            var marker = L.marker([{{ $attendance->latitude }}, {{ $attendance->longitude }}]).addTo(map);
-            marker.bindPopup("Lokasi Check-in<br>{{ $attendance->alamat ?: 'Alamat tidak tersedia' }}").openPopup();
+            // Map Check-in
+            @if($attendance->latitude && $attendance->longitude)
+                var mapMasuk = L.map('map').setView([{{ $attendance->latitude }}, {{ $attendance->longitude }}], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(mapMasuk);
+                L.marker([{{ $attendance->latitude }}, {{ $attendance->longitude }}])
+                 .addTo(mapMasuk)
+                 .bindPopup('Lokasi Check-in<br>Alamat tidak tersedia');
+            @endif
+
+            // Map Check-out
+            @if($attendance->latitude_keluar && $attendance->longitude_keluar)
+                var mapKeluar = L.map('map-keluar').setView([{{ $attendance->latitude_keluar }}, {{ $attendance->longitude_keluar }}], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(mapKeluar);
+                L.marker([{{ $attendance->latitude_keluar }}, {{ $attendance->longitude_keluar }}])
+                 .addTo(mapKeluar)
+                 .bindPopup('Lokasi Check-out<br>Alamat tidak tersedia');
+            @endif
         });
-        @endif
     </script>
     @endpush
-</x-app-layout> 
+</x-app-layout>

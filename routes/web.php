@@ -256,3 +256,11 @@ Route::get('/test-db', function() {
 
 
 require __DIR__.'/auth.php';
+
+Route::get('/perbaiki-storage', function () {
+    if (file_exists(public_path('storage'))) {
+        unlink(public_path('storage'));
+    }
+    \Illuminate\Support\Facades\Artisan::call('storage:link');
+    return 'Storage berhasil diperbaiki!';
+});

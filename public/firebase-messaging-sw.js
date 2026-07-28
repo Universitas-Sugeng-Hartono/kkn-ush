@@ -17,11 +17,20 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
+  if (payload.notification) {
+    // If the payload already has a notification object, the Firebase SDK automatically displays it.
+    // Calling showNotification here will result in duplicates.
+    console.log('[firebase-messaging-sw.js] Notification handled automatically by SDK.');
+    return;
+  }
+  
+  // Only handle data-only messages manually
+  const notificationTitle = payload.data.title || 'Notification';
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/images/logo.png',
-    image: payload.notification.image || (payload.data && payload.data.banner_image ? payload.data.banner_image : undefined),
+    body: payload.data.body || '',
+    icon: '/images/ush.png',
+    badge: '/images/ush.png',
+    image: payload.data.banner_image || undefined,
     data: payload.data || {}
   };
 

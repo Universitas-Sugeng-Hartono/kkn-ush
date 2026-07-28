@@ -64,6 +64,12 @@ class NotificationService
             
             $message = CloudMessage::new()
                 ->withNotification(FcmNotification::create($title, $body))
+                ->withWebPushConfig(WebPushConfig::fromArray([
+                    'notification' => [
+                        'icon' => asset('images/ush.png'),
+                        'badge' => asset('images/ush.png'),
+                    ]
+                ]))
                 ->withData(self::sanitizeDataPayload($data ?? []));
 
             $report = $messaging->sendMulticast($message, $tokens);
@@ -265,6 +271,12 @@ class NotificationService
             foreach (array_chunk($tokens, 500) as $tokenChunk) {
                 $message = CloudMessage::new()
                     ->withNotification($notification)
+                    ->withWebPushConfig(WebPushConfig::fromArray([
+                        'notification' => [
+                            'icon' => asset('images/ush.png'),
+                            'badge' => asset('images/ush.png'),
+                        ]
+                    ]))
                     ->withData(self::sanitizeDataPayload($data ?? []));
 
                 // Set High Priority untuk pesan darurat
@@ -277,6 +289,10 @@ class NotificationService
                             'default_vibrate_timings' => true,
                         ],
                     ]))->withWebPushConfig(WebPushConfig::fromArray([
+                        'notification' => [
+                            'icon' => asset('images/ush.png'),
+                            'badge' => asset('images/ush.png'),
+                        ],
                         'headers' => [
                             'Urgency' => 'high',
                         ],
