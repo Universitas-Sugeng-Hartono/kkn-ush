@@ -334,13 +334,23 @@
                             <div class="col-md-6">
                                 <table class="table">
                                     <tr>
-                                        <td class="fw-bold">Latitude</td>
+                                        <td class="fw-bold">Latitude (Masuk)</td>
                                         <td>{{ $attendance->latitude }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Longitude</td>
+                                        <td class="fw-bold">Longitude (Masuk)</td>
                                         <td>{{ $attendance->longitude }}</td>
                                     </tr>
+                                    @if($attendance->latitude_keluar && $attendance->longitude_keluar)
+                                    <tr>
+                                        <td class="fw-bold">Latitude (Keluar)</td>
+                                        <td>{{ $attendance->latitude_keluar }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Longitude (Keluar)</td>
+                                        <td>{{ $attendance->longitude_keluar }}</td>
+                                    </tr>
+                                    @endif
                                     <tr>
                                         <td class="fw-bold">Kelompok</td>
                                         <td>{{ $attendance->kelompok->nama_kelompok ?? '-' }}</td>
@@ -373,6 +383,23 @@
                         <div class="card-body text-center">
                             <img src="{{ asset('storage/' . $attendance->foto_kegiatan) }}" 
                                  alt="Foto selfie absensi" 
+                                 class="img-fluid rounded"
+                                 style="max-height: 400px;">
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Foto Selfie Keluar -->
+                @if($attendance->foto_keluar)
+                    <div class="card mt-4">
+                        <div class="card-header" style="background-color: #f2b70d;">
+                            <h5 class="card-title mb-0" style="color: #0B1F3A;">
+                                <i class="fas fa-camera me-2"></i>Foto Selfie Keluar
+                            </h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="{{ asset('storage/' . $attendance->foto_keluar) }}" 
+                                 alt="Foto selfie absensi keluar" 
                                  class="img-fluid rounded"
                                  style="max-height: 400px;">
                         </div>

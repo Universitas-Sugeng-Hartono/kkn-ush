@@ -24,6 +24,7 @@ class Logbook extends Model
         'keterangan',
         'lokasi',
         'status',
+        'komentar_dpl',
         'attachments',
         'is_kelompok'
     ];

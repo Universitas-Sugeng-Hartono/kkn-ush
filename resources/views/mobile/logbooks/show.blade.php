@@ -159,12 +159,12 @@
     @endif
 
     <!-- DPL Comments -->
-    @if($logbook->komentar)
+    @if($logbook->komentar_dpl)
     <div class="info-section">
         <h3>Komentar DPL</h3>
         <div class="comment-box">
             <div class="comment-content">
-                {{ $logbook->komentar }}
+                {{ $logbook->komentar_dpl }}
             </div>
             <div class="comment-meta">
                 <i class="fas fa-user-tie"></i>

@@ -62,14 +62,22 @@ class NotificationService
             $tokens = $user->fcmTokens->pluck('token')->toArray();
             Log::info("FCM Push: Sending to tokens: ", $tokens);
             
+            $webPushConfig = [
+                'notification' => [
+                    'icon' => asset('images/ush.png'),
+                    'badge' => asset('images/ush.png'),
+                ]
+            ];
+
+            if (!empty($data['url'])) {
+                $webPushConfig['fcm_options'] = [
+                    'link' => $data['url']
+                ];
+            }
+
             $message = CloudMessage::new()
                 ->withNotification(FcmNotification::create($title, $body))
-                ->withWebPushConfig(WebPushConfig::fromArray([
-                    'notification' => [
-                        'icon' => asset('images/ush.png'),
-                        'badge' => asset('images/ush.png'),
-                    ]
-                ]))
+                ->withWebPushConfig(WebPushConfig::fromArray($webPushConfig))
                 ->withData(self::sanitizeDataPayload($data ?? []));
 
             $report = $messaging->sendMulticast($message, $tokens);
@@ -98,7 +106,8 @@ class NotificationService
             [
                 'logbook_id' => $logbook->id,
                 'tanggal' => $logbook->tanggal->format('d/m/Y'),
-                'mahasiswa' => $logbook->user->name
+                'mahasiswa' => $logbook->user->name,
+                'url' => route('history.logbooks.show', $logbook->id)
             ]
         );
     }
@@ -113,7 +122,8 @@ class NotificationService
             [
                 'logbook_id' => $logbook->id,
                 'tanggal' => $logbook->tanggal->format('d/m/Y'),
-                'judul' => $logbook->judul
+                'judul' => $logbook->judul,
+                'url' => route('logbooks.show', $logbook->id)
             ]
         );
     }
@@ -129,7 +139,8 @@ class NotificationService
                 'logbook_id' => $logbook->id,
                 'tanggal' => $logbook->tanggal->format('d/m/Y'),
                 'judul' => $logbook->judul,
-                'komentar' => $logbook->komentar_dpl
+                'komentar' => $logbook->komentar_dpl,
+                'url' => route('logbooks.show', $logbook->id)
             ]
         );
     }
@@ -143,7 +154,8 @@ class NotificationService
             "Absensi Anda tanggal {$absensi->tanggal->format('d/m/Y')} telah disetujui oleh DPL.",
             [
                 'attendance_id' => $absensi->id,
-                'tanggal' => $absensi->tanggal->format('d/m/Y')
+                'tanggal' => $absensi->tanggal->format('d/m/Y'),
+                'url' => route('attendance.show', $absensi->id)
             ]
         );
     }
@@ -161,7 +173,8 @@ class NotificationService
             [
                 'attendance_id' => $absensi->id,
                 'tanggal' => $absensi->tanggal->format('d/m/Y'),
-                'mahasiswa' => $absensi->user->name
+                'mahasiswa' => $absensi->user->name,
+                'url' => route('history.attendances.show', $absensi->id)
             ]
         );
     }
@@ -175,7 +188,8 @@ class NotificationService
             "Absensi Anda tanggal {$absensi->tanggal->format('d/m/Y')} ditolak oleh DPL. Silakan absen ulang.",
             [
                 'attendance_id' => $absensi->id,
-                'tanggal' => $absensi->tanggal->format('d/m/Y')
+                'tanggal' => $absensi->tanggal->format('d/m/Y'),
+                'url' => route('attendance.show', $absensi->id)
             ]
         );
     }
@@ -207,7 +221,8 @@ class NotificationService
                         'Peringatan: Belum Absen',
                         'Anda belum melakukan absensi hari ini. Silakan segera absen untuk menghindari keterlambatan.',
                         [
-                            'tanggal' => today()->format('d/m/Y')
+                            'tanggal' => today()->format('d/m/Y'),
+                            'url' => route('attendance.index')
                         ]
                     );
                 }
@@ -268,15 +283,23 @@ class NotificationService
                 : FcmNotification::create($title, $body);
 
             // Kirim dalam chunk maksimal 500 token sesuai limit Firebase sendMulticast
+            $webPushConfig = [
+                'notification' => [
+                    'icon' => asset('images/ush.png'),
+                    'badge' => asset('images/ush.png'),
+                ]
+            ];
+
+            if (!empty($data['url'])) {
+                $webPushConfig['fcm_options'] = [
+                    'link' => $data['url']
+                ];
+            }
+
             foreach (array_chunk($tokens, 500) as $tokenChunk) {
                 $message = CloudMessage::new()
                     ->withNotification($notification)
-                    ->withWebPushConfig(WebPushConfig::fromArray([
-                        'notification' => [
-                            'icon' => asset('images/ush.png'),
-                            'badge' => asset('images/ush.png'),
-                        ]
-                    ]))
+                    ->withWebPushConfig(WebPushConfig::fromArray($webPushConfig))
                     ->withData(self::sanitizeDataPayload($data ?? []));
 
                 // Set High Priority untuk pesan darurat
@@ -288,15 +311,11 @@ class NotificationService
                             'default_sound' => true,
                             'default_vibrate_timings' => true,
                         ],
-                    ]))->withWebPushConfig(WebPushConfig::fromArray([
-                        'notification' => [
-                            'icon' => asset('images/ush.png'),
-                            'badge' => asset('images/ush.png'),
-                        ],
+                    ]))->withWebPushConfig(WebPushConfig::fromArray(array_merge($webPushConfig, [
                         'headers' => [
                             'Urgency' => 'high',
                         ],
-                    ]));
+                    ])));
                 }
 
                 $report = $messaging->sendMulticast($message, $tokenChunk);

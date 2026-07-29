@@ -13,7 +13,10 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Mengecek mahasiswa yang terlambat absen setiap jam 09:00 pagi
+        $schedule->call(function () {
+            \App\Services\NotificationService::checkLateAttendance();
+        })->dailyAt('09:00');
     }
 
     protected function commands()

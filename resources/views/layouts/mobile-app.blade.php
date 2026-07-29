@@ -1434,8 +1434,11 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-icon" onclick="toggleNotifications()">
+                    <button class="btn-icon position-relative" onclick="toggleNotifications()">
                         <i class="fas fa-bell"></i>
+                        <span id="mobile-notification-badge" class="position-absolute translate-middle badge rounded-pill bg-danger" style="top: 20%; left: 80%; font-size: 0.55rem; display: none; padding: 0.25em 0.4em;">
+                            0
+                        </span>
                     </button>
                     <button class="btn-icon" onclick="toggleProfile()">
                         <i class="fas fa-user"></i>
@@ -1509,8 +1512,36 @@
 
 
 
-        // Device detection
+        // Load Unread Notifications Count
+        function loadMobileUnreadCount() {
+            fetch('{{ route("notifications.unread-count") }}', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('mobile-notification-badge');
+                if (badge && data.count !== undefined) {
+                    if (data.count > 0) {
+                        badge.textContent = data.count > 99 ? '99+' : data.count;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            })
+            .catch(err => console.error('Error fetching unread count:', err));
+        }
+
+        // Device detection and auto-refresh
         document.addEventListener('DOMContentLoaded', function() {
+            // Load initial unread count
+            loadMobileUnreadCount();
+            // Refresh unread count every 60 seconds
+            setInterval(loadMobileUnreadCount, 60000);
+
             // Send device info to server
             fetch('{{ route("device.update") }}', {
                 method: 'POST',

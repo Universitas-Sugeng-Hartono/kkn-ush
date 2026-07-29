@@ -464,7 +464,10 @@ class LogbookController extends Controller
 
     public function review(Request $request, Logbook $logbook)
     {
-        // $this->authorize('review', $logbook);
+        // Pastikan DPL hanya bisa me-review logbook dari mahasiswa bimbingannya
+        if ($logbook->user?->kelompok?->dpl_id !== auth()->id()) {
+            abort(403, 'Anda tidak memiliki akses untuk me-review logbook ini.');
+        }
 
         $validated = $request->validate([
             'komentar' => 'nullable|string',

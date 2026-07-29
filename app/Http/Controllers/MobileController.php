@@ -29,6 +29,7 @@ class MobileController extends Controller
             ->map(function($logbook) {
                 $logbook->type = 'logbook';
                 $logbook->title = $logbook->judul;
+                $logbook->url = route('mobile.logbooks.show', $logbook->id);
                 return $logbook;
             });
             
@@ -39,6 +40,7 @@ class MobileController extends Controller
             ->map(function($attendance) {
                 $attendance->type = 'attendance';
                 $attendance->title = ucfirst($attendance->jenis) . ' - ' . $attendance->lokasi;
+                $attendance->url = route('mobile.attendance.show', $attendance->id);
                 return $attendance;
             });
             

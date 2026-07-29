@@ -845,7 +845,7 @@
                 fetch('{{ route('notifications.get') }}')
                     .then(response => response.json())
                     .then(data => {
-                        const notifications = data.notifications || data;
+                        const notifications = (data.notifications || data).filter(n => !n.is_read);
                         const unreadCount = data.unread_count !== undefined ? data.unread_count : notifications.length;
                         
                         const container = document.getElementById('student-notifications-list');
@@ -943,7 +943,7 @@
             }
 
             loadStudentNotifications();
-            setInterval(loadStudentNotifications, 60000);
+            setInterval(loadStudentNotifications, 15000);
             @endif
 
             // Notifikasi DPL
@@ -951,7 +951,8 @@
             function loadNotifications() {
                 fetch('{{ route('dpl.notifications.get') }}')
                     .then(response => response.json())
-                    .then(notifications => {
+                    .then(data => {
+                        const notifications = data.filter(n => !n.is_read);
                         const container = document.getElementById('notifications-list');
                         const badge = document.getElementById('notification-badge');
                         if (!container || !badge) return;
@@ -984,7 +985,7 @@
                                 container.innerHTML += notificationHtml;
                             });
                             
-                            const unreadCount = notifications.filter(n => !n.is_read).length;
+                            const unreadCount = notifications.length;
                             if (unreadCount > 0) {
                                 badge.textContent = unreadCount;
                                 badge.style.display = 'block';
@@ -1044,7 +1045,7 @@
             }
 
             loadNotifications();
-            setInterval(loadNotifications, 60000);
+            setInterval(loadNotifications, 15000);
             @endif
         });
     </script>

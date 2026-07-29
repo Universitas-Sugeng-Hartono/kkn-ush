@@ -1310,33 +1310,22 @@ function checkFormValidity() {
 }
 
 function showToast(type, message) {
-    console.log('Showing toast:', type, message);
-    const container = document.getElementById('toastContainer');
+    console.log('Showing SweetAlert:', type, message);
     
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    const swalIcon = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+    const swalTitle = type === 'error' ? 'Oops...' : (type === 'success' ? 'Berhasil!' : 'Info');
     
-    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-    
-    toast.innerHTML = `
-        <i class="${icon} toast-icon"></i>
-        <div class="toast-message">${message}</div>
-    `;
-    
-    container.appendChild(toast);
-    console.log('Toast added to container');
-    
-    // Remove toast after 3 seconds
-    setTimeout(() => {
-        console.log('Removing toast');
-        toast.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => {
-            if (container.contains(toast)) {
-                container.removeChild(toast);
-                console.log('Toast removed from container');
-            }
-        }, 300);
-    }, 3000);
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: swalIcon,
+            title: swalTitle,
+            text: message,
+            confirmButtonText: 'Tutup',
+            confirmButtonColor: '#0B1F3A'
+        });
+    } else {
+        alert(swalTitle + ": " + message);
+    }
 }
 
 </script>

@@ -357,13 +357,15 @@ class DashboardController extends Controller
 
         foreach ($pendingLogbooks as $logbook) {
             $id = 'logbook_pending_' . $logbook->id;
+            if (in_array($id, $readNotifications)) continue;
+            
             $notifications[] = [
                 'id' => $id,
                 'type' => 'logbook_pending',
                 'title' => 'Logbook Perlu Direview',
                 'message' => "Logbook dari {$logbook->user->name} ({$logbook->kelompok->nama}) perlu direview",
                 'url' => route('logbooks.pending'),
-                'is_read' => in_array($id, $readNotifications),
+                'is_read' => false,
                 'data' => [
                     'logbook_id' => $logbook->id,
                     'user_name' => $logbook->user->name,
@@ -384,13 +386,15 @@ class DashboardController extends Controller
 
         foreach ($pendingAbsensi as $absensi) {
             $id = 'absensi_pending_' . $absensi->id;
+            if (in_array($id, $readNotifications)) continue;
+            
             $notifications[] = [
                 'id' => $id,
                 'type' => 'absensi_pending',
                 'title' => 'Absensi Perlu Divalidasi',
                 'message' => "Absensi dari {$absensi->user->name} ({$absensi->kelompok->nama}) perlu divalidasi",
                 'url' => route('attendance.pending'),
-                'is_read' => in_array($id, $readNotifications),
+                'is_read' => false,
                 'data' => [
                     'absensi_id' => $absensi->id,
                     'user_name' => $absensi->user->name,
@@ -412,18 +416,20 @@ class DashboardController extends Controller
 
         if ($mahasiswaNoLogbookCount > 0) {
             $id = 'no_logbook_today_' . today()->format('Ymd');
-            $notifications[] = [
-                'id' => $id,
-                'type' => 'no_logbook_today',
-                'title' => 'Peringatan Logbook Harian',
-                'message' => "Terdapat {$mahasiswaNoLogbookCount} mahasiswa yang belum submit logbook hari ini.",
-                'url' => route('monitoring.logbook-detail'),
-                'is_read' => in_array($id, $readNotifications),
-                'data' => [
-                    'count' => $mahasiswaNoLogbookCount
-                ],
-                'created_at' => now()
-            ];
+            if (!in_array($id, $readNotifications)) {
+                $notifications[] = [
+                    'id' => $id,
+                    'type' => 'no_logbook_today',
+                    'title' => 'Peringatan Logbook Harian',
+                    'message' => "Terdapat {$mahasiswaNoLogbookCount} mahasiswa yang belum submit logbook hari ini.",
+                    'url' => route('monitoring.logbook-detail'),
+                    'is_read' => false,
+                    'data' => [
+                        'count' => $mahasiswaNoLogbookCount
+                    ],
+                    'created_at' => now()
+                ];
+            }
         }
 
         // Mahasiswa yang belum absen hari ini
@@ -436,22 +442,29 @@ class DashboardController extends Controller
 
         if ($mahasiswaNoAbsensiCount > 0) {
             $id = 'no_absensi_today_' . today()->format('Ymd');
-            $notifications[] = [
-                'id' => $id,
-                'type' => 'no_absensi_today',
-                'title' => 'Peringatan Absensi Harian',
-                'message' => "Terdapat {$mahasiswaNoAbsensiCount} mahasiswa yang belum melakukan absensi hari ini.",
-                'url' => route('monitoring.attendance-detail'),
-                'is_read' => in_array($id, $readNotifications),
-                'data' => [
-                    'count' => $mahasiswaNoAbsensiCount
-                ],
-                'created_at' => now()
-            ];
+            if (!in_array($id, $readNotifications)) {
+                $notifications[] = [
+                    'id' => $id,
+                    'type' => 'no_absensi_today',
+                    'title' => 'Peringatan Absensi Harian',
+                    'message' => "Terdapat {$mahasiswaNoAbsensiCount} mahasiswa yang belum melakukan absensi hari ini.",
+                    'url' => route('monitoring.attendance-detail'),
+                    'is_read' => false,
+                    'data' => [
+                        'count' => $mahasiswaNoAbsensiCount
+                    ],
+                    'created_at' => now()
+                ];
+            }
         }
 
         // Notifikasi dari Database (seperti Broadcast Pengumuman)
-        $dbNotifications = $user->notifications()->latest()->take(10)->get();
+        $dbNotifications = $user->notifications()
+            ->where('is_read', false)
+            ->whereNotIn('type', ['logbook_submitted', 'attendance_submitted'])
+            ->latest()
+            ->take(10)
+            ->get();
         foreach ($dbNotifications as $notif) {
             $dataObj = !empty($notif->data) ? (is_string($notif->data) ? json_decode($notif->data, true) : $notif->data) : [];
             $url = !empty($dataObj['action_url']) ? $dataObj['action_url'] : route('dpl.notifications.index');
@@ -709,7 +722,8 @@ class DashboardController extends Controller
                 return (object) [
                     'type' => 'logbook',
                     'title' => $logbook->judul,
-                    'created_at' => $logbook->created_at
+                    'created_at' => $logbook->created_at,
+                    'url' => route('mobile.logbooks.show', $logbook->id)
                 ];
             });
 
@@ -722,7 +736,8 @@ class DashboardController extends Controller
                 return (object) [
                     'type' => 'attendance',
                     'title' => 'Absensi ' . $attendance->tanggal->format('d/m/Y'),
-                    'created_at' => $attendance->created_at
+                    'created_at' => $attendance->created_at,
+                    'url' => route('mobile.attendance.show', $attendance->id)
                 ];
             });
 

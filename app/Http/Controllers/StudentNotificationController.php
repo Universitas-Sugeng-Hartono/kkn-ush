@@ -56,6 +56,7 @@ class StudentNotificationController extends Controller
     public function getNotifications()
     {
         $allNotifications = auth()->user()->notifications()
+            ->where('is_read', false)
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();

@@ -177,7 +177,7 @@
     </div>
     <div class="activities-list">
         @forelse($recentActivities as $activity)
-        <div class="activity-item">
+        <div class="activity-item" onclick="window.location.href='{{ $activity->url ?? '#' }}'" style="cursor: pointer;">
             <div class="activity-icon">
                 @if($activity->type === 'logbook')
                 <i class="fas fa-book"></i>

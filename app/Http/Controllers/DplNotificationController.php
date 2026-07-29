@@ -115,7 +115,11 @@ class DplNotificationController extends Controller
         }
 
         // Notifikasi dari Database (seperti Broadcast dari Admin)
-        $dbNotifications = $user->notifications()->latest()->take(20)->get();
+        $dbNotifications = $user->notifications()
+            ->whereNotIn('type', ['logbook_submitted', 'attendance_submitted'])
+            ->latest()
+            ->take(20)
+            ->get();
         foreach ($dbNotifications as $notif) {
             $notifications[] = [
                 'id' => 'db_' . $notif->id,

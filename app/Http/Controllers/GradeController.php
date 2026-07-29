@@ -111,6 +111,14 @@ class GradeController extends Controller
             'catatan' => 'nullable|string'
         ]);
 
+        // Check authorization
+        if (auth()->user()->hasRole('dpl')) {
+            $student = User::findOrFail($validated['user_id']);
+            if ($student->kelompok?->dpl_id !== auth()->id()) {
+                abort(403, 'Anda tidak memiliki akses untuk menilai mahasiswa ini.');
+            }
+        }
+
         // Get kelompok_id from user if not provided
         if (!$validated['kelompok_id']) {
             $user = User::find($validated['user_id']);
@@ -146,11 +154,22 @@ class GradeController extends Controller
 
     public function show(Nilai $grade)
     {
+        if (auth()->user()->hasRole('dpl')) {
+            if ($grade->user?->kelompok?->dpl_id !== auth()->id()) {
+                abort(403, 'Anda tidak memiliki akses untuk melihat nilai ini.');
+            }
+        }
         return view('grades.show', compact('grade'));
     }
 
     public function edit(Nilai $grade)
     {
+        if (auth()->user()->hasRole('dpl')) {
+            if ($grade->user?->kelompok?->dpl_id !== auth()->id()) {
+                abort(403, 'Anda tidak memiliki akses untuk mengubah nilai ini.');
+            }
+        }
+
         $tahunAktif = \App\Models\TahunAkademik::getAktif();
         $semesterAktif = \App\Models\Semester::getAktif();
         
@@ -187,6 +206,12 @@ class GradeController extends Controller
             'catatan' => 'nullable|string'
         ]);
 
+        if (auth()->user()->hasRole('dpl')) {
+            if ($grade->user?->kelompok?->dpl_id !== auth()->id()) {
+                abort(403, 'Anda tidak memiliki akses untuk mengubah nilai mahasiswa ini.');
+            }
+        }
+
         $grade->update($validated);
 
         return redirect()->route('grades.index')
@@ -195,6 +220,12 @@ class GradeController extends Controller
 
     public function destroy(Nilai $grade)
     {
+        if (auth()->user()->hasRole('dpl')) {
+            if ($grade->user?->kelompok?->dpl_id !== auth()->id()) {
+                abort(403, 'Anda tidak memiliki akses untuk menghapus nilai ini.');
+            }
+        }
+
         $grade->delete();
 
         return redirect()->route('grades.index')
