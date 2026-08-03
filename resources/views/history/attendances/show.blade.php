@@ -229,11 +229,11 @@
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Alamat Check-in</td>
-                                        <td>{{ $attendance->latitude && $attendance->longitude ? $attendance->latitude . ', ' . $attendance->longitude : '-' }}</td>
+                                        <td>{{ $attendance->lokasi ?? ($attendance->latitude && $attendance->longitude ? $attendance->latitude . ', ' . $attendance->longitude : '-') }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Alamat Check-out</td>
-                                        <td>{{ $attendance->latitude_keluar && $attendance->longitude_keluar ? $attendance->latitude_keluar . ', ' . $attendance->longitude_keluar : '-' }}</td>
+                                        <td>{{ $attendance->lokasi_keluar ?? ($attendance->latitude_keluar && $attendance->longitude_keluar ? $attendance->latitude_keluar . ', ' . $attendance->longitude_keluar : '-') }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Dibuat Pada</td>
