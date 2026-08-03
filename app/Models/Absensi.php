@@ -24,6 +24,8 @@ class Absensi extends Model
         'longitude',
         'latitude_keluar',
         'longitude_keluar',
+        'lokasi',
+        'lokasi_keluar',
         'status'
     ];
 
