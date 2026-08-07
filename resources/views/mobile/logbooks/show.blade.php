@@ -580,54 +580,83 @@ function closePhotoModal() {
 }
 
 function deleteLogbook(logbookId) {
-    if (confirm('Apakah Anda yakin ingin menghapus logbook ini?')) {
-        fetch(`/logbooks/${logbookId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                window.location.href = '{{ route("mobile.logbooks") }}';
-            } else {
-                alert('Gagal menghapus logbook');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus logbook');
-        });
-    }
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: 'Apakah Anda yakin ingin menghapus logbook ini? Tindakan ini tidak dapat dibatalkan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/logbooks/${logbookId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Logbook berhasil dihapus.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '{{ route("mobile.logbooks") }}';
+                    });
+                } else {
+                    Swal.fire('Gagal', data.message || 'Gagal menghapus logbook', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Terjadi kesalahan saat menghapus logbook', 'error');
+            });
+        }
+    });
 }
 
 function deleteAttachment(logbookId, index) {
-    if (confirm('Apakah Anda yakin ingin menghapus file ini?')) {
-        fetch(`/logbooks/${logbookId}/attachments`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ index: index })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Reload halaman untuk memperbarui tampilan
-                location.reload();
-            } else {
-                alert('Gagal menghapus file: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus file');
-        });
-    }
+    Swal.fire({
+        title: 'Hapus Lampiran',
+        text: 'Apakah Anda yakin ingin menghapus berkas lampiran ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/logbooks/${logbookId}/attachments`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ index: index })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    Swal.fire('Gagal', data.message || 'Gagal menghapus file', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Terjadi kesalahan saat menghapus file', 'error');
+            });
+        }
+    });
 }
 
 // Close modal when clicking outside

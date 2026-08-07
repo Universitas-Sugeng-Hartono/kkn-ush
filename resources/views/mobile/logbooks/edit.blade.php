@@ -711,7 +711,12 @@ photoInput.addEventListener('change', function(e) {
     // Validasi ukuran file
     for (const file of files) {
         if (file.size > 10 * 1024 * 1024) { // 10MB sebelum kompresi
-            alert('Ukuran file tidak boleh lebih dari 10MB!');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Ukuran Berkas Terlalu Besar',
+                text: 'Ukuran foto tidak boleh lebih dari 10MB.',
+                confirmButtonColor: '#0d6efd'
+            });
             photoInput.value = '';
             return;
         }
@@ -805,7 +810,12 @@ attachmentInput.addEventListener('change', function(e) {
     // Validasi ukuran file
     for (const file of files) {
         if (file.size > 10 * 1024 * 1024) { // 10MB
-            alert('Ukuran file tidak boleh lebih dari 10MB!');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Ukuran Berkas Terlalu Besar',
+                text: 'Ukuran berkas lampiran tidak boleh lebih dari 10MB.',
+                confirmButtonColor: '#0d6efd'
+            });
             attachmentInput.value = '';
             return;
         }

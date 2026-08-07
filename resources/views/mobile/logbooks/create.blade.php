@@ -51,7 +51,8 @@
 
             <div class="form-group">
                 <label for="judul">Judul Kegiatan</label>
-                <input type="text" id="judul" name="judul" class="form-control" value="{{ old('judul') }}" placeholder="Masukkan judul kegiatan" required>
+                <input type="text" id="judul" name="judul" class="form-control" value="{{ old('judul') }}" placeholder="Masukkan judul kegiatan" minlength="5" maxlength="255" required>
+                <small class="form-hint mt-1 mb-0"><i class="fas fa-info-circle me-1"></i>Batasan Teks: Minimal 5 karakter, maksimal 255 karakter</small>
                 @error('judul')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
@@ -83,7 +84,8 @@
 
             <div class="form-group">
                 <label for="lokasi">Lokasi</label>
-                <input type="text" id="lokasi" name="lokasi" class="form-control" value="{{ old('lokasi') }}" placeholder="Masukkan lokasi kegiatan" required>
+                <input type="text" id="lokasi" name="lokasi" class="form-control" value="{{ old('lokasi') }}" placeholder="Masukkan lokasi kegiatan" minlength="3" maxlength="255" required>
+                <small class="form-hint mt-1 mb-0"><i class="fas fa-info-circle me-1"></i>Batasan Teks: Minimal 3 karakter, maksimal 255 karakter</small>
                 @error('lokasi')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
@@ -91,7 +93,8 @@
 
             <div class="form-group">
                 <label for="keterangan">Deskripsi Kegiatan</label>
-                <textarea id="keterangan" name="keterangan" class="form-control" rows="4" placeholder="Jelaskan detail kegiatan yang dilakukan" required>{{ old('keterangan') }}</textarea>
+                <textarea id="keterangan" name="keterangan" class="form-control" rows="4" placeholder="Jelaskan detail kegiatan yang dilakukan" minlength="10" required>{{ old('keterangan') }}</textarea>
+                <small class="form-hint mt-1 mb-0"><i class="fas fa-info-circle me-1"></i>Batasan Teks: Minimal 10 karakter uraian kegiatan</small>
                 @error('keterangan')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
@@ -100,12 +103,13 @@
 
         <div class="form-section">
             <h3>Foto Kegiatan</h3>
-            <p class="form-hint">Upload minimal 1 foto kegiatan (format: jpg, jpeg, png, max: 20MB per foto)</p>
+            <p class="form-hint mb-2"><i class="fas fa-images me-1"></i>Syarat Foto: Minimal 1 foto, maksimal 5 foto (Format: JPG, JPEG, PNG, max 20MB per foto)</p>
             
             <div class="photo-upload-area" id="photoUploadArea">
                 <div class="upload-placeholder" id="uploadPlaceholder">
                     <i class="fas fa-camera"></i>
                     <p>Tap untuk mengambil foto atau pilih dari galeri</p>
+                    <small class="text-muted">Batas: Min 1 - Max 5 foto</small>
                 </div>
                 <input type="file" id="photos" name="photos[]" accept="image/*" multiple style="display: none;">
             </div>
@@ -119,13 +123,13 @@
 
         <div class="form-section">
             <h3>File Lampiran (Opsional)</h3>
-            <p class="form-hint">Upload file pendukung seperti PDF, DOC, DOCX, Excel, PowerPoint, atau gambar (max: 20MB per file)</p>
+            <p class="form-hint mb-2"><i class="fas fa-paperclip me-1"></i>Syarat Lampiran: Maksimal 3 berkas lampiran (Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, JPG, PNG, max 20MB per berkas)</p>
             
             <div class="attachment-upload-area" id="attachmentUploadArea">
                 <div class="upload-placeholder" id="attachmentUploadPlaceholder">
                     <i class="fas fa-file-upload"></i>
                     <p>Tap untuk memilih file lampiran</p>
-                    <small>Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, JPG, PNG, GIF</small>
+                    <small class="text-muted">Batas: Maksimal 3 berkas lampiran (Max 20MB/file)</small>
                 </div>
                 <input type="file" id="attachments" name="attachments[]" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif" multiple style="display: none;">
             </div>
@@ -496,7 +500,12 @@ photoInput.addEventListener('change', function(e) {
     // Validasi ukuran file
     for (const file of files) {
         if (file.size > 20 * 1024 * 1024) {
-            alert('Ukuran file tidak boleh lebih dari 20MB!');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Ukuran Berkas Terlalu Besar',
+                text: 'Ukuran foto tidak boleh lebih dari 20MB.',
+                confirmButtonColor: '#0d6efd'
+            });
             photoInput.value = '';
             return;
         }
@@ -535,7 +544,12 @@ attachmentInput.addEventListener('change', function(e) {
     // Validasi ukuran file
     for (const file of files) {
         if (file.size > 20 * 1024 * 1024) { // 20MB
-            alert('Ukuran file tidak boleh lebih dari 20MB!');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Ukuran Berkas Terlalu Besar',
+                text: 'Ukuran berkas lampiran tidak boleh lebih dari 20MB.',
+                confirmButtonColor: '#0d6efd'
+            });
             attachmentInput.value = '';
             return;
         }
@@ -629,7 +643,12 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         if (compressedFiles.length === 0) {
             e.preventDefault();
-            alert('Harap upload minimal 1 foto kegiatan');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Foto Kegiatan Wajib',
+                text: 'Harap upload minimal 1 foto kegiatan untuk mendokumentasikan logbook.',
+                confirmButtonColor: '#0d6efd'
+            });
             return;
         }
 
@@ -644,7 +663,12 @@ document.addEventListener('DOMContentLoaded', function() {
     waktuSelesai.addEventListener('change', function() {
         if (waktuMulai.value && waktuSelesai.value) {
             if (waktuSelesai.value <= waktuMulai.value) {
-                alert('Waktu selesai harus lebih besar dari waktu mulai');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Waktu Tidak Valid',
+                    text: 'Waktu selesai harus lebih besar dari waktu mulai.',
+                    confirmButtonColor: '#0d6efd'
+                });
                 waktuSelesai.value = '';
             }
         }

@@ -764,27 +764,46 @@ function closePhotoModal() {
 }
 
 function deleteAttendance(attendanceId) {
-    if (confirm('Apakah Anda yakin ingin menghapus absensi ini?')) {
-        fetch(`/attendance/${attendanceId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = '{{ route("mobile.attendance") }}';
-            } else {
-                alert('Gagal menghapus absensi');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus absensi');
-        });
-    }
+    Swal.fire({
+        title: 'Konfirmasi Hapus Presensi',
+        text: 'Apakah Anda yakin ingin menghapus catatan absensi ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/attendance/${attendanceId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Absensi berhasil dihapus.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '{{ route("mobile.attendance") }}';
+                    });
+                } else {
+                    Swal.fire('Gagal', data.message || 'Gagal menghapus absensi', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Terjadi kesalahan saat menghapus absensi', 'error');
+            });
+        }
+    });
 }
 
 function openInMaps(latitude, longitude) {

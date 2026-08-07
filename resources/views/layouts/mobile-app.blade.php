@@ -24,6 +24,10 @@
 
     <!-- Bootstrap 5 CSS -->
     <link href="{{ asset("assets/css/bootstrap.min.css") }}" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link href="{{ asset("assets/css/sweetalert2.min.css") }}" rel="stylesheet">
+
 
     <style>
         /* Reset and Base Styles */
@@ -1465,6 +1469,40 @@
                 </div>
             @endif
 
+            @if(session('warning'))
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ session('warning') }}
+                </div>
+            @endif
+
+            @if(session('info'))
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ session('info') }}
+                </div>
+            @endif
+
+            @if(session('status'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    {{ session('status') == 'profile-updated' ? 'Profil berhasil diperbarui!' : (session('status') == 'photo-updated' ? 'Foto profil berhasil diperbarui!' : session('status')) }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger mb-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span class="fw-bold">Validasi Gagal:</span>
+                    <ul class="mb-0 ps-3 mt-1" style="font-size: 13px;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+
             @yield('content')
         </main>
 
@@ -1499,6 +1537,23 @@
     <script src="{{ asset("assets/js/jquery.min.js") }}"></script>
     <script src="{{ asset("assets/js/bootstrap.bundle.min.js") }}"></script>
     <script src="{{ asset("assets/js/sweetalert2.min.js") }}"></script>
+    <script>
+        // Global override for native alert to ensure professional SweetAlert2 popups across mobile
+        window.alert = function(message) {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pemberitahuan',
+                    text: message,
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#0d6efd'
+                });
+            } else {
+                console.warn('Alert:', message);
+            }
+        };
+    </script>
+
 
     <script>
         // Simple functions for mobile app
@@ -1539,8 +1594,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Load initial unread count
             loadMobileUnreadCount();
-            // Refresh unread count every 60 seconds
-            setInterval(loadMobileUnreadCount, 60000);
+            // Refresh unread count every 15 seconds (same as desktop)
+            setInterval(loadMobileUnreadCount, 15000);
 
             // Send device info to server
             fetch('{{ route("device.update") }}', {
@@ -1564,63 +1619,71 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Override native form onsubmit with confirm()
-            document.querySelectorAll('form[onsubmit*="return confirm"]').forEach(form => {
-                const match = form.getAttribute('onsubmit').match(/return confirm\(['"`](.*?)['"`]\)/);
-                if (match) {
-                    const message = match[1];
-                    form.removeAttribute('onsubmit');
-                    form.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Konfirmasi',
-                            text: message,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Ya',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                            }
-                        });
-                    });
-                }
-            });
+        // Universal confirm interceptor for all forms and elements using capture phase
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form) return;
+            const onsubmitAttr = form.getAttribute('onsubmit') || '';
+            if (onsubmitAttr.includes('confirm(')) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                form.removeAttribute('onsubmit');
+                
+                const match = onsubmitAttr.match(/confirm\(['"`](.*?)['"`]\)/);
+                const message = match ? match[1] : 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+                
+                Swal.fire({
+                    title: 'Konfirmasi Aksi',
+                    text: message,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
+        }, true);
 
-            // Override native onclick with confirm()
-            document.querySelectorAll('[onclick*="return confirm"]').forEach(element => {
-                const match = element.getAttribute('onclick').match(/return confirm\(['"`](.*?)['"`]\)/);
-                if (match) {
-                    const message = match[1];
-                    element.removeAttribute('onclick');
-                    element.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Konfirmasi',
-                            text: message,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Ya',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                if (element.tagName === 'A') {
-                                    window.location.href = element.href;
-                                } else if (element.type === 'submit') {
-                                    element.closest('form').submit();
-                                }
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('[onclick*="confirm("]');
+            if (target) {
+                const onclickAttr = target.getAttribute('onclick') || '';
+                if (onclickAttr.includes('confirm(')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    target.removeAttribute('onclick');
+                    
+                    const match = onclickAttr.match(/confirm\(['"`](.*?)['"`]\)/);
+                    const message = match ? match[1] : 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+                    
+                    Swal.fire({
+                        title: 'Konfirmasi Aksi',
+                        text: message,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Lanjutkan',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (target.tagName === 'A' && target.href) {
+                                window.location.href = target.href;
+                            } else if (target.type === 'submit' && target.closest('form')) {
+                                target.closest('form').submit();
+                            } else {
+                                target.click();
                             }
-                        });
+                        }
                     });
                 }
-            });
-        });
+            }
+        }, true);
     </script>
     <x-firebase-init />
     @stack('scripts')

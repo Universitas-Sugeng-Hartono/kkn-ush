@@ -222,6 +222,23 @@
         
         <!-- SweetAlert2 -->
         <script src="{{ asset("assets/js/sweetalert2.min.js") }}"></script>
+        <script>
+            // Global override for native alert to ensure professional SweetAlert2 popups
+            window.alert = function(message) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Pemberitahuan',
+                        text: message,
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                } else {
+                    console.warn('Alert:', message);
+                }
+            };
+        </script>
+
 
         <!-- Custom JS -->
         <script>

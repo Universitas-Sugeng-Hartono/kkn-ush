@@ -589,9 +589,9 @@
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li>
-                                        <form method="POST" action="{{ route('logout') }}">
+                                        <form method="POST" action="{{ route('logout') }}" id="desktopLogoutForm">
                                             @csrf
-                                            <button type="submit" class="dropdown-item">
+                                            <button type="button" class="dropdown-item text-danger" onclick="confirmDesktopLogout(event)">
                                                 <i class="fas fa-sign-out-alt me-2"></i> Logout
                                             </button>
                                         </form>
@@ -623,6 +623,42 @@
     <script src="{{ asset("assets/js/chart.min.js") }}"></script>
     <script src="{{ asset("assets/js/leaflet.min.js") }}"></script>
     <script src="{{ asset("assets/js/sweetalert2.min.js") }}"></script>
+    <script>
+        // Global override for native alert to ensure professional SweetAlert2 popups across desktop
+        window.alert = function(message) {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pemberitahuan',
+                    text: message,
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#0d6efd'
+                });
+            } else {
+                console.warn('Alert:', message);
+            }
+        };
+
+        function confirmDesktopLogout(e) {
+            if (e) e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi Keluar',
+                text: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Keluar',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('desktopLogoutForm');
+                    if (form) form.submit();
+                }
+            });
+        }
+    </script>
+
 
     <script>
         // Real-time device detection
@@ -832,12 +868,52 @@
             @if(session('error'))
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error!',
+                    title: 'Gagal!',
                     text: '{{ session('error') }}',
+                    timer: 4000,
+                    showConfirmButton: true
+                });
+            @endif
+
+            @if(session('warning'))
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan!',
+                    text: '{{ session('warning') }}',
+                    timer: 4000,
+                    showConfirmButton: true
+                });
+            @endif
+
+            @if(session('info'))
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Informasi',
+                    text: '{{ session('info') }}',
                     timer: 3000,
                     showConfirmButton: false
                 });
             @endif
+
+            @if(session('status'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session("status") == "profile-updated" ? "Profil berhasil diperbarui!" : (session("status") == "photo-updated" ? "Foto profil berhasil diperbarui!" : session("status")) }}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal!',
+                    html: '<ul class="text-start" style="font-size:14px; margin-bottom:0;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
+                    confirmButtonText: 'Tutup'
+                });
+            @endif
+
 
             // Notifikasi Mahasiswa / Admin
             @if(auth()->user() && !auth()->user()->hasRole('dpl'))
@@ -1050,63 +1126,71 @@
         });
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Override native form onsubmit with confirm()
-            document.querySelectorAll('form[onsubmit*="return confirm"]').forEach(form => {
-                const match = form.getAttribute('onsubmit').match(/return confirm\(['"`](.*?)['"`]\)/);
-                if (match) {
-                    const message = match[1];
-                    form.removeAttribute('onsubmit');
-                    form.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Konfirmasi',
-                            text: message,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Ya',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                            }
-                        });
-                    });
-                }
-            });
+        // Universal confirm interceptor for all forms and elements using capture phase
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form) return;
+            const onsubmitAttr = form.getAttribute('onsubmit') || '';
+            if (onsubmitAttr.includes('confirm(')) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                form.removeAttribute('onsubmit');
+                
+                const match = onsubmitAttr.match(/confirm\(['"`](.*?)['"`]\)/);
+                const message = match ? match[1] : 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+                
+                Swal.fire({
+                    title: 'Konfirmasi Aksi',
+                    text: message,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
+        }, true);
 
-            // Override native onclick with confirm()
-            document.querySelectorAll('[onclick*="return confirm"]').forEach(element => {
-                const match = element.getAttribute('onclick').match(/return confirm\(['"`](.*?)['"`]\)/);
-                if (match) {
-                    const message = match[1];
-                    element.removeAttribute('onclick');
-                    element.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Konfirmasi',
-                            text: message,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Ya',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                if (element.tagName === 'A') {
-                                    window.location.href = element.href;
-                                } else if (element.type === 'submit') {
-                                    element.closest('form').submit();
-                                }
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('[onclick*="confirm("]');
+            if (target) {
+                const onclickAttr = target.getAttribute('onclick') || '';
+                if (onclickAttr.includes('confirm(')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    target.removeAttribute('onclick');
+                    
+                    const match = onclickAttr.match(/confirm\(['"`](.*?)['"`]\)/);
+                    const message = match ? match[1] : 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+                    
+                    Swal.fire({
+                        title: 'Konfirmasi Aksi',
+                        text: message,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Lanjutkan',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (target.tagName === 'A' && target.href) {
+                                window.location.href = target.href;
+                            } else if (target.type === 'submit' && target.closest('form')) {
+                                target.closest('form').submit();
+                            } else {
+                                target.click();
                             }
-                        });
+                        }
                     });
                 }
-            });
-        });
+            }
+        }, true);
     </script>
     <x-firebase-init />
     @stack('scripts')

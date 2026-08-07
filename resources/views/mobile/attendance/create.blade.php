@@ -87,8 +87,8 @@
         </div>
 
         <div class="form-section">
-            <h3>Photo</h3>
-            <p class="form-hint">Ambil foto untuk bukti kehadiran</p>
+            <h3>Foto Presensi Selfie</h3>
+            <p class="form-hint"><i class="fas fa-info-circle me-1"></i>Syarat Foto: Wajib 1 foto selfie langsung di lokasi KKN (Ukuran maks 10MB)</p>
             
             <div class="photo-capture-area p-0 overflow-hidden" id="photoCaptureArea" style="position: relative; aspect-ratio: 3/4; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
                 <video id="camera" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 12px;"></video>

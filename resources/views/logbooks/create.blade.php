@@ -128,7 +128,8 @@
 
                         <div>
                             <x-input-label for="judul" value="Judul Kegiatan" />
-                            <x-text-input id="judul" name="judul" type="text" class="mt-1 block w-full" required />
+                            <x-text-input id="judul" name="judul" type="text" class="mt-1 block w-full" minlength="5" maxlength="255" required />
+                            <p class="text-sm text-gray-500 mt-1"><i class="fas fa-info-circle me-1"></i>Batasan Teks: Minimal 5 karakter, maksimal 255 karakter</p>
                             <x-input-error :messages="$errors->get('judul')" class="mt-2" />
                         </div>
 
@@ -154,20 +155,22 @@
 
                         <div>
                             <x-input-label for="keterangan" value="Keterangan Kegiatan" />
-                            <textarea id="keterangan" name="keterangan" rows="4" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required></textarea>
+                            <textarea id="keterangan" name="keterangan" rows="4" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" minlength="10" required></textarea>
+                            <p class="text-sm text-gray-500 mt-1"><i class="fas fa-info-circle me-1"></i>Batasan Teks: Minimal 10 karakter uraian kegiatan</p>
                             <x-input-error :messages="$errors->get('keterangan')" class="mt-2" />
                         </div>
 
                         <div>
                             <x-input-label for="lokasi" value="Lokasi Kegiatan" />
-                            <x-text-input id="lokasi" name="lokasi" type="text" class="mt-1 block w-full" required />
+                            <x-text-input id="lokasi" name="lokasi" type="text" class="mt-1 block w-full" minlength="3" maxlength="255" required />
+                            <p class="text-sm text-gray-500 mt-1"><i class="fas fa-info-circle me-1"></i>Batasan Teks: Minimal 3 karakter, maksimal 255 karakter</p>
                             <x-input-error :messages="$errors->get('lokasi')" class="mt-2" />
                         </div>
 
                         <div>
                             <x-input-label for="photos" value="Foto Kegiatan" />
                             <input type="file" id="photos" name="photos[]" class="mt-1 block w-full" accept="image/*" multiple required />
-                            <p class="text-sm text-gray-500 mt-1">Upload minimal 1 foto (format: jpg, jpeg, png, max: 20MB per foto)</p>
+                            <p class="text-sm text-gray-500 mt-1"><i class="fas fa-images me-1"></i>Syarat Foto: Minimal 1 foto, maksimal 5 foto (Format: JPG, JPEG, PNG, max: 20MB per foto)</p>
                             <x-input-error :messages="$errors->get('photos')" class="mt-2" />
                             <div id="preview" class="grid grid-cols-3 gap-4 mt-4"></div>
                         </div>
@@ -175,7 +178,7 @@
                         <div>
                             <x-input-label for="attachments" value="File Lampiran (Opsional)" />
                             <input type="file" id="attachments" name="attachments[]" class="mt-1 block w-full" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif" multiple />
-                            <p class="text-sm text-gray-500 mt-1">Upload file pendukung seperti PDF, DOC, DOCX, Excel, PowerPoint, atau gambar (max: 20MB per file)</p>
+                            <p class="text-sm text-gray-500 mt-1"><i class="fas fa-paperclip me-1"></i>Syarat Lampiran: Maksimal 3 berkas lampiran (Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, max: 20MB per berkas)</p>
                             <x-input-error :messages="$errors->get('attachments')" class="mt-2" />
                             <div id="attachmentPreview" class="mt-4 space-y-2"></div>
                         </div>
@@ -236,7 +239,12 @@
             const files = [...e.target.files];
             for (const file of files) {
                 if (file.size > 20 * 1024 * 1024) {
-                    alert('Ukuran file tidak boleh lebih dari 20MB!');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Ukuran Berkas Terlalu Besar',
+                        text: 'Ukuran foto tidak boleh lebih dari 20MB.',
+                        confirmButtonColor: '#0d6efd'
+                    });
                     photosInput.value = '';
                     return;
                 }
@@ -265,7 +273,12 @@
             // Validasi ukuran file
             for (const file of files) {
                 if (file.size > 20 * 1024 * 1024) { // 20MB
-                    alert('Ukuran file tidak boleh lebih dari 20MB!');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Ukuran Berkas Terlalu Besar',
+                        text: 'Ukuran berkas lampiran tidak boleh lebih dari 20MB.',
+                        confirmButtonColor: '#0d6efd'
+                    });
                     attachmentsInput.value = '';
                     return;
                 }
@@ -403,9 +416,24 @@
             }
         }
 
-        if (isKelompokSelect && jenisSelect) {
-            isKelompokSelect.addEventListener('change', adjustJenisOptions);
-            adjustJenisOptions();
+        // Time validation
+        const waktuMulai = document.getElementById('waktu_mulai');
+        const waktuSelesai = document.getElementById('waktu_selesai');
+
+        if (waktuMulai && waktuSelesai) {
+            waktuSelesai.addEventListener('change', function() {
+                if (waktuMulai.value && waktuSelesai.value) {
+                    if (waktuSelesai.value <= waktuMulai.value) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Waktu Tidak Valid',
+                            text: 'Waktu selesai harus lebih besar dari waktu mulai.',
+                            confirmButtonColor: '#0d6efd'
+                        });
+                        waktuSelesai.value = '';
+                    }
+                }
+            });
         }
 
         form.addEventListener('submit', function(e) {

@@ -467,55 +467,84 @@
 
         function deleteLogbookShow(id) {
             if (confirm('Yakin ingin menghapus logbook ini? Tindakan ini tidak dapat dibatalkan.')) {
-                fetch(`/logbooks/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: 'Apakah Anda yakin ingin menghapus logbook ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/logbooks/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: data.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    window.location.href = '{{ route("logbooks.index") }}';
+                                });
+                            } else {
+                                Swal.fire('Gagal', data.message || 'Gagal menghapus logbook', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error', 'Terjadi kesalahan saat menghapus logbook', 'error');
+                        });
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message);
-                        window.close(); // Attempt to close tab if opened via target="_blank"
-                        window.location.href = '/dashboard'; // Fallback
-                    } else {
-                        alert('Gagal menghapus logbook: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat menghapus logbook');
                 });
             }
         }
     </script>
     <script>
         function deleteAttachment(logbookId, index) {
-            if (confirm('Apakah Anda yakin ingin menghapus file ini?')) {
-                fetch(`/logbooks/${logbookId}/attachments`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ index: index })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Reload halaman untuk memperbarui tampilan
-                        location.reload();
-                    } else {
-                        alert('Gagal menghapus file: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat menghapus file');
-                });
-            }
+            Swal.fire({
+                title: 'Hapus Lampiran',
+                text: 'Apakah Anda yakin ingin menghapus berkas lampiran ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/logbooks/${logbookId}/attachments`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ index: index })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        } else {
+                            Swal.fire('Gagal', data.message || 'Gagal menghapus file', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Error', 'Terjadi kesalahan saat menghapus file', 'error');
+                    });
+                }
+            });
         }
     </script>
     @endpush

@@ -445,9 +445,20 @@
 @push('scripts')
 <script>
 function showLogoutConfirm() {
-    if (confirm('Apakah Anda yakin ingin keluar dari aplikasi?')) {
-        document.getElementById('logoutForm').submit();
-    }
+    Swal.fire({
+        title: 'Konfirmasi Keluar',
+        text: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Keluar',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('logoutForm').submit();
+        }
+    });
 }
 </script>
 @endpush 
