@@ -307,7 +307,7 @@ class AttendanceController extends Controller
     public function show(Absensi $attendance)
     {
         // Load relasi yang diperlukan
-        $attendance->load(['user.kelompok.lokasi', 'kelompok']);
+        $attendance->load(['user.kelompok.lokasi', 'kelompok', 'injectedBy']);
 
         // Jika user adalah DPL, pastikan absensi dari mahasiswa bimbingannya
         if (auth()->user()->hasRole('dpl')) {
@@ -338,7 +338,10 @@ class AttendanceController extends Controller
                 'longitude' => $attendance->longitude,
                 'latitude_keluar' => $attendance->latitude_keluar,
                 'longitude_keluar' => $attendance->longitude_keluar,
-                'keterangan' => $attendance->keterangan
+                'keterangan' => $attendance->keterangan,
+                'is_injected' => $attendance->isInjected(),
+                'injected_by_name' => $attendance->injectedBy?->name ?? 'Admin',
+                'catatan_inject' => $attendance->catatan_inject
             ]);
         }
 

@@ -501,6 +501,12 @@
                         <span>Broadcast Pengumuman</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.attendance-inject.index') }}" class="{{ request()->routeIs('admin.attendance-inject.*') ? 'active' : '' }}">
+                        <i class="fas fa-syringe me-2"></i>
+                        <span>Inject Absensi</span>
+                    </a>
+                </li>
                 @endrole
             </ul>
         </nav>

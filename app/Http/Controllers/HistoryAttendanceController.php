@@ -39,7 +39,7 @@ class HistoryAttendanceController extends Controller
                 if ($semester_id) {
                     $q->where('semester_id', $semester_id);
                 }
-            })->with(['user', 'kelompok'])
+            })->with(['user', 'kelompok', 'injectedBy'])
                 ->orderBy('created_at', 'desc');
         } elseif ($user->hasRole('dpl')) {
             // DPL melihat absensi mahasiswa bimbingannya
@@ -54,12 +54,12 @@ class HistoryAttendanceController extends Controller
                     }
                 });
             })
-            ->with(['user', 'kelompok'])
+            ->with(['user', 'kelompok', 'injectedBy'])
             ->orderBy('created_at', 'desc');
         } else {
             // Mahasiswa melihat absensi mereka sendiri
             $query = Absensi::where('user_id', $user->id)
-                ->with(['user', 'kelompok'])
+                ->with(['user', 'kelompok', 'injectedBy'])
                 ->orderBy('created_at', 'desc');
         }
 
@@ -151,7 +151,7 @@ class HistoryAttendanceController extends Controller
             }
         }
 
-        $attendance->load(['user', 'kelompok']);
+        $attendance->load(['user', 'kelompok', 'injectedBy']);
         
         return view('history.attendances.show', compact('attendance'));
     }

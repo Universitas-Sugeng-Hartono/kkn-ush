@@ -391,6 +391,16 @@
                                 <label class="form-label fw-bold">Lokasi Keluar</label>
                                 <p id="detail-lokasi-keluar"></p>
                             </div>
+                            <div id="detail-injected-container" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-warning"><i class="fas fa-user-shield me-1"></i>Di-inject Oleh</label>
+                                    <p id="detail-injected-by" class="mb-0"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-warning"><i class="fas fa-sticky-note me-1"></i>Catatan Inject</label>
+                                    <div id="detail-catatan-inject" class="p-2 border rounded bg-light small"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -724,11 +734,16 @@
                     document.getElementById('detail-tanggal').textContent = data.tanggal;
                 document.getElementById('detail-waktu-masuk').textContent = data.waktu_masuk;
                 document.getElementById('detail-waktu-keluar').textContent = data.waktu_keluar || '-';
-                    document.getElementById('detail-status').innerHTML = `
+                    let statusHtml = `
                         <span class="badge ${data.status === 'validated' ? 'bg-success' : 
                                (data.status === 'rejected' ? 'bg-danger' : 'bg-warning')}">
                             ${data.status}
                         </span>`;
+                    
+                    if (data.is_injected) {
+                        statusHtml += `<br><span class="badge bg-warning text-dark mt-2" style="font-size: 0.8rem;"><i class="fas fa-syringe me-1"></i>Injected</span>`;
+                    }
+                    document.getElementById('detail-status').innerHTML = statusHtml;
                 document.getElementById('detail-lokasi-masuk').textContent = data.lokasi_masuk;
                 document.getElementById('detail-lokasi-keluar').textContent = data.lokasi_keluar || '-';
 
@@ -743,6 +758,14 @@
                     document.getElementById('detail-foto-keluar').style.display = 'block';
                 } else {
                     document.getElementById('detail-foto-keluar').style.display = 'none';
+                }
+
+                if (data.is_injected) {
+                    document.getElementById('detail-injected-container').style.display = 'block';
+                    document.getElementById('detail-injected-by').textContent = data.injected_by_name;
+                    document.getElementById('detail-catatan-inject').textContent = data.catatan_inject || '-';
+                } else {
+                    document.getElementById('detail-injected-container').style.display = 'none';
                 }
                     
                     new bootstrap.Modal(document.getElementById('detailModal')).show();

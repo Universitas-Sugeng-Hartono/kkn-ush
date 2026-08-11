@@ -26,7 +26,9 @@ class Absensi extends Model
         'longitude_keluar',
         'lokasi',
         'lokasi_keluar',
-        'status'
+        'status',
+        'injected_by',
+        'catatan_inject'
     ];
 
     protected $casts = [
@@ -47,5 +49,15 @@ class Absensi extends Model
     public function kelompok(): BelongsTo
     {
         return $this->belongsTo(Kelompok::class);
+    }
+
+    public function injectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'injected_by');
+    }
+
+    public function isInjected(): bool
+    {
+        return !is_null($this->injected_by);
     }
 } 

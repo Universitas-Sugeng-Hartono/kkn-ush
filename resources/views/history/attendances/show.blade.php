@@ -173,6 +173,12 @@
                             <span class="badge {{ $statusColor }}" style="font-size: 1rem;">
                                 {{ $statusLabels[$attendance->status] ?? $attendance->status }}
                             </span>
+                            @if($attendance->isInjected())
+                                <br>
+                                <span class="badge bg-warning text-dark mt-2" style="font-size: 0.9rem;" title="Di-inject oleh: {{ $attendance->injectedBy?->name ?? '-' }}">
+                                    <i class="fas fa-syringe me-1"></i>Injected
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -239,6 +245,20 @@
                                         <td class="fw-bold">Dibuat Pada</td>
                                         <td>{{ $attendance->created_at->format('d/m/Y H:i') }}</td>
                                     </tr>
+                                    @if($attendance->isInjected())
+                                    <tr>
+                                        <td class="fw-bold" style="color: #f2b70d;"><i class="fas fa-user-shield me-1"></i>Di-inject Oleh</td>
+                                        <td>{{ $attendance->injectedBy?->name ?? 'Admin' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold" style="color: #f2b70d;"><i class="fas fa-sticky-note me-1"></i>Catatan Inject</td>
+                                        <td>
+                                            <div class="p-2 border rounded bg-light small">
+                                                {{ $attendance->catatan_inject ?? '-' }}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endif
                                 </table>
                             </div>
                         </div>

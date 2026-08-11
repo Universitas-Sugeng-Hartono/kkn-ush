@@ -113,6 +113,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/broadcast', [BroadcastController::class, 'adminStore'])->name('admin.broadcast.store');
         Route::put('/admin/broadcast/{id}', [BroadcastController::class, 'adminUpdate'])->name('admin.broadcast.update');
         Route::delete('/admin/broadcast/{id}', [BroadcastController::class, 'adminDestroy'])->name('admin.broadcast.destroy');
+
+        // Inject Absensi oleh Admin
+        Route::get('/admin/attendance-inject', [App\Http\Controllers\AdminAttendanceInjectController::class, 'index'])->name('admin.attendance-inject.index');
+        Route::get('/admin/attendance-inject/create', [App\Http\Controllers\AdminAttendanceInjectController::class, 'create'])->name('admin.attendance-inject.create');
+        Route::post('/admin/attendance-inject', [App\Http\Controllers\AdminAttendanceInjectController::class, 'store'])->name('admin.attendance-inject.store');
+        Route::delete('/admin/attendance-inject/{attendance}', [App\Http\Controllers\AdminAttendanceInjectController::class, 'destroy'])->name('admin.attendance-inject.destroy');
     });
 
     // DPL Routes

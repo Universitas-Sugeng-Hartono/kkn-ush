@@ -330,6 +330,12 @@
                                                     <span class="badge {{ $statusColor }}">
                                                         {{ $statusLabels[$attendance->status] ?? $attendance->status }}
                                                     </span>
+                                                    @if($attendance->isInjected())
+                                                        <br>
+                                                        <span class="badge bg-warning text-dark mt-1" style="font-size: 0.7rem;" title="Di-inject oleh: {{ $attendance->injectedBy?->name ?? '-' }}">
+                                                            <i class="fas fa-syringe me-1"></i>Injected
+                                                        </span>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <a href="{{ route('history.attendances.show', $attendance) }}" class="btn btn-sm btn-info text-white mb-1">
