@@ -196,7 +196,7 @@
                             </div>
                             <div>
                                 <div class="input-group input-group-sm" style="width: 250px;">
-                                    <input type="text" form="filterForm" name="search" class="form-control" placeholder="Cari nama/kelompok..." value="{{ request('search') }}">
+                                    <input type="text" form="filterForm" name="search" id="searchInput" class="form-control" placeholder="Cari nama/kelompok..." value="{{ request('search') }}">
                                     <button form="filterForm" class="btn btn-primary" type="submit">
                                         <i class="fas fa-search"></i>
                                     </button>
@@ -310,11 +310,13 @@
             const searchInput = document.getElementById('searchInput');
 
             // Prevent form submit on Enter press in search input
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                }
-            });
+            if (searchInput) {
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            }
         });
     </script>
     @endpush

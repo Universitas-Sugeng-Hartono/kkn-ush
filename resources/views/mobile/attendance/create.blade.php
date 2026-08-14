@@ -679,7 +679,7 @@ function getLocation() {
             },
             {
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 30000,
                 maximumAge: 300000 // 5 minutes
             }
         );
@@ -746,7 +746,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'foto',
             'photoCaptureArea',
             'photo',
-            'photoPreview',
             'capturePlaceholder',
             'submitBtn',
             'submitText',
@@ -1286,7 +1285,6 @@ function removePhoto() {
     console.log('Removing photo');
     document.getElementById('photo').value = '';
     document.getElementById('foto').value = '';
-    document.getElementById('photoPreview').innerHTML = '';
     document.getElementById('capturePlaceholder').style.display = 'block';
     photoTaken = false;
     checkFormValidity();

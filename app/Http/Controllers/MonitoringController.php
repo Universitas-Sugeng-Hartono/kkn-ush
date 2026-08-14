@@ -340,17 +340,13 @@ class MonitoringController extends Controller
         $perPage = $request->query('per_page', 15);
 
         if ($search) {
-            $baseQuery->where(function($q) use ($search, $tipe) {
-                if ($tipe === 'kelompok') {
-                    $q->whereHas('kelompok', function($kq) use ($search) {
-                        $kq->where('nama', 'like', '%' . $search . '%');
-                    });
-                } else {
-                    $q->whereHas('user', function($uq) use ($search) {
-                        $uq->where('name', 'like', '%' . $search . '%')
-                          ->orWhere('nim', 'like', '%' . $search . '%');
-                    });
-                }
+            $baseQuery->where(function($q) use ($search) {
+                $q->whereHas('kelompok', function($kq) use ($search) {
+                    $kq->where('nama_kelompok', 'like', '%' . $search . '%');
+                })->orWhereHas('user', function($uq) use ($search) {
+                    $uq->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('nim', 'like', '%' . $search . '%');
+                });
             });
         }
 
