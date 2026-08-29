@@ -280,6 +280,17 @@
                                 <div id="attachmentPreview" class="mt-2"></div>
                             </div>
 
+                            <div class="mb-3">
+                                <label for="status" class="form-label fw-bold">Status Logbook <span class="text-danger">*</span></label>
+                                <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
+                                    <option value="draft" {{ old('status', $logbook->status) === 'draft' ? 'selected' : '' }}>Draft (Simpan sementara)</option>
+                                    <option value="submitted" {{ old('status', $logbook->status) === 'submitted' ? 'selected' : '' }}>Submit (Kirim ke DPL)</option>
+                                </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save me-2"></i>Simpan Perubahan

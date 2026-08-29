@@ -183,7 +183,14 @@
                             <div id="attachmentPreview" class="mt-4 space-y-2"></div>
                         </div>
 
-                        <input type="hidden" name="status" value="submitted">
+                        <div>
+                            <x-input-label for="status" value="Status Logbook" />
+                            <select id="status" name="status" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="submitted" {{ old('status', 'submitted') === 'submitted' ? 'selected' : '' }}>Submit (Kirim ke DPL)</option>
+                                <option value="draft" {{ old('status') === 'draft' ? 'selected' : '' }}>Draft (Simpan sementara)</option>
+                            </select>
+                            <x-input-error :messages="$errors->get('status')" class="mt-2" />
+                        </div>
 
                         <div class="flex items-center gap-4">
                             <x-primary-button>{{ __('Simpan') }}</x-primary-button>

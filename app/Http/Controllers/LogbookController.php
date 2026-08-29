@@ -167,21 +167,6 @@ class LogbookController extends Controller
             return redirect()->back()->with('error', $msg);
         }
 
-        // Validasi rentang tanggal KKN Aktif
-        $tahunAktif = \App\Models\TahunAkademik::getAktif();
-        $semesterAktif = \App\Models\Semester::getAktif();
-        $angkatanAktif = null;
-        if ($tahunAktif && $semesterAktif) {
-            $angkatanAktif = \App\Models\Angkatan::where('tahun_akademik_id', $tahunAktif->id)
-                ->where('semester_id', $semesterAktif->id)
-                ->first();
-        }
-        if (!$angkatanAktif || !now()->startOfDay()->between($angkatanAktif->tanggal_mulai, $angkatanAktif->tanggal_selesai)) {
-            $msg = 'Anda hanya dapat mengirim logbook saat masa KKN sedang berjalan sesuai jadwal dari Universitas Sugeng Hartono.';
-            if ($request->wantsJson()) return response()->json(['message' => $msg, 'status' => 'error'], 422);
-            return redirect()->back()->with('error', $msg);
-        }
-
         $validated = $request->validate([
             'tanggal' => 'required|date',
             'waktu_mulai' => 'required',

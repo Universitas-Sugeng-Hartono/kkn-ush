@@ -466,17 +466,16 @@
         }
 
         function deleteLogbookShow(id) {
-            if (confirm('Yakin ingin menghapus logbook ini? Tindakan ini tidak dapat dibatalkan.')) {
-                Swal.fire({
-                    title: 'Konfirmasi Hapus',
-                    text: 'Apakah Anda yakin ingin menghapus logbook ini?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: 'Apakah Anda yakin ingin menghapus logbook ini? Tindakan ini tidak dapat dibatalkan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
                     if (result.isConfirmed) {
                         fetch(`/logbooks/${id}`, {
                             method: 'DELETE',
