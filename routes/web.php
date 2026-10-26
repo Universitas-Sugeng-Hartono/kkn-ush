@@ -119,6 +119,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/attendance-inject/create', [App\Http\Controllers\AdminAttendanceInjectController::class, 'create'])->name('admin.attendance-inject.create');
         Route::post('/admin/attendance-inject', [App\Http\Controllers\AdminAttendanceInjectController::class, 'store'])->name('admin.attendance-inject.store');
         Route::delete('/admin/attendance-inject/{attendance}', [App\Http\Controllers\AdminAttendanceInjectController::class, 'destroy'])->name('admin.attendance-inject.destroy');
+
+        // Laporan Kelompok (Admin)
+        Route::get('/admin/laporan-kelompok', [App\Http\Controllers\AdminLaporanKelompokController::class, 'index'])->name('admin.laporan-kelompok.index');
+        Route::get('/admin/laporan-kelompok/download-zip', [App\Http\Controllers\AdminLaporanKelompokController::class, 'downloadZip'])->name('admin.laporan-kelompok.download-zip');
+        Route::get('/admin/laporan-kelompok/{laporanKelompok}', [App\Http\Controllers\AdminLaporanKelompokController::class, 'show'])->name('admin.laporan-kelompok.show');
+        Route::get('/admin/laporan-kelompok/{laporanKelompok}/preview', [App\Http\Controllers\AdminLaporanKelompokController::class, 'preview'])->name('admin.laporan-kelompok.preview');
     });
 
     // DPL Routes

@@ -496,6 +496,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('admin.laporan-kelompok.index') }}" class="{{ request()->routeIs('admin.laporan-kelompok.*') ? 'active' : '' }}">
+                        <i class="fas fa-folder-open me-2"></i>
+                        <span>Laporan Kelompok</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.broadcast.index') }}" class="{{ request()->routeIs('admin.broadcast.*') ? 'active' : '' }}">
                         <i class="fas fa-bullhorn me-2"></i>
                         <span>Broadcast Pengumuman</span>

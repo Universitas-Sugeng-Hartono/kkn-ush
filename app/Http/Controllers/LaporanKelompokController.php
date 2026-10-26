@@ -79,7 +79,7 @@ class LaporanKelompokController extends Controller
         }
 
         if (!$laporanKelompok->file_path || !Storage::disk('public')->exists($laporanKelompok->file_path)) {
-            abort(404);
+            return back()->with('error', 'File laporan "' . ($laporanKelompok->judul ?: $laporanKelompok->file_original_name) . '" tidak ditemukan di penyimpanan server.');
         }
 
         $extension = pathinfo($laporanKelompok->file_original_name, PATHINFO_EXTENSION) ?: pathinfo($laporanKelompok->file_path, PATHINFO_EXTENSION);
